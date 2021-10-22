@@ -1,0 +1,53 @@
+#
+# Copyright(c) 2021 Intel Corporation.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+Prerequisites:
+- P4-OVS container is up and running. 
+- Two independent VMs are up and running on the host machine/server.
+  Its recommeded to look at 'VM Setup' section below.
+
+VM Setup:
+Pre-requisite: Pre-build VM image.
+- This involves below steps:
+  1. Start VMs - One can use helper scripts 'start_vm.sh' provided in this example folder.
+     Check for Mountpoint directory with 'docker volume inspect shared' on host
+     machine/server and use this directory in 'path' field of the qemu-kvm.
+  2. Configure IP address and ARP entry on each VM.
+
+Configuration Details:
+a) Add a virtual port vA to say VM A.
+b) Add a virtual port vB to say VM B.
+c) Put vA and vB into a virtual bridge in P4-OVS container using vhost-user interface.
+d) Ping and/or send traffic sucessfully between VM A & VM B.
+
+P4 Program:
+- Helper p4 program and supporting files can be found in 'simple_l3' folder.
+
+
+
+    +-----+          +---------+             +-----+
+    |VM A |<-------->| P4-OVS  |<------------>|VM B |
+    +-----+          |         |	     +-----+
+                     |Container| 
+                     +---------+           
+
+
+
+
+How to connect your VM to your P4-OVS container:
+- Recommended way to do this is to create a shared volume between P4-OVS container and your VM. This can be done with 'docker create volume' command. 
+
+
+

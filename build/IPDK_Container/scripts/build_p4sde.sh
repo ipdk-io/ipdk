@@ -1,0 +1,104 @@
+# Copyright (c) 2021 Intel Corporation.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at:
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#!/usr/bin/bash
+
+set -e
+
+source os_ver_details.sh
+
+if [ -z "$1" ]
+then
+   echo "-Missing mandatory arguments:"
+   echo " - Usage: ./build-p4sde.sh <WORKDIR> "
+   return 1
+fi
+
+# npm using https for git
+git config --global url."https://github.com/".insteadOf git@github.com:
+git config --global url."https://".insteadOf git://
+
+echo "Removing p4-sde directory if it already exists"
+if [ -d "p4-sde" ]; then rm -Rf p4-sde; fi
+mkdir $1/p4-sde && cd $1/p4-sde
+#..Setting Environment Variables..#
+echo "Exporting Environment Variables....."
+export SDE=${PWD}
+export SDE_INSTALL=$SDE/install
+
+#...Package Config Path...#
+export PKG_CONFIG_PATH=${SDE_INSTALL}/lib64/pkgconfig
+
+#..Runtime Path...#
+export LD_LIBRARY_PATH=$SDE_INSTALL/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SDE_INSTALL/lib64
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+
+echo "SDE environment variable"
+echo $SDE
+echo $SDE_INSTALL
+echo $PKG_CONFIG_PATH
+
+#Read the number of CPUs in a system and derive the NUM threads
+get_num_cores
+echo "Number of Parallel threads used: $NUM_THREADS ..."
+echo ""
+
+cd $SDE
+echo "Removing target-syslibs directory if it already exists"
+if [ -d "target-syslibs" ]; then rm -Rf target-syslibs; fi
+echo "Compiling target-syslibs"
+git clone https://github.com/p4lang/target-syslibs.git --recursive target-syslibs
+cd target-syslibs
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL ..
+make clean
+make $NUM_THREADS
+#make $NUM_THREADS install
+ldconfig
+
+cd $SDE
+echo "Removing target-utils directory if it already exists"
+if [ -d "target-utils" ]; then rm -Rf target-utils; fi
+echo "Compiling target-utils"
+git clone https://github.com/p4lang/target-utils.git --recursive target-utils
+cd target-utils
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL -DCPYTHON=1 -DSTANDALONE=ON ..
+make clean
+make $NUM_THREADS
+make $NUM_THREADS install
+ldconfig
+
+cd $SDE
+echo "Removing p4-driver repository if it already exists"
+if [ -d "p4-driver" ]; then rm -Rf p4-driver; fi
+echo "Compiling p4-driver"
+#TODO: Below link needs to be updated when code is open-sourced
+git clone https://github.com/p4lang/p4-dpdk-target.git --recursive p4-driver
+
+pip3 install distro
+cd p4-driver/tools/setup
+python3 install_dep.py
+
+cd $SDE/p4-driver
+./autogen.sh
+./configure --prefix=$SDE_INSTALL
+make clean
+make $NUM_THREADS
+make $NUM_THREADS install
+ldconfig
+
+set +e
