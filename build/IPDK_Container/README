@@ -1,16 +1,5 @@
-# Copyright (c) 2021 Intel Corporation.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at:
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+#Copyright (C) 2021 Intel Corporation
+#SPDX-License-Identifier: Apache-2.0
 
 -------------------------------------------------------------------------------
 IPDK Container (Version 0.1.0)
@@ -48,7 +37,8 @@ Note: Build and run your IPDK container from ‘build/IPDK_Container’ director
 
 Commands to bring-up container and run OvS with P4:
 ---------------------------------------------------
-1) Edit the IPDK_Container/docker.env file to add your proxy
+1) Edit the IPDK_Container/docker.env and IPDK_Container/start_p4ovs.sh files 
+   to add your proxy
 2) Run - make build-nc - To build a docker image.
 3) Run - make volume - To create a shared volume and configure your IPDK 
 container to use it. This shares '/tmp' directory in your container with 
@@ -60,8 +50,7 @@ container up and running. You should see the container prompt like below:
     root@c5efb1a949ad ~]# 
 c5efb1a949ad is your container id as displayed in command 'docker ps -a'
 
-4) The below command is automatically executed on start of container. In case of
-   errors or restart run:
+4) Clone and install dependencies using
     a. source /root/start_p4ovs.sh <any directory>
         Eg: source start_p4ovs.sh /root
         This command clones and installs dependent packages, TDI repositories, 

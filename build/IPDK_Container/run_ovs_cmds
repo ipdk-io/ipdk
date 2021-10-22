@@ -1,3 +1,6 @@
+#Copyright (C) 2021 Intel Corporation
+#SPDX-License-Identifier: Apache-2.0
+
 These are the manual steps to setup environment variables, hugepages 
 and run P4-OVS.
 
