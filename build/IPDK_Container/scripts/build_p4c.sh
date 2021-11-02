@@ -13,6 +13,9 @@ then
    return 1
 fi
 
+#SHA on top which P4C is validated
+P4C_SHA=d2f0c2a22286c6b6643e5e3906cf020d6d698c70
+
 WORKDIR=$1
 cd $WORKDIR
 
@@ -28,6 +31,7 @@ echo ""
 
 git clone https://github.com/p4lang/p4c.git --recursive P4C
 cd P4C
+git checkout $P4C_SHA
 mkdir build && cd build
 cmake ..
 make $NUM_THREADS
