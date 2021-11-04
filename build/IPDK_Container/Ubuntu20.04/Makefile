@@ -17,23 +17,23 @@ export $(shell sed 's/=.*//' $(env_var))
 help:;@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 #awk '/^#/{c=substr($$0,3);next}c&&/^[[:alpha:]][[:alnum:]_-]+:/{print substr($$1,1,index($$1,":")),c}1{c=0}' $(MAKEFILE_LIST) | column -s: -t
 
-# DOCKER COMMANDS 
+# DOCKER COMMANDS
 ## Build the docker image
-build: ;docker build -t ${IMAGE_NAME}:${TAG} -f Dockerfile . \
+build: ;docker build -t ${IMAGE_NAME}:${TAG} -f Dockerfile ../ \
 --build-arg OS_VERSION=${OS_VERSION}
 
 ## Build the docker image with proxy
-build-proxy: ;docker build -t ${IMAGE_NAME}:${TAG} -f Dockerfile . \
+build-proxy: ;docker build -t ${IMAGE_NAME}:${TAG} -f Dockerfile ../ \
 --build-arg http_proxy=${PROXY} \
 --build-arg https_proxy=${PROXY} \
 --build-arg OS_VERSION=${OS_VERSION}
 
 ## Build the container without caching. To be used when cloning from GIT repo.
-build-nc: ;docker build --no-cache -t ${IMAGE_NAME}:${TAG} -f Dockerfile . \
+build-nc: ;docker build --no-cache -t ${IMAGE_NAME}:${TAG} -f Dockerfile ../ \
 --build-arg OS_VERSION=${OS_VERSION}
 
 ## Build the container without caching and with proxy. To be used when cloning from GIT repo.
-build-nc-proxy: ;docker build --no-cache -t ${IMAGE_NAME}:${TAG} -f Dockerfile . \
+build-nc-proxy: ;docker build --no-cache -t ${IMAGE_NAME}:${TAG} -f Dockerfile ../ \
 --build-arg http_proxy=${PROXY} \
 --build-arg https_proxy=${PROXY} \
 --build-arg OS_VERSION=${OS_VERSION}

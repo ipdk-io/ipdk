@@ -1,11 +1,11 @@
+#!/bin/bash
 #Copyright (C) 2021 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
-
-#!/usr/bin/bash
 
 set -e
 
 source os_ver_details.sh
+get_os_ver_details
 
 if [ -z "$1" ]
 then
@@ -18,6 +18,9 @@ fi
 git config --global url."https://github.com/".insteadOf git@github.com:
 git config --global url."https://".insteadOf git://
 
+WORKDIR=$1
+cd ${WORKDIR}
+
 echo "Removing p4-sde directory if it already exists"
 if [ -d "p4-sde" ]; then rm -Rf p4-sde; fi
 mkdir $1/p4-sde && cd $1/p4-sde
@@ -27,7 +30,11 @@ export SDE=${PWD}
 export SDE_INSTALL=$SDE/install
 
 #...Package Config Path...#
-export PKG_CONFIG_PATH=${SDE_INSTALL}/lib64/pkgconfig
+if [ "${OS}" = "Ubuntu" ] || "${VER}" = "20.04"; then
+    export PKG_CONFIG_PATH=${SDE_INSTALL}/lib/x86_64-linux-gnu/pkgconfig
+else
+    export PKG_CONFIG_PATH=${SDE_INSTALL}/lib64/pkgconfig
+fi
 
 #..Runtime Path...#
 export LD_LIBRARY_PATH=$SDE_INSTALL/lib
@@ -80,6 +87,9 @@ git clone https://github.com/p4lang/p4-dpdk-target.git --recursive p4-driver
 
 pip3 install distro
 cd p4-driver/tools/setup
+if [ "${OS}" = "Ubuntu" ]; then
+    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+fi
 python3 install_dep.py
 
 cd $SDE/p4-driver
