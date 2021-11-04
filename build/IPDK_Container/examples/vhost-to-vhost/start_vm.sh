@@ -1,13 +1,17 @@
+#!/bin/bash
 #Copyright (C) 2021 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
-
-#!/usr/bin/bash
 
 #QCOW2 IMAGES PATH...#
 QCOW2_IMAG_PATH_VM1=<IMAGE1>.img
 QCOW2_IMAG_PATH_VM2=<IMAGE2>.img
 
-qemu-kvm -smp 4 -m 4096M \
+# application to run the Qemu KVM in Fedora.
+QEMU=qemu-kvm
+#enable below line if using Ubuntu
+#QEMU=qemu-system-x86_64
+
+${QEMU} -smp 4 -m 4096M \
     -boot c -cpu host -enable-kvm -nographic \
     -L /root/pc-bios -name VM1_TAP_DEV \
     -hda ${QCOW2_IMAG_PATH_VM1} \
@@ -19,7 +23,7 @@ qemu-kvm -smp 4 -m 4096M \
     -device virtio-net-pci,mac=00:e8:ca:11:aa:01,netdev=netdev0 \
     -serial telnet::6551,server,nowait &
 
-qemu-kvm -smp 4 -m 4096M \
+${QEMU} -smp 4 -m 4096M \
     -boot c -cpu host -enable-kvm -nographic \
     -L /root/pc-bios -name VM1_TAP_DEV \
     -hda ${QCOW2_IMAG_PATH_VM2} \
