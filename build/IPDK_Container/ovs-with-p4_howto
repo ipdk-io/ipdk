@@ -1,0 +1,248 @@
+-------------------------------------------------------------------------------
+OVS-With-P4 HOW-TO (Fedora 33 and Ubunutu 18 supported for now)
+-------------------------------------------------------------------------------
+OVS-with-P4 is a branch on the IPDK fork of OVS that integrates P4 capabilities
+with OVS solution. Just like Ofporoto which is the Openflow interface in OVS, P4
+capabilities are introduced in p4proto layer.
+
+ovs-with-p4 is built with the following components –
+1. OvS with P4 Support (https://github.com/ipdk-io/ovs/tree/ovs-with-p4)
+2. P4_DPDK_target API library (https://github.com/p4lang/p4-dpdk-target)
+3. P4-DPDK (https://github.com/DPDK/dpdk)
+
+Following are the steps to build all the three components and their dependencies 
+and integrates them within OvS providing a P4 based virtual switch- 
+
+-------------------------------------------------------------------------------
+Section 1:  Build P4-DPDK-Target with P4-DPDK (linked in OVS-with-P4 branch)
+-------------------------------------------------------------------------------
+1. Export environment variables:
+export SDE=<any directory>
+export SDE_INSTALL=${SDE}/install
+export LD_LIBRARY_PATH=$SDE_INSTALL/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SDE_INSTALL/lib/x86_64-linux-gnu
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SDE_INSTALL/lib64
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+
+2. Build P4-DPDK-Target with P4-DPDK
+- Build target-syslibs
+git clone https://github.com/p4lang/target-syslibs.git --recursive target-syslibs
+cd target-syslibs
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL ..
+make clean
+make $NUM_THREADS
+#make $NUM_THREADS install
+ldconfig
+
+- Build target-utils
+git clone https://github.com/p4lang/target-utils.git --recursive target-utils
+cd target-utils
+mkdir build && cd build
+cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL -DCPYTHON=1 -DSTANDALONE=ON ..
+make clean
+make $NUM_THREADS
+make $NUM_THREADS install
+ldconfig
+
+- Build p4-dpdk-target
+git clone https://github.com/p4lang/p4-dpdk-target.git --recursive p4-driver
+pip3 install distro
+cd p4-driver/tools/setup
+python3 install_dep.py
+cd $SDE/p4-driver
+./autogen.sh
+./configure --prefix=$SDE_INSTALL
+make clean
+make $NUM_THREADS
+make $NUM_THREADS install
+ldconfig
+
+-------------------------------------------------------------------------------
+Section 2:  Build OVS-with-p4
+-------------------------------------------------------------------------------
+1. git clone https://github.com/ipdk-io/ovs.git -b ovs-with-p4 --recursive P4-OVS
+2. cd P4-OVS
+3. ./install_dep_packages <SRC_DIR> [INSTALL_DIR]
+4. Build using (a) OR (b) below: 
+a) Build and Install using a script:
+   P4-OvS repository has a script build-p4ovs.sh which will update environment variables, 
+   create dependent configuration files and build P4-OvS. Command to run build script:
+$ ./build-p4ovs.sh $SDE_INSTALL [INSTALL_DIR]
+
+b) Build and Install manually
+$ source p4ovs_env_setup.sh $SDE_INSTALL [INSTALL_DIR]
+$ ./apply_stratum_artifacts.sh $SDE_INSTALL
+$./boot.sh
+$ ./configure [--prefix=INSTALL_DIR] --with-p4tdi=$SDE_INSTALL
+$ make
+$ make install
+
+5. At any point to uninstall dependent packages (use this only for a clean start)
+$ ./uninstall_dep_pacakges.sh <SRC_FOLDER> [INSTALL_DIR]
+
+-------------------------------------------------------------------------------
+Section 3:  Run OVS-with-p4
+-------------------------------------------------------------------------------
+1) Export the variables:
+   source <P4-OVS directory>/p4ovs_env_setup.sh $SDE_INSTALL
+
+3) Setup hugepages:
+   /root/scripts/set_hugepages.sh
+
+4) rm -rf /tmp/vhost-user-* (if its a re-run)
+
+5) Start OvS-with-P4 manually by running the following -
+- Kill OVS processes if already running and cleanup the conf files.
+kill -9 `pidof ovsdb-server`
+kill -9 `pidof ovs-vswitchd`
+mkdir -p /var/run/openvswitch
+rm -rf /usr/local/etc/openvswitch/conf.db
+rm -rf /usr/local/etc/openvswitch/.conf.db*
+rm -rf /usr/local/var/run/openvswitch/*.pid
+rm -rf /usr/local/var/run/openvswitch/*.ctl
+
+- Create all directories
+mkdir -p /usr/local/etc/openvswitch
+mkdir -p /usr/local/var/run/openvswitch
+ovsdb-tool create /usr/local/etc/openvswitch/conf.db \
+        /usr/local/share/openvswitch/vswitch.ovsschema
+
+- Start OVSDB server
+ovsdb-server \
+        --remote=punix:/usr/local/var/run/openvswitch/db.sock \
+        --remote=db:Open_vSwitch,Open_vSwitch,manager_options \
+        --pidfile --detach
+ovs-vsctl --no-wait init
+
+- Staring OvS VSWITCHD Process...."
+ovs-vswitchd --pidfile --detach --no-chdir --mlockall --log-file=/tmp/ovs-vswitchd.log
+
+
+**At this point your OvS should be up and running and you should see ovsdb-server
+and ovs-vswitchd process in ‘ps -ef | grep ovs’ command.
+
+--------------------------------------------------------------------------------
+Section 4: Example scenario setup ( VM1 <-> IPDK Container <-> VM2 )
+--------------------------------------------------------------------------------
+Below commands will help you setup traffic between 2 VMs on host with
+IPDK container as a vswitch switching traffic between them:
+
+Pre-requisite:
+- Pre-built VM qcow2 image.
+- Section 1, 2 and 3 should be complete and OvS should be running
+- Section 5 should be used to generate all dependent files from P4
+
+Commands to setup the example scenario:
+---------------------------------------
+1) Cleanup any previously used vhost ports before you re-start OvS:
+    a. rm -rf /tmp/vhost-user-*
+
+2) From within the container create 2 vhost ports using GNMI commands
+    a. (If new bash) Run -
+       source <P4-OVS directory>/p4ovs_env_setup.sh $SDE_INSTALL
+    b. alias
+       sudo='sudo PATH="$PATH" HOME="$HOME" LD_LIBRARY_PATH="$LD_LIBRARY_PATH"'
+    c. sudo gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,\
+       device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-0,\
+       port-type:LINK"
+    d. sudo gnmi-cli set "device:virtual-device,name:net_vhost1,host:host2,\
+       device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-1,\
+       port-type:LINK"
+
+3) On your host, start your VMs using the following qemu commands or similar.
+These enable your vhost ports within the VM to communicate with the container.
+-vm1.qcow2 and vm2.qcow2 are the VM images
+
+VM1:
+----
+qemu-kvm -smp 4 -m 1024M \
+    -boot c -cpu host -enable-kvm -nographic \
+    -L /root/pc-bios -name VM1_TAP_DEV \
+    -hda ./vm1.qcow2 \
+    -object memory-backend-file,id=mem,size=1024M,mem-path=/dev/hugepages,share=on \
+    -mem-prealloc \
+    -numa node,memdev=mem \
+    -chardev socket,id=char1,path=/tmp/vhost-user-0 \
+    -netdev type=vhost-user,id=netdev0,chardev=char1,vhostforce \
+    -device virtio-net-pci,mac=00:e8:ca:11:aa:01,netdev=netdev0 \
+    -serial telnet::6551,server,nowait &
+
+VM2:
+----
+qemu-kvm -smp 4 -m 1024M \
+    -boot c -cpu host -enable-kvm -nographic \
+    -L /root/pc-bios -name VM1_TAP_DEV \
+    -hda ./vm2.qcow2 \
+    -object memory-backend-file,id=mem,size=1024M,mem-path=/dev/hugepages,share=on \
+    -mem-prealloc \
+    -numa node,memdev=mem \
+    -chardev socket,id=char2,path=/tmp/vhost-user-1 \
+    -netdev type=vhost-user,id=netdev1,chardev=char2,vhostforce \
+    -device virtio-net-pci,mac=00:e8:ca:11:bb:01,netdev=netdev1 \
+    -serial telnet::6552,server,nowait &
+
+4) On VMs: Configure IP-Address and static ARP/route for both VMs.
+Following is an example:
+
+VM1:
+----
+ifconfig eth0 1.1.1.1/24 up
+ip route add 2.2.2.0/24 via 1.1.1.1 dev eth0
+ip neigh add dev eth0 2.2.2.2 lladdr 00:e8:ca:11:bb:01
+
+VM2:
+----
+ifconfig eth0 2.2.2.2/24 up
+ip route add 1.1.1.0/24 via 2.2.2.2 dev eth0
+ip neigh add dev eth0 1.1.1.1 lladdr 00:e8:ca:11:aa:01
+
+5) Configure Forwarding pipeline config and config rule.
+    a) Set pipe:
+       sudo ovs-p4ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin \
+       /root/examples/simple_l3/p4Info.txt
+    (Refer: Section 5 for how to create these input files from P4)
+    b) Configure rule 1:
+       sudo ovs-p4ctl add-entry br0 ingress.ipv4_host \
+       "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
+    c) Configure rule 2: sudo ovs-p4ctl add-entry br0 ingress.ipv4_host \
+       "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
+6) Ping from VM1 to VM2 and it should be successful, which means the traffic
+is switched by the OVS container rules and forwarded between VMs
+
+-------------------------------------------------------------------------------
+Section 5: Generating dependent files from P4C and OVS pipeline builder:
+-------------------------------------------------------------------------------
+Open-sourced p4lang P4 compiler is integrated as part of container.
+(Clone and Build - https://github.com/p4lang/p4c.git)
+
+1) p4c executable is used to generate dependent files.
+   You can execute all these commands on container.
+    a. export OUTPUT_DIR=/root/examples/simple_l3/
+    b. p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files \
+    $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context \
+    $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
+
+2) Steps to generate pipeline binary file:
+Use ovs_pipeline_builder utility to generate pipeline binary file.
+    a. cd /root/examples/simple_l3/
+    b. ovs_pipeline_builder --p4c_conf_file=simple_l3.conf \
+    --bf_pipeline_config_binary_file=simple_l3.pb.bin
+
+Note: As of today <program>.conf is not generated by compiler, in that case
+need to manually update this conf file.
+
+*** Example files in IPDK Container repo:
+https://github.com/ipdk-io/ipdk/tree/main/build/IPDK_Container/examples/simple_l3
+                          
+
+--------------------------------------------------------------------------------
+Section 6: Helpful references:
+-------------------------------------------------------------------------------
+1. /root/OVS-WITH-P4/Documentation/howto/ovs-with-p4-executables.rst
+2. /root/OVS-WITH-P4/OVS-WITH-P4-BUILD-README
+3. ipdk/build/IPDK_Container/README
+4. ipdk/build/IPDK_Container/examples/vhost-vhost/README
+5. ipdk/build/IPDK_Container/examples/simple_l3
+----------------------------END-------------------------------------------------
