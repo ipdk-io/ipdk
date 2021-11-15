@@ -139,7 +139,7 @@ Commands to setup the example scenario:
 1) Cleanup any previously used vhost ports before you re-start OvS:
     a. rm -rf /tmp/vhost-user-*
 
-2) From within the container create 2 vhost ports using GNMI commands
+2) Create 2 vhost ports using GNMI commands
     a. (If new bash) Run -
        source <P4-OVS directory>/p4ovs_env_setup.sh $SDE_INSTALL
     b. alias
@@ -152,7 +152,7 @@ Commands to setup the example scenario:
        port-type:LINK"
 
 3) On your host, start your VMs using the following qemu commands or similar.
-These enable your vhost ports within the VM to communicate with the container.
+These enable your vhost ports within the VM to communicate with the OVS.
 -vm1.qcow2 and vm2.qcow2 are the VM images
 
 VM1:
@@ -209,16 +209,15 @@ ip neigh add dev eth0 1.1.1.1 lladdr 00:e8:ca:11:aa:01
     c) Configure rule 2: sudo ovs-p4ctl add-entry br0 ingress.ipv4_host \
        "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
 6) Ping from VM1 to VM2 and it should be successful, which means the traffic
-is switched by the OVS container rules and forwarded between VMs
+is switched by the OVS rules and forwarded between VMs
 
 -------------------------------------------------------------------------------
 Section 5: Generating dependent files from P4C and OVS pipeline builder:
 -------------------------------------------------------------------------------
-Open-sourced p4lang P4 compiler is integrated as part of container.
-(Clone and Build - https://github.com/p4lang/p4c.git)
+Clone and Build - https://github.com/p4lang/p4c.git
 
 1) p4c executable is used to generate dependent files.
-   You can execute all these commands on container.
+   You can execute all these commands on host.
     a. export OUTPUT_DIR=/root/examples/simple_l3/
     b. p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files \
     $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context \
