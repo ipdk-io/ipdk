@@ -124,10 +124,10 @@ ovs-vswitchd --pidfile --detach --no-chdir --mlockall --log-file=/tmp/ovs-vswitc
 and ovs-vswitchd process in ‘ps -ef | grep ovs’ command.
 
 --------------------------------------------------------------------------------
-Section 4: Example scenario setup ( VM1 <-> IPDK Container <-> VM2 )
+Section 4: Example scenario setup ( VM1 <-> OVS <-> VM2 )
 --------------------------------------------------------------------------------
 Below commands will help you setup traffic between 2 VMs on host with
-IPDK container as a vswitch switching traffic between them:
+OVS as a P4-vswitch switching traffic between them:
 
 Pre-requisite:
 - Pre-built VM qcow2 image.
