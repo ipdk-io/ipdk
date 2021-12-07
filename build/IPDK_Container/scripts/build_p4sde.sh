@@ -53,32 +53,6 @@ echo "Number of Parallel threads used: $NUM_THREADS ..."
 echo ""
 
 cd $SDE
-echo "Removing target-syslibs directory if it already exists"
-if [ -d "target-syslibs" ]; then rm -Rf target-syslibs; fi
-echo "Compiling target-syslibs"
-git clone https://github.com/p4lang/target-syslibs.git --recursive target-syslibs
-cd target-syslibs
-mkdir build && cd build
-cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL ..
-make clean
-make $NUM_THREADS
-#make $NUM_THREADS install
-ldconfig
-
-cd $SDE
-echo "Removing target-utils directory if it already exists"
-if [ -d "target-utils" ]; then rm -Rf target-utils; fi
-echo "Compiling target-utils"
-git clone https://github.com/p4lang/target-utils.git --recursive target-utils
-cd target-utils
-mkdir build && cd build
-cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL -DCPYTHON=1 -DSTANDALONE=ON ..
-make clean
-make $NUM_THREADS
-make $NUM_THREADS install
-ldconfig
-
-cd $SDE
 echo "Removing p4-driver repository if it already exists"
 if [ -d "p4-driver" ]; then rm -Rf p4-driver; fi
 echo "Compiling p4-driver"
