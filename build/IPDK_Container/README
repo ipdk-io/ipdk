@@ -38,11 +38,12 @@ Note: Build and run your IPDK Fedora33 container from ‘build/IPDK_Container’
 
 Commands to bring-up container and run OvS with P4:
 ---------------------------------------------------
-1) Edit the IPDK_Container/docker.env and IPDK_Container/start_p4ovs.sh files 
-   to add your proxy
-2) Run - make build-nc - To build a docker image.
-   Use make build-nc-proxy to be used while running behind proxy.
-3) Run - make volume - To create a shared volume and configure your IPDK 
+1) If user is behind a proxy, edit proxy parameter in IPDK_Container/docker.env
+   and IPDK_Container/start_p4ovs.sh files to add your proxy.
+2) i) Run - 'make build-nc' - To build a docker image while no proxy.
+   ii) Run - 'make build-nc-proxy' - To build a docker image while running
+       behind proxy.
+3) Run - 'make volume' - To create a shared volume and configure your IPDK
 container to use it. This shares '/tmp' directory in your container with 
 Mountpoint directory of the docker shared volume. 'docker volume inspect shared'
 command shows the Mountpoint directory of the host machine/server.
