@@ -1,7 +1,6 @@
+#!/usr/bin/bash
 #Copyright (C) 2021 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
-
-#!/usr/bin/bash
 
 #...Setting Hugepages...#
 mkdir /mnt/huge

@@ -4,6 +4,7 @@
 
 set -e
 
+# shellcheck source=scripts/os_ver_details.sh
 source os_ver_details.sh
 get_os_ver_details
 
@@ -19,11 +20,11 @@ git config --global url."https://github.com/".insteadOf git@github.com:
 git config --global url."https://".insteadOf git://
 
 WORKDIR=$1
-cd ${WORKDIR}
+cd "${WORKDIR}" || exit
 
 echo "Removing p4-sde directory if it already exists"
 if [ -d "p4-sde" ]; then rm -Rf p4-sde; fi
-mkdir $1/p4-sde && cd $1/p4-sde
+mkdir "$1"/p4-sde && cd "$1"/p4-sde || exit
 #..Setting Environment Variables..#
 echo "Exporting Environment Variables....."
 export SDE=${PWD}
@@ -43,16 +44,16 @@ export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib64
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
 
 echo "SDE environment variable"
-echo $SDE
-echo $SDE_INSTALL
-echo $PKG_CONFIG_PATH
+echo "$SDE"
+echo "$SDE_INSTALL"
+echo "$PKG_CONFIG_PATH"
 
 #Read the number of CPUs in a system and derive the NUM threads
 get_num_cores
 echo "Number of Parallel threads used: $NUM_THREADS ..."
 echo ""
 
-cd $SDE
+cd "$SDE" || exit
 echo "Removing p4-driver repository if it already exists"
 if [ -d "p4-driver" ]; then rm -Rf p4-driver; fi
 echo "Compiling p4-driver"
@@ -66,12 +67,12 @@ if [ "${OS}" = "Ubuntu" ]; then
 fi
 python3 install_dep.py
 
-cd $SDE/p4-driver
+cd "$SDE/p4-driver" || exit
 ./autogen.sh
-./configure --prefix=$SDE_INSTALL
+./configure --prefix="$SDE_INSTALL"
 make clean
-make $NUM_THREADS
-make $NUM_THREADS install
+make "$NUM_THREADS"
+make "$NUM_THREADS" install
 ldconfig
 
 set +e

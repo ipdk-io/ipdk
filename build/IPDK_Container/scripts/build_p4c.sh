@@ -1,9 +1,9 @@
+#!/usr/bin/bash
 #Copyright (C) 2021 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
-#!/usr/bin/bash
-
 set -e
+# shellcheck source=scripts/os_ver_details.sh
 source os_ver_details.sh
 
 if [ -z "$1" ]
@@ -17,12 +17,12 @@ fi
 P4C_SHA=d2f0c2a22286c6b6643e5e3906cf020d6d698c70
 
 WORKDIR=$1
-cd $WORKDIR
+cd "$WORKDIR"
 
 echo "Removing P4C directory if it already exits"
 if [ -d "P4C" ]; then rm -Rf P4C; fi
 echo "Cloning  P4C repo"
-cd $WORKDIR
+cd "$WORKDIR"
 
 #Read the number of CPUs in a system and derive the NUM threads
 get_num_cores

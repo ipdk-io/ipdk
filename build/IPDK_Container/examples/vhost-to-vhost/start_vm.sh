@@ -14,7 +14,7 @@ QEMU=qemu-kvm
 ${QEMU} -smp 4 -m 4096M \
     -boot c -cpu host -enable-kvm -nographic \
     -L /root/pc-bios -name VM1_TAP_DEV \
-    -hda ${QCOW2_IMAG_PATH_VM1} \
+    -hda "${QCOW2_IMAG_PATH_VM1}" \
     -object memory-backend-file,id=mem,size=4096M,mem-path=/dev/hugepages,share=on \
     -mem-prealloc \
     -numa node,memdev=mem \
@@ -26,7 +26,7 @@ ${QEMU} -smp 4 -m 4096M \
 ${QEMU} -smp 4 -m 4096M \
     -boot c -cpu host -enable-kvm -nographic \
     -L /root/pc-bios -name VM1_TAP_DEV \
-    -hda ${QCOW2_IMAG_PATH_VM2} \
+    -hda "${QCOW2_IMAG_PATH_VM2}" \
     -object memory-backend-file,id=mem,size=4096M,mem-path=/dev/hugepages,share=on \
     -mem-prealloc \
     -numa node,memdev=mem \

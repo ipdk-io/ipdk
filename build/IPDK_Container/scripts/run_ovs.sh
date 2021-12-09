@@ -1,7 +1,7 @@
+#!/usr/bin/bash
 #Copyright (C) 2021 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
-#!/usr/bin/bash
 #set -o xtrace
 
 #Kill and delete any logs from previous run
@@ -10,12 +10,12 @@ echo "Killing OVS Processes If Already Running...."
 set +o errexit
 if [[ $(pidof ovsdb-server) ]]; then
         echo "Killing ovsdb-server process...."
-        kill -9 `pidof ovsdb-server`
+	kill -9 "$(pidof ovsdb-server)"
 fi
 
 if [[ $(pidof ovs-vswitchd) ]]; then
         echo "Killing ovs-vswitchd process...."
-        kill -9 `pidof ovs-vswitchd`
+	kill -9 "$(pidof ovs-vswitchd)"
 fi
 set -o errexit
 
