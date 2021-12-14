@@ -3,8 +3,9 @@
 #SPDX-License-Identifier: Apache-2.0
 
 #QCOW2 IMAGES PATH...#
-QCOW2_IMAG_PATH_VM1=<IMAGE1>.img
-QCOW2_IMAG_PATH_VM2=<IMAGE2>.img
+# Note: Adjust to the names of the actual images you want to use
+QCOW2_IMAG_PATH_VM1=example1.img
+QCOW2_IMAG_PATH_VM2=example2img
 
 # application to run the Qemu KVM in Fedora.
 QEMU=qemu-kvm

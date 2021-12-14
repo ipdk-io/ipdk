@@ -31,7 +31,7 @@ export SDE=${PWD}
 export SDE_INSTALL=$SDE/install
 
 #...Package Config Path...#
-if [ "${OS}" = "Ubuntu" ] || "${VER}" = "20.04"; then
+if [ "${OS}" = "Ubuntu" ]  || [ "${VER}" = "20.04" ] ; then
     export PKG_CONFIG_PATH=${SDE_INSTALL}/lib/x86_64-linux-gnu/pkgconfig
 else
     export PKG_CONFIG_PATH=${SDE_INSTALL}/lib64/pkgconfig

@@ -8,6 +8,7 @@ get_os_ver_details()
 {
   if [ -f /etc/os-release ]; then
       # freedesktop.org and systemd
+      # shellcheck source=/dev/null
       . /etc/os-release
       OS=$NAME
       VER=$VERSION_ID
@@ -17,6 +18,7 @@ get_os_ver_details()
       VER=$(lsb_release -sr)
   elif [ -f /etc/lsb-release ]; then
       # For some versions of Debian/Ubuntu without lsb_release command
+      # shellcheck source=/dev/null
       . /etc/lsb-release
       OS=$DISTRIB_ID
       VER=$DISTRIB_RELEASE
