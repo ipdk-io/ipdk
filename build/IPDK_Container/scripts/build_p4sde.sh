@@ -24,11 +24,11 @@ cd "${WORKDIR}" || exit
 
 echo "Removing p4-sde directory if it already exists"
 if [ -d "p4-sde" ]; then rm -Rf p4-sde; fi
-mkdir "$1"/p4-sde && cd "$1"/p4-sde || exit
+mkdir "$1/p4-sde" && cd "$1/p4-sde" || exit
 #..Setting Environment Variables..#
 echo "Exporting Environment Variables....."
-export SDE=${PWD}
-export SDE_INSTALL=$SDE/install
+export SDE="${PWD}"
+export SDE_INSTALL="$SDE/install"
 
 #...Package Config Path...#
 if [ "${OS}" = "Ubuntu" ]  || [ "${VER}" = "20.04" ] ; then
@@ -71,8 +71,8 @@ cd "$SDE/p4-driver" || exit
 ./autogen.sh
 ./configure --prefix="$SDE_INSTALL"
 make clean
-make "$NUM_THREADS"
-make "$NUM_THREADS" install
+make $NUM_THREADS
+make $NUM_THREADS install
 ldconfig
 
 set +e
