@@ -1,7 +1,6 @@
+#!/usr/bin/bash
 #Copyright (C) 2021 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
-
-#!/usr/bin/bash
 
 if [ -z "$1" ]
 then
@@ -12,9 +11,9 @@ fi
 
 WORKDIR=$1
 
-cd $WORKDIR
+cd "$WORKDIR" || exit
 echo "Removing P4-OVS directory if it already exits"
 if [ -d "P4-OVS" ]; then rm -Rf P4-OVS; fi
 echo "Cloning P4-OVS repo"
-cd $WORKDIR
+cd "$WORKDIR" || exit
 git clone https://github.com/ipdk-io/ovs.git -b ovs-with-p4 --recursive P4-OVS

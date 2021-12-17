@@ -54,3 +54,5 @@ prune: ;docker system prune
 
 ## Create a volume and then configure the container to use it.
 volume: ;docker volume create shared; docker run --rm --cap-add ALL --privileged -v shared:/tmp -it ${IMAGE_NAME}:${TAG}
+
+shellcheck: ;shellcheck -x `find . -name "*.sh"`
