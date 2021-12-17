@@ -53,22 +53,16 @@ container up and running. You should see the container prompt like below:
     root@c5efb1a949ad ~]# 
 c5efb1a949ad is your container id as displayed in command 'docker ps -a'
 
-4) Clone and install dependencies using
-    a. source /root/start_p4ovs.sh <any directory>
-        Eg: source start_p4ovs.sh /root
-        This command clones and installs dependent packages, TDI repositories, 
-        OvS with P4, and P4 compiler.
-
-5) Export the variables: 
+4) Export the variables:
     a.  cd P4-OVS 
     b.  source /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install 
 
-6) Setup hugepages:
+5) Setup hugepages:
     a. /root/scripts/set_hugepages.sh
 
-7) rm -rf /tmp/vhost-user-* (if its a re-run)
+6) rm -rf /tmp/vhost-user-* (if its a re-run)
 
-8) Run P4-OvS manually by running
+7) Run P4-OvS manually by running
     a. /root/scripts/run_ovs.sh
 
 At this point your OvS should be up and running and you should see ovsdb-server
