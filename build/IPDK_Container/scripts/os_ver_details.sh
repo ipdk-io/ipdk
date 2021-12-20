@@ -45,12 +45,12 @@ get_num_cores()
        if [ "$NUM_CORES" -gt 4 ]
        then
            NUM_THREADS=$((NUM_CORES / 4))
-           NUM_THREADS=-j$NUM_THREADS
+           NUM_THREADS=-j${NUM_THREADS}
        else
-           NUM_THREADS=${NUM_CORES}
+           NUM_THREADS=-j${NUM_CORES}
        fi
     else
         NUM_CORES=1
-        NUM_THREADS=1
+        NUM_THREADS=-j1
     fi
 }
