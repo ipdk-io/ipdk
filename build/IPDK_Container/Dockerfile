@@ -54,5 +54,6 @@ WORKDIR /root
 COPY ./examples /root/examples
 COPY ./start_p4ovs.sh /root/start_p4ovs.sh 
 COPY ./run_ovs_cmds /root/run_ovs_cmds
+RUN source /root/start_p4ovs.sh /root
 #ADD ./start_p4ovs.sh /root/start_p4ovs
 #ENTRYPOINT exec /root/start_p4ovs.sh /root
