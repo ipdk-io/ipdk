@@ -35,8 +35,21 @@ get_os_ver_details()
   fi
 }
 
+#
+# NOTE: We set NUM_THREADS to NUM_CORES / 4 to ensure the build process doesn't overrun
+#       the amount of memory on the build host. It's not an exact science, but it helps
+#       prevent the OOM process from killing compilers and causing issues with the
+#       build.
+#
 get_num_cores()
 {
+   # First check if NUM_CORES and NUM_THREADS are already set, and exit if so.
+   if [[ -n $NUM_CORES && -n $NUM_THREADS ]]
+   then
+      echo "NUM_CORES and NUM_THREADS already set."
+      return
+   fi
+
    nproc_exist=$(command -v nproc)
    if [ -n "$nproc_exist" ];
    then
