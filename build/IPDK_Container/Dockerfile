@@ -11,32 +11,47 @@ ARG PROXY
 
 # Installing dependent packages required for DPDK Build
 RUN dnf -y update && \
-  dnf -y groupinstall "Development Tools" "Development Libraries" && \
-  dnf -y install meson && \
-  dnf -y install cmake && \
-  dnf -y install gdb && \
-  dnf -y install libtool && \
-  dnf -y install autoconf && \
-  dnf -y install autoconf-archive && \
-  dnf -y install automake && \
-  dnf -y install scapy && \
-  dnf -y install iproute && \
-  dnf -y install net-tools && \
-  dnf -y install gflags-devel && \
-  dnf -y install iputils && \
-  dnf -y install cctz && \
-  dnf -y install json-devel && \
-  dnf -y install python && \
-  dnf -y install grpc-plugins && \
-  dnf -y install python3-cffi && \
-  dnf -y install libedit-devel && \
-  dnf -y install expat-devel && \
-  dnf -y install pip && \
-  dnf -y install flex && \
-  dnf -y install bison && \
-  dnf -y install libgc-devel && \
-  dnf -y install vim && \
-  dnf -y clean all
+    dnf install -y git \
+    meson \
+    cmake \
+    libtool \
+    clang \
+    gcc \
+    g++ \
+    autoconf \
+    automake \
+    autoconf-archive \
+    libconfig \
+    libgc-devel \
+    unifdef \
+    libffi-devel \
+    boost-iostreams \
+    boost-graph \
+    llvm \
+    pkg-config \
+    flex flex-devel \
+    zlib-devel \
+    iproute \
+    net-tools \
+    iputils \
+    python \
+    pip \
+    bison \
+    python3-setuptools \
+    python3-pip \
+    python3-wheel \
+    python3-cffi \
+    libedit-devel \
+    gmp-devel \
+    expat-devel \
+    boost-devel \
+    google-perftools \
+    curl \
+    connect-proxy \
+    coreutils \
+    which && \
+    dnf -y clean all && \
+    rm -rf /var/cache/yum
 
 # Installing all PYTHON packages
 RUN python -m pip install --upgrade pip && \
@@ -44,7 +59,9 @@ RUN python -m pip install --upgrade pip && \
     python -m pip install ovspy && \
     python -m pip install protobuf && \
     python -m pip install p4runtime && \
-    pip3 install pyelftools
+    pip3 install pyelftools && \
+    pip3 install scapy && \
+    pip3 install six
 
 WORKDIR /root
 COPY ./scripts scripts
@@ -54,6 +71,8 @@ WORKDIR /root
 COPY ./examples /root/examples
 COPY ./start_p4ovs.sh /root/start_p4ovs.sh 
 COPY ./run_ovs_cmds /root/run_ovs_cmds
-RUN source /root/start_p4ovs.sh /root
+RUN  /root/start_p4ovs.sh /root && \
+     rm -rf /root/P4OVS_DEPS_SRC_CODE && \
+     cd /root/P4-OVS/ && make clean
 #ADD ./start_p4ovs.sh /root/start_p4ovs
 #ENTRYPOINT exec /root/start_p4ovs.sh /root
