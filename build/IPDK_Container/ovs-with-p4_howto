@@ -32,8 +32,8 @@ cd target-syslibs
 mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL ..
 make clean
-make $NUM_THREADS
-#make $NUM_THREADS install
+make -j$NUM_THREADS
+#make -j$NUM_THREADS install
 ldconfig
 
 - Build target-utils
@@ -42,8 +42,8 @@ cd target-utils
 mkdir build && cd build
 cmake -DCMAKE_INSTALL_PREFIX=$SDE_INSTALL -DCPYTHON=1 -DSTANDALONE=ON ..
 make clean
-make $NUM_THREADS
-make $NUM_THREADS install
+make -j$NUM_THREADS
+make -j$NUM_THREADS install
 ldconfig
 
 - Build p4-dpdk-target
@@ -55,8 +55,8 @@ cd $SDE/p4-driver
 ./autogen.sh
 ./configure --prefix=$SDE_INSTALL
 make clean
-make $NUM_THREADS
-make $NUM_THREADS install
+make -j$NUM_THREADS
+make -j$NUM_THREADS install
 ldconfig
 
 -------------------------------------------------------------------------------

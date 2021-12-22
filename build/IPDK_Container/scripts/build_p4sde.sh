@@ -71,8 +71,8 @@ cd "$SDE/p4-driver" || exit
 ./autogen.sh
 ./configure --prefix="$SDE_INSTALL"
 make clean
-make $NUM_THREADS
-make $NUM_THREADS install
+make -j$NUM_THREADS
+make -j$NUM_THREADS install
 ldconfig
 
 set +e

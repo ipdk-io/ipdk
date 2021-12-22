@@ -35,8 +35,8 @@ git checkout $P4C_SHA
 mkdir build && cd build
 cmake -DENABLE_BMV2=OFF -DENABLE_EBPF=OFF -DENABLE_UBPF=OFF \
       -DENABLE_P4C_GRAPHS=OFF -DENABLE_P4TEST=OFF -DENABLE_GTESTS=OFF ..
-make $NUM_THREADS
-make $NUM_THREADS install
+make -j$NUM_THREADS
+make -j$NUM_THREADS install
 make clean
 ldconfig
 
