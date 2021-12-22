@@ -4,8 +4,8 @@
 These are the manual steps to setup environment variables, hugepages 
 and run P4-OVS.
 
-1) Run source command under /root/P4-OVS (Apply once)
-  source /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
+1) Run source command under /root/scripts (Apply once)
+  source p4ovs_env_setup.sh /root/p4-sde/install
 
 2) Run set_hugepages.sh from /root/scripts (Apply once)
   /root/scripts/set_hugepages.sh

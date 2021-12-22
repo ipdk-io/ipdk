@@ -67,12 +67,12 @@ WORKDIR /root
 COPY ./scripts scripts
 
 FROM base AS p4-ovs-container
+ARG KEEP_SOURCE_CODE
 WORKDIR /root
 COPY ./examples /root/examples
 COPY ./start_p4ovs.sh /root/start_p4ovs.sh 
 COPY ./run_ovs_cmds /root/run_ovs_cmds
 RUN  /root/start_p4ovs.sh /root && \
-     rm -rf /root/P4OVS_DEPS_SRC_CODE && \
-     cd /root/P4-OVS/ && make clean
+     /root/scripts/run_cleanup.sh /root ${KEEP_SOURCE_CODE}
 #ADD ./start_p4ovs.sh /root/start_p4ovs
 #ENTRYPOINT exec /root/start_p4ovs.sh /root

@@ -36,6 +36,20 @@ Note: Build and run your IPDK Fedora33 container from ‘build/IPDK_Container’
  directory or Ubuntu20.04 container from ‘build/IPDK_Container/Ubuntu20.04’
  directory in ‘https://github.com/ipdk-io/ipdk’ repository.
 
+Source Code availability:
+-------------------------
+By default source code for P4-OVS, p4-driver and P4C will not be retained.
+If user wants to retain source code, a variable (KEEP_SOURCE_CODE) in
+docker.env file is available. User can modify this variable to get results
+as mentioned below.
+
+1) If 'KEEP_SOURCE_CODE=NO' which is a default value then, complete source code
+   for P4-OVS, p4-driver and P4C will be removed.
+
+2) 'KEEP_SOURCE_CODE=YES' then, source code for P4-OVS, p4-driver and P4C will
+   be retained but temporary files generated after building these repositories
+   will be removed.
+
 Commands to bring-up container and run OvS with P4:
 ---------------------------------------------------
 1) If user is behind a proxy, edit proxy parameter in IPDK_Container/docker.env
@@ -54,8 +68,8 @@ container up and running. You should see the container prompt like below:
 c5efb1a949ad is your container id as displayed in command 'docker ps -a'
 
 4) Export the variables:
-    a.  cd P4-OVS 
-    b.  source /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install 
+    a.  cd /root/scripts
+    b.  source p4ovs_env_setup.sh /root/p4-sde/install
 
 5) Setup hugepages:
     a. /root/scripts/set_hugepages.sh
@@ -86,8 +100,8 @@ Commands to setup the example scenario:
        (your mounted directory)
 
 2) From within the container create 2 vhost ports using GNMI commands
-    a. (If new bash) Run - 
-       source /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install 
+    a. (If new bash) Run -
+           cd /root/scripts/ && source p4ovs_env_setup.sh /root/p4-sde/install
     b. alias sudo='sudo PATH="$PATH" HOME="$HOME" LD_LIBRARY_PATH="$LD_LIBRARY_PATH"'
     c. sudo gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,\
        device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-0,\
@@ -152,7 +166,8 @@ ip neigh add dev eth0 1.1.1.1 lladdr 00:e8:ca:11:aa:01
     b) Configure rule 1: 
        sudo ovs-p4ctl add-entry br0 ingress.ipv4_host \
        "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
-    c) Configure rule 2: sudo ovs-p4ctl add-entry br0 ingress.ipv4_host \
+    c) Configure rule 2:
+       sudo ovs-p4ctl add-entry br0 ingress.ipv4_host \
        "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
 
 6) Ping from VM1 to VM2 and it should be successful, which means the traffic 
@@ -190,4 +205,3 @@ Section 4: Helpful references:
 4. ipdk/build/IPDK_Container/examples/vhost-vhost/README
 5. ipdk/build/IPDK_Container/examples/simple_l3
 ----------------------------END-------------------------------------------------
-

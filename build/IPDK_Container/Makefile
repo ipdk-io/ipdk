@@ -20,23 +20,27 @@ help:;@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {F
 # DOCKER COMMANDS 
 ## Build the docker image
 build: ;docker build -t ${IMAGE_NAME}:${TAG} -f Dockerfile . \
---build-arg OS_VERSION=${OS_VERSION}
+--build-arg OS_VERSION=${OS_VERSION} \
+--build-arg KEEP_SOURCE_CODE=${KEEP_SOURCE_CODE}
 
 ## Build the docker image with proxy
 build-proxy: ;docker build -t ${IMAGE_NAME}:${TAG} -f Dockerfile . \
 --build-arg http_proxy=${PROXY} \
 --build-arg https_proxy=${PROXY} \
---build-arg OS_VERSION=${OS_VERSION}
+--build-arg OS_VERSION=${OS_VERSION} \
+--build-arg KEEP_SOURCE_CODE=${KEEP_SOURCE_CODE}
 
 ## Build the container without caching. To be used when cloning from GIT repo.
 build-nc: ;docker build --no-cache -t ${IMAGE_NAME}:${TAG} -f Dockerfile . \
---build-arg OS_VERSION=${OS_VERSION}
+--build-arg OS_VERSION=${OS_VERSION} \
+--build-arg KEEP_SOURCE_CODE=${KEEP_SOURCE_CODE}
 
 ## Build the container without caching and with proxy. To be used when cloning from GIT repo.
 build-nc-proxy: ;docker build --no-cache -t ${IMAGE_NAME}:${TAG} -f Dockerfile . \
 --build-arg http_proxy=${PROXY} \
 --build-arg https_proxy=${PROXY} \
---build-arg OS_VERSION=${OS_VERSION}
+--build-arg OS_VERSION=${OS_VERSION} \
+--build-arg KEEP_SOURCE_CODE=${KEEP_SOURCE_CODE}
 
 ## Run the container
 run: ;docker run --rm --cap-add ALL --privileged -it ${IMAGE_NAME}:${TAG}
