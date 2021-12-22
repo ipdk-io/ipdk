@@ -61,8 +61,11 @@ build_p4ovs () {
    cd "$WORKDIR"/P4-OVS && ${SHELL_STRING} ./build-p4ovs.sh "$WORKDIR"/p4-sde/install
 }
 
-get_p4ovs_repo
-build_p4sde
-install_dependencies
-build_p4c
+if [ -z "${INSTALL_DEPENDENCIES}" ] || [ "${INSTALL_DEPENDENCIES}" == "y" ]
+then
+    get_p4ovs_repo
+    build_p4sde
+    install_dependencies
+    build_p4c
+fi
 build_p4ovs
