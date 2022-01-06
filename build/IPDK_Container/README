@@ -57,6 +57,11 @@ Commands to bring-up container and run OvS with P4:
 2) i) Run - 'make build-nc' - To build a docker image while no proxy.
    ii) Run - 'make build-nc-proxy' - To build a docker image while running
        behind proxy.
+   iii) Run - 'make build' - To build a docker image while no proxy,
+        with cached previous build's data.
+   iv) Run - 'make build-proxy' - To build a docker image while running
+       behind proxy, with cached previous build's data.
+
 3) Run - 'make volume' - To create a shared volume and configure your IPDK
 container to use it. This shares '/tmp' directory in your container with 
 Mountpoint directory of the docker shared volume. 'docker volume inspect shared'
@@ -133,7 +138,7 @@ VM2:
 ----
 qemu-kvm -smp 4 -m 1024M \
     -boot c -cpu host -enable-kvm -nographic \
-    -L /root/pc-bios -name VM1_TAP_DEV \
+    -L /root/pc-bios -name VM2_TAP_DEV \
     -hda ./vm2.qcow2 \
     -object memory-backend-file,id=mem,size=1024M,mem-path=/dev/hugepages,share=on \
     -mem-prealloc \

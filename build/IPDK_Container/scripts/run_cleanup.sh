@@ -35,9 +35,8 @@ elif [ "${KEEP_SOURCE_CODE,,}" = "${FLAG_YES,,}" ]; then
     echo "Make clean P4-OVS"
     cd "${ROOT_DIR}/P4-OVS" && make clean
 
-    # TODO
-    # echo "Make clean p4-driver"
-    # cd "${ROOT_DIR}/p4-sde/p4-driver" && make clean
+    echo "Make clean p4-driver"
+    cd "${ROOT_DIR}/p4-sde/p4-driver" && make clean
 
     echo "Make clean P4C"
     cd "${ROOT_DIR}/P4C/build" && make clean
