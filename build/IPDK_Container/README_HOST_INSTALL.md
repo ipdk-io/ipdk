@@ -6,6 +6,11 @@ the OVS-P4 switch.
 
 ## Steps To Install
 
+Note this method is using Vagrant with Virtualbox. Make sure you have nested
+virtualization enabled on your guest VM. There are many articles published on
+how to do this, but [this](https://stackoverflow.com/questions/54251855/virtualbox-enable-nested-vtx-amd-v-greyed-out)
+one is quite useful.
+
 ### Bringup the Vagrant VM:
 ```
 $ cd vagrant
