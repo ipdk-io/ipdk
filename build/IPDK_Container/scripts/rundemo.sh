@@ -2,6 +2,21 @@
 #Copyright (C) 2021 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
+stty -echoctl # hide ctrl-c
+
+# Exit function
+exit_function()
+{
+    echo "Exiting cleanly"
+    pushd /root || exit
+    rm -f network-config-v1.yaml meta-data user-data
+    rm -rf /tmp/vhost-user-*
+    rm -f vm1.qcow2 vm2.qcow2
+    popd || exit
+}
+
+trap 'exit_function' SIGINT
+
 echo ""
 echo "Cleaning from previous run"
 echo ""
@@ -107,7 +122,7 @@ EOF
 cloud-localds -v --network-config=network-config-v1.yaml \
     seed2.img user-data meta-data
 
-#rm -f network-config-v1.yaml meta-data user-data
+rm -f network-config-v1.yaml meta-data user-data
 
 echo ""
 echo "Setting hugepages up and starting P4-OVS"
