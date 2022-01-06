@@ -50,7 +50,9 @@ apt-get install -y apt-utils \
         connect-proxy \
         coreutils \
         sudo \
-        make
+        make \
+        cloud-image-utils \
+        telnet
 
 pip install --upgrade pip
 pip install grpcio \
