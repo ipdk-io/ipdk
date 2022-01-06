@@ -117,6 +117,7 @@ pushd /root/P4-OVS || exit
 # shellcheck source=/dev/null
 source /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
 /root/scripts/set_hugepages.sh
+sysctl -w vm.nr_hugepages=8400
 /root/scripts/run_ovs.sh
 popd || exit
 
