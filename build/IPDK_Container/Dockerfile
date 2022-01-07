@@ -73,6 +73,9 @@ COPY ./examples /root/examples
 COPY ./start_p4ovs.sh /root/start_p4ovs.sh 
 COPY ./run_ovs_cmds /root/run_ovs_cmds
 RUN  /root/start_p4ovs.sh /root && \
-     /root/scripts/run_cleanup.sh /root ${KEEP_SOURCE_CODE}
+     /root/scripts/run_cleanup.sh /root ${KEEP_SOURCE_CODE} && \
+     dnf -y clean all && \
+     rm -rf /var/cache/yum
+
 #ADD ./start_p4ovs.sh /root/start_p4ovs
 #ENTRYPOINT exec /root/start_p4ovs.sh /root

@@ -73,6 +73,7 @@ cd "$SDE/p4-driver" || exit
 make clean
 make $NUM_THREADS
 make $NUM_THREADS install
+make $NUM_THREADS clean
 ldconfig
 
 set +e
