@@ -13,6 +13,7 @@ exit_function()
     rm -rf /tmp/vhost-user-*
     rm -f vm1.qcow2 vm2.qcow2
     popd || exit
+    exit
 }
 
 trap 'exit_function' SIGINT
@@ -25,26 +26,15 @@ rm -rf /tmp/vhost-user-*
 killall ovsdb-server
 killall ovs-vswitchd
 
-#echo ""
-#echo "Pulling down cirros image and configuring"
-#echo ""
-#
-#pushd /root || exit
-#wget -nc http://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img
-#cp cirros-0.5.2-x86_64-disk.img vm1.qcow2
-#cp cirros-0.5.2-x86_64-disk.img vm2.qcow2
-#popd || exit
-
 echo ""
 echo "Creating Ubuntu focal image"
 echo ""
 
 pushd /root || exit
 /git/ipdk/scripts/get-image.sh focal
-qemu-img create -f qcow2 -b focal-server-cloudimg-amd64.raw disk.img
 rm -f vm1.qcow2 vm2.qcow2
-cp disk.img vm1.qcow2
-cp disk.img vm2.qcow2
+cp focal-server-cloudimg-amd64.img vm1.qcow2
+cp focal-server-cloudimg-amd64.img vm2.qcow2
 popd || exit
 
 
@@ -132,15 +122,8 @@ pushd /root/P4-OVS || exit
 # shellcheck source=/dev/null
 source /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
 /root/scripts/set_hugepages.sh
-sysctl -w vm.nr_hugepages=8400
 /root/scripts/run_ovs.sh
 popd || exit
-
-echo ""
-echo "Creating ovs-p4 switch"
-echo ""
-
-ovs-vsctl add-br ovs-p4
 
 echo ""
 echo "Creating vhost-user ports"

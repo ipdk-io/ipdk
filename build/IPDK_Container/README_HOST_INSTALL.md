@@ -47,7 +47,7 @@ vagrant@ubuntu2004:~$
 Without a proxy:
 
 ```
-vagrant@ubuntu2004:~$ sudo su
+vagrant@ubuntu2004:~$ sudo su -
 root@ubuntu2004:~# /git/ipdk/scripts/host_install.sh
 ```
 
@@ -59,15 +59,12 @@ root@ubuntu2004:~# /git/ipdk/scripts/host_install.sh -p [proxy name]
 ```
 
 Note: To skip installing and building dependencies in the future, add a `-s`
-flag tot he host_install.sh script.
+flag to the host_install.sh script.
 
-### Start P4-OVS.
+### Run the rundemo.sh script
 
 ```
-root@ubuntu2004:~$ cd P4-OVS/
-root@ubuntu2004:~/P4-OVS# source /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
-root@ubuntu2004:~/P4-OVS# /root/scripts/set_hugepages.sh
-root@ubuntu2004:~/P4-OVS# /root/scripts/run_ovs.sh
+root@ubuntu2004:~$ /git/ipdk/scripts/rundemo.sh
 ```
 
 5. Verify OVS is running:
@@ -96,7 +93,7 @@ vagrant@ubuntu2004:~$ telnet localhost 6552
 
 ### Verify guest is finished booting
 
-It may take 3-5 minutes for both guest VMs to finish booting. You can
+It may take 6-9 minutes for both guest VMs to finish booting. You can
 watch each VM boot over the serial console.
 
 ```
