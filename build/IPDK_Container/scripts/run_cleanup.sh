@@ -33,5 +33,5 @@ elif [ "${KEEP_SOURCE_CODE,,}" = "${FLAG_YES,,}" ]; then
 
 else
     echo "Unrecognized option for source code retention/removal: " \
-        ${KEEP_SOURCE_CODE}
+        "${KEEP_SOURCE_CODE}"
 fi

@@ -4,11 +4,20 @@
 
 #...Setting Hugepages...#
 mkdir -p /mnt/huge
-mount -t hugetlbfs nodev /mnt/huge
-echo -e "nodev /mnt/huge hugetlbfs\n" >> /etc/fstab
+if [ "$(mount | grep hugetlbfs)" == "" ]
+then
+	mount -t hugetlbfs nodev /mnt/huge
+fi
+if [ "$(grep huge < /etc/fstab)" == "" ]
+then
+	echo -e "nodev /mnt/huge hugetlbfs\n" >> /etc/fstab
+fi
 
-echo "vm.nr_hugepages = 4096" >> /etc/sysctl.conf
-#sysctl -p /etc/sysctl.conf
+if [ "$(grep nr_hugepages < /etc/sysctl.conf)" == "" ]
+then
+	echo "vm.nr_hugepages = 1024" >> /etc/sysctl.conf
+	#sysctl -p /etc/sysctl.conf
+fi
 
 #
 # Check if the kernel/mm version of hugepages exists, and set hugepages if so.
