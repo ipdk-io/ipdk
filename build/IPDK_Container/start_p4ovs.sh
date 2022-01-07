@@ -50,6 +50,8 @@ install_dependencies() {
         cd "$WORKDIR"/P4-OVS && sed -i 's/sudo //g' install_dep_packages.sh && \
             ${SHELL_STRING} ./install_dep_packages.sh "$WORKDIR"
     fi
+    #...Removing Dependencies Source Code After Successful Installation...#
+    rm -rf ${WORKDIR}/P4OVS_DEPS_SRC_CODE || exit 1
 }
 
 build_p4c () {
