@@ -154,8 +154,8 @@ else
 fi
 
 cd /root || exit
-cp -r /git/ipdk/scripts scripts
-cp -r /git/ipdk/examples examples
+cp -r /git/ipdk/scripts /root
+cp -r /git/ipdk/examples /root
 cp /git/ipdk/start_p4ovs.sh start_p4ovs.sh
 cp /git/ipdk/run_ovs_cmds run_ovs_cmds
 
