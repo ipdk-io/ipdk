@@ -154,10 +154,11 @@ else
 fi
 
 cd /root || exit
-cp -r /git/ipdk/scripts /root
-cp -r /git/ipdk/examples /root
+cp -r /git/ipdk/scripts .
+cp -r /git/ipdk/examples .
 cp /git/ipdk/start_p4ovs.sh start_p4ovs.sh
 cp /git/ipdk/run_ovs_cmds run_ovs_cmds
+popd
 
 export OS_VERSION=20.04
 export IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04
