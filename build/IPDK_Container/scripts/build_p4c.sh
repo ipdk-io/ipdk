@@ -33,8 +33,8 @@ git clone https://github.com/p4lang/p4c.git --recursive P4C
 cd P4C
 git checkout $P4C_SHA
 mkdir build && cd build
-cmake -DENABLE_BMV2=OFF -DENABLE_EBPF=ON -DENABLE_UBPF=OFF \
-      -DENABLE_P4C_GRAPHS=OFF -DENABLE_P4TEST=OFF -DENABLE_GTESTS=OFF ..
+cmake -DENABLE_BMV2=OFF \ -DENABLE_P4C_GRAPHS=OFF -DENABLE_P4TEST=OFF \
+      -DENABLE_GTESTS=OFF ..
 make $NUM_THREADS
 make $NUM_THREADS install
 make $NUM_THREADS clean
