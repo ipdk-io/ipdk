@@ -17,7 +17,7 @@ $ cd vagrant
 $ vagrant up
 ```
 
-###Login to the VM
+### Login to the VM
 ```
 $ vagrant ssh
 Welcome to Ubuntu 20.04 LTS (GNU/Linux 5.4.0-31-generic x86_64)
