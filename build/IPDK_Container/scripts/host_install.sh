@@ -153,7 +153,7 @@ else
     pip3 install six
 fi
 
-cd /root || exit
+pushd /root || exit
 cp -r /git/ipdk/scripts .
 cp -r /git/ipdk/examples .
 cp /git/ipdk/start_p4ovs.sh start_p4ovs.sh
