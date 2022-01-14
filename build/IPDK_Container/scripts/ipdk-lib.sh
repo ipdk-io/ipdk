@@ -40,9 +40,6 @@ get_distro_image() {
 		wget -nc "$URL" -O "$DEST_FNAME.tmp" &&
 			mv "$DEST_FNAME.tmp" "$DEST_FNAME" || exit
 	fi
-
-	# return image filename
-	echo "$ORIGIN_FNAME"
 }
 
 #
@@ -52,12 +49,11 @@ get_distro_image() {
 create_images() {
 	# input arguments
 	local IMAGE_LOCATION=$1
+	local DIST_FNAME="focal-server-cloudimg-amd64.img"
 
 	print_banner "Get Ubuntu focal base image"
 
 	mkdir -p "${IMAGE_LOCATION}"
-	local DIST_FNAME 
-	DIST_FNAME=$(get_distro_image focal "$IMAGE_LOCATION")
 	echo "Distribution image: $DIST_FNAME"
 
 	print_banner "Create requested VM images"
