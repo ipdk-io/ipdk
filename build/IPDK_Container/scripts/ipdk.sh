@@ -316,7 +316,7 @@ help() {
 		       --use-proxy
 		         use the given proxy as defined in the PROXY environment variable
 		       --keep-source-code 
-		         keep the source code during build (don't keep is default)
+		         keep the source code during build (Default is to remove the source code)
 		   start
 		     run P4OVS in a long running IPDK docker container
 		       -d - run as daemon
