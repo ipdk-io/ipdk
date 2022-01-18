@@ -48,7 +48,7 @@ Without a proxy:
 
 ```
 vagrant@ubuntu2004:~$ sudo su -
-root@ubuntu2004:~# /git/ipdk/scripts/host_install.sh
+root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/scripts /git/ipdk/scripts/host_install.sh
 ```
 
 If using a proxy:
