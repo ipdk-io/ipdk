@@ -4,11 +4,10 @@
 The IPDK Container is a Virtual Networking Infrastructure Container and is
 built with the following components:
 
-1. OvS with P4 Support (https://github.com/ipdk-io/ovs/tree/ovs-with-p4) 
-2. P4_DPDK_target library (https://github.com/p4lang/p4-dpdk-target)
-3. P4-DPDK (https://github.com/DPDK/dpdk)
-4. P4C P4 reference compiler with DPDK, eBPF target support 
-    (https://github.com/p4lang/p4c)
+1. [OvS with P4 Support](https://github.com/ipdk-io/ovs/tree/ovs-with-p4)
+2. [P4_DPDK_target library](https://github.com/p4lang/p4-dpdk-target)
+3. [P4-DPDK](https://github.com/DPDK/dpdk)
+4. [P4C P4 reference compiler with DPDK, eBPF target support](https://github.com/p4lang/p4c)
 5. OVS pipeline builder program
 6. P4 Pipeline program examples
 
@@ -20,11 +19,11 @@ the example P4 pipeline programs.
 
 ## Install IPDK CLI
 To fully use all the features of IPDK container and if you want to follow the
-examples, then install the IPDK CLI with the following command executed from 
+examples, then install the IPDK CLI with the following command executed from
 the directory this README is found in:
 
 ```
-./ipdk install
+./scripts/ipdk.sh install
 ```
 
 If your system has not added `~/.local/bin` or `~/bin` to your search PATH then
@@ -38,21 +37,21 @@ system!
 - Docker is installed and running with correct (proxy) settings.
 - Note: Since all dependent packages are installed in docker container, these
   specific settings should be defined on the host machine/server.
-  Eg: 
+  Eg:
     * A nameserver in `resolv.conf`
     * proxies in `~/.docker/config.json` (https://docs.docker.com/network/proxy/)
     * `http-proxy.conf` under docker service.
     *  Then restart docker service.
-- if you want to push the container to Docker Hub then login to docker using 
+- if you want to push the container to Docker Hub then login to docker using
   `docker login`
-- Start docker service using following commands: 
+- Start docker service using following commands:
 
 ``` 
 $ systemctl daemon-reload
 $ systemctl restart docker
 ```
 
-Install the IPDK CLI and set your specific IPDK CLI configuration settings! See 
+Install the IPDK CLI and set your specific IPDK CLI configuration settings! See
 [here](#CLI-configuration-settings) for more information about IPDK CLI
 configuration file settings and inner workings!
 
@@ -62,7 +61,7 @@ configuration file settings and inner workings!
   the IPDK container when build. If user wants to retain source code, set the
   (`KEEP_SOURCE_CODE=true`) option in the CLI configuration file.
 - The IPDK container is by default build with a `Fedora:33` base image. Build
-  and run your IPDK container with the Ubuntu20.04 base image by setting 
+  and run your IPDK container with the Ubuntu20.04 base image by setting
   `BASE_IMG=ubuntu:20.04`, `IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04` and
   `DOCKERFILE=${SCRIPT_DIR}/Dockerfile.ubuntu` in your user CLI configuration
   file.
@@ -83,7 +82,7 @@ configuration file settings and inner workings!
        `PROXY` option, see above!!!)
 
 * In normal environments use `ipdk build --no-cache` Now the container image is
-build, this can take more then 30 minutes depending on the hardware/VM
+built, this can take more then 60 minutes depending on the hardware/VM
 configuration.
 * When the build is ready, the P4OVS switch can be started as docker
 container daemon with `ipdk start -d`. A `volume` directory will be created
@@ -95,7 +94,7 @@ where the `VOLUME` directory is available as '/tmp'.
 * Run - 'ipdk connect' - To connect to your IPDK container daemon and to use
 it from a command line.
 
-If above commands are successful, at this point you should have your IPDK 
+If above commands are successful, at this point you should have your IPDK
 container up and running, and should see the container prompt like below:
 
 ```
@@ -111,7 +110,7 @@ and ovs-vswitchd process with the `ps -ef | grep ovs` command.
 Below commands will help you setup traffic between 2 VMs on your host with the
 IPDK container as a P4 program enabled vswitch switching traffic between them.
 
-Pre-requisite: 
+Pre-requisite:
 - Container in Section 1 should be up and with OvS running
 - If you are running in a VM then make sure you have nested virtualization
   enabled on your guest VM
@@ -119,7 +118,7 @@ Pre-requisite:
 
 ### Example description
 
-TODO Describe the example setup and how to run in one go.
+The demo environment is easily setup. The command below will set the environment up and allow for simple testing using the P4OVS container:
 
 ```
 ipdk demo
@@ -251,8 +250,8 @@ ubuntu@vm1:~$
 
 TODO: change this whole section to ipdk script + explaining in more depth then demo text above
 
-An open-sourced p4lang P4 compiler is integrated as part of the IPDK container. 
-1) the p4c executable is used to generate dependent files. 
+An open-sourced p4lang P4 compiler is integrated as part of the IPDK container.
+1) the p4c executable is used to generate dependent files.
    You can execute all these commands on container.
     a. export OUTPUT_DIR=/root/examples/simple_l3/
     b. p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files \
@@ -265,7 +264,7 @@ Use ovs_pipeline_builder utility to generate pipeline binary file.
     b. ovs_pipeline_builder --p4c_conf_file=simple_l3.conf \
     --bf_pipeline_config_binary_file=simple_l3.pb.bin
 
-Note: As of today <program>.conf is not generated by compiler, in that case 
+Note: As of today <program>.conf is not generated by compiler, in that case
 need to manually update this conf file.
 
 ## Using and compiling included P4 Example pipelines
@@ -285,7 +284,7 @@ the host in `~/.ipdk/examples`, by executing:
 
 # Section 4: Inner workings
 
-TODO: Add all specific things about how the IPDK container and cli works. 
+TODO: Add all specific things about how the IPDK container and cli works.
 
 ## [IPDK CLI Configuration settings](#CLI-configuration-settings)
 
