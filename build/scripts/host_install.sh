@@ -154,15 +154,15 @@ else
 fi
 
 pushd /root || exit
-cp -r /git/ipdk/scripts .
-cp -r /git/ipdk/examples .
-cp /git/ipdk/start_p4ovs.sh start_p4ovs.sh
-cp /git/ipdk/run_ovs_cmds run_ovs_cmds
+cp -r /git/ipdk/build/scripts .
+cp -r /git/ipdk/build/examples .
+cp /git/ipdk/build/start_p4ovs.sh start_p4ovs.sh
+cp /git/ipdk/build/run_ovs_cmds run_ovs_cmds
 popd
 
 export OS_VERSION=20.04
 export IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04
-export REPO=${PWD}
+export REPO=/git/ipdk
 TAG="$(cd "${REPO}" && git rev-parse --short HEAD)"
 export TAG
 

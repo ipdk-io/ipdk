@@ -52,7 +52,8 @@ apt-get install -y apt-utils \
         sudo \
         make \
         cloud-image-utils \
-        telnet
+        telnet \
+        qemu-kvm
 
 pip install --upgrade pip
 pip install grpcio \

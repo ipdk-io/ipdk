@@ -41,5 +41,6 @@ ovsdb-server \
 ovs-vsctl --no-wait init
 
 echo "Staring OvS VSWITCHD Process...."
+mkdir -p /tmp/logs
 GLOG_log_dir=/tmp/logs ovs-vswitchd --pidfile --detach --no-chdir --mlockall --log-file=/tmp/logs/ovs-vswitchd.log
 echo "All Processes Started....."

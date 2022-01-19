@@ -2,13 +2,13 @@ Vagrant.configure("2") do |config|
   config.vm.box = "kwilczynski/ubuntu-20.04-docker"
 
   config.vm.provider "virtualbox" do |v|
-    v.name = "ipdk-ubuntu"
+    v.name = "ipdk-container"
     v.memory = 8192
     v.cpus = 4
     v.customize ['modifyvm', :id, '--nested-hw-virt', 'on']
   end
 
-  config.vm.synced_folder "..", "/git/ipdk"
+  config.vm.synced_folder "../..", "/git/ipdk"
 
   # NOTE: Configure any proxy below.
   #config.proxy.http     = "http://proxy:911"
