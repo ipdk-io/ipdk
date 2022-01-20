@@ -61,7 +61,7 @@ examples, then install the IPDK CLI with the following command executed from
 the directory this README is found in:
 
 ```
-./scripts/ipdk.sh install
+./ipdk install
 ```
 
 If your system has not added `~/.local/bin` or `~/bin` to your search PATH then
