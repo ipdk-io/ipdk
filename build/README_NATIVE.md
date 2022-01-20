@@ -1,8 +1,9 @@
-# Host Install
+# Native Install
 
 This method is supportd for either installing and using IPDK in a VM or on a
-host natively. This is in support of being able to run containers attached to
-the OVS-P4 switch.
+host natively. P4OVS will run natively on the host or inside of a VM, which
+is different than the containerized version of IPDK, which runs P4OVS as a
+container.
 
 ## Steps To Install
 
@@ -13,7 +14,7 @@ one is quite useful.
 
 ### Bringup the Vagrant VM:
 ```
-$ cd vagrant
+$ cd vagrant-native
 $ vagrant up
 ```
 
@@ -48,14 +49,14 @@ Without a proxy:
 
 ```
 vagrant@ubuntu2004:~$ sudo su -
-root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/scripts /git/ipdk/scripts/host_install.sh
+root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/scripts /git/ipdk/build/scripts/host_install.sh
 ```
 
 If using a proxy:
 
 ```
 vagrant@ubuntu2004:~$ sudo su -
-root@ubuntu2004:~# /git/ipdk/scripts/host_install.sh -p [proxy name]
+root@ubuntu2004:~# /git/ipdk/build/scripts/host_install.sh -p [proxy name]
 ```
 
 Note: To skip installing and building dependencies in the future, add a `-s`
@@ -64,7 +65,7 @@ flag to the host_install.sh script.
 ### Run the rundemo.sh script
 
 ```
-root@ubuntu2004:~$ /git/ipdk/scripts/rundemo.sh
+root@ubuntu2004:~$ /git/ipdk/build/scripts/rundemo.sh
 ```
 
 5. Verify OVS is running:

@@ -54,6 +54,7 @@ create_images() {
 	print_banner "Get Ubuntu focal base image"
 
 	mkdir -p "${IMAGE_LOCATION}"
+	get_distro_image focal "${IMAGE_LOCATION}"
 	echo "Distribution image: $DIST_FNAME"
 
 	print_banner "Create requested VM images"

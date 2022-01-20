@@ -17,13 +17,51 @@ compiler + builder and example p4 pipeline code within the container. Following
 sections decribe the steps on how to bring up and run this container and use
 the example P4 pipeline programs.
 
+## Optional Vagrant Setup
+
+To ease usage of the IPDK P4OVS container, a Vagrant environment is provided
+which will spinup an Ubuntu VM with Docker already installed, allowing for a
+quick way to play with the containerized version of P4OVS.
+
+### Bringup the Vagrant VM:
+```
+$ cd vagrant-container
+$ vagrant up
+```
+
+### Login to the VM
+```
+$ vagrant ssh
+Welcome to Ubuntu 20.04 LTS (GNU/Linux 5.4.0-31-generic x86_64)
+
+                  ubuntu-20.04-amd64-docker (virtualbox)
+                 _____ _____ _____ _____ _____ _____ _____
+                |  |  |  _  |   __| __  |  _  |   | |_   _|
+                |  |  |     |  |  |    -|     | | | | | |
+                 \___/|__|__|_____|__|__|__|__|_|___| |_|
+                       Sat May 23 14:38:33 UTC 2020
+                            Box version: 0.1.1
+
+  System information as of Wed 22 Dec 2021 05:47:40 PM UTC
+
+  System load:  1.08               Processes:                141
+  Usage of /:   12.1% of 38.65GB   Users logged in:          0
+  Memory usage: 3%                 IPv4 address for docker0: 172.17.0.1
+  Swap usage:   0%                 IPv4 address for eth0:    10.0.2.15
+
+vagrant@ubuntu2004:~$
+```
+
+From here on, make sure to follow the instructions below while logged into
+the vagrant-container virtual machine.
+
 ## Install IPDK CLI
 To fully use all the features of IPDK container and if you want to follow the
 examples, then install the IPDK CLI with the following command executed from
 the directory this README is found in:
 
 ```
-./scripts/ipdk.sh install
+./ipdk install
 ```
 
 If your system has not added `~/.local/bin` or `~/bin` to your search PATH then
