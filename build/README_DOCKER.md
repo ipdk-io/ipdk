@@ -111,11 +111,11 @@ configuration file settings and inner workings!
    
 * The following commands can be used to build a IPDK container:
     1. Run `ipdk build --no-cache` - To build a IPDK docker image.
-    2. Run `ipdk build --no-cache --proxy ` - To build a docker image while
+    2. Run `ipdk build --no-cache --use-proxy ` - To build a docker image while
        running behind a proxy (set the `PROXY` option, see above!!!).
     3. Run `ipdk build` - To build a IPDK docker image with using
        previously cached build data.
-    4. Run `ipdk build --proxy` - To build a docker image while running
+    4. Run `ipdk build --use-proxy` - To build a docker image while running
        behind a proxy, with using previous cached build's data. (set the
        `PROXY` option, see above!!!)
 
