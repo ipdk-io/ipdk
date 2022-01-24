@@ -56,7 +56,7 @@ If using a proxy:
 
 ```
 vagrant@ubuntu2004:~$ sudo su -
-root@ubuntu2004:~# /git/ipdk/build/scripts/host_install.sh -p [proxy name]
+root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/scripts /git/ipdk/build/scripts/host_install.sh -p [proxy name]
 ```
 
 Note: To skip installing and building dependencies in the future, add a `-s`
