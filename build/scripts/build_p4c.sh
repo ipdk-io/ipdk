@@ -40,6 +40,14 @@ git checkout $P4C_SHA
 #this change
 #TODO: See if this patch can be upstreamed to p4lang
 git apply $PATCH_DIR/PATCH-01-P4C
+mkdir extensions
+pushd extensions || exit
+git clone https://github.com/vmware/p4c-xdp.git
+ln -s ~/P4C p4c-xdp/p4c
+popd
+pushd backends/ebpf || exit
+"$WORKDIR"/P4C/backends/ebpf/build_libbpf
+popd
 mkdir build && cd build
 cmake -DENABLE_BMV2=OFF \ -DENABLE_P4C_GRAPHS=OFF -DENABLE_P4TEST=OFF \
       -DENABLE_GTESTS=OFF ..

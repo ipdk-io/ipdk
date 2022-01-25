@@ -53,7 +53,8 @@ apt-get install -y apt-utils \
         make \
         cloud-image-utils \
         telnet \
-        qemu-kvm
+        qemu-kvm \
+        libelf-dev
 
 pip install --upgrade pip
 pip install grpcio \
