@@ -4,12 +4,11 @@
 # Version 0.1.0
 
 ARG BASE_IMG=${BASE_IMG}
-ARG OS_VERSION=${OS_VERSION}
 
 FROM ${BASE_IMG} AS base
 LABEL maintainer="neha1.singh@intel.com"
 ARG PROXY
-ARG OS_VERSION
+ARG BASE_IMG
 
 SHELL ["/bin/bash", "-c"]
 
@@ -59,7 +58,7 @@ RUN apt-get install -y apt-utils \
     vim \
     sudo
 
-RUN if [ "$OS_VERSION" = "18.04" ] ; then \
+RUN if [ "$BASE_IMG" = "ubuntu:18.04" ] ; then \
        apt-get -y install python-pip; \
     else \
        apt-get -y install pip; \

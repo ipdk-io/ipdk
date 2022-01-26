@@ -108,7 +108,6 @@ build_image() {
 			ARGS+=("--build-arg" "KEEP_SOURCE_CODE=NO")
 		fi
 		ARGS+=("--build-arg" "BASE_IMG=$BASE_IMG")
-		ARGS+=("--build-arg" "OS_VERSION=$OS_VERSION")
 
 		# run image build process
 		docker build -t "${IMAGE_NAME}":"${TAG}" -f "${DOCKERFILE}" "${ARGS[@]}" .
