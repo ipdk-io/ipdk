@@ -5,7 +5,7 @@
 set -e
 
 # shellcheck source=scripts/os_ver_details.sh
-source os_ver_details.sh
+. os_ver_details.sh
 get_os_ver_details
 
 if [ -z "$1" ]
