@@ -6,7 +6,7 @@
 initialize_env() {
 	pushd /root/scripts > /dev/null  || exit
 		# shellcheck source=/dev/null
-		source p4ovs_env_setup.sh /root/p4-sde/install > /dev/null
+		. p4ovs_env_setup.sh /root/p4-sde/install > /dev/null
 	popd > /dev/null || exit
 }
 
@@ -31,14 +31,14 @@ rundaemon() {
 # start to commandline
 startcmd() {
 	# shellcheck source=/dev/null
-	source "$HOME/.bashrc"
+	. "$HOME/.bashrc"
 	initialize_env
 }
 
 # execute command given through the arguments
 execute() {
 	# shellcheck source=/dev/null
-	source "$HOME/.bashrc"
+	. "$HOME/.bashrc"
 	initialize_env
 	"${@}"
 }

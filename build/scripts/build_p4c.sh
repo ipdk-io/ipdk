@@ -4,7 +4,7 @@
 
 set -e
 # shellcheck source=scripts/os_ver_details.sh
-source os_ver_details.sh
+. os_ver_details.sh
 
 if [ -z "$1" ]
 then

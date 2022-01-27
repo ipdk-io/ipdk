@@ -19,14 +19,14 @@ initialize() {
 	# Import default repository settings
 	[ -f "$SCRIPT_DIR/ipdk_default.env" ] && {
 		# shellcheck source=/dev/null
-		source "$SCRIPT_DIR/ipdk_default.env"
+		. "$SCRIPT_DIR/ipdk_default.env"
 		echo "Loaded $SCRIPT_DIR/ipdk_default.env"
 	}
 
 	# Import user specific settings
 	[ -f "$HOME/.ipdk/ipdk.env" ] && {
 		# shellcheck source=/dev/null
-		source "$HOME/.ipdk/ipdk.env"
+		. "$HOME/.ipdk/ipdk.env"
 		echo "Loaded $HOME/.ipdk/ipdk.env"
 	}
 
@@ -36,7 +36,7 @@ initialize() {
 		exit 1
 	}
 	# shellcheck source=/dev/null
-	source "$SCRIPT_DIR/ipdk-lib.sh"
+	. "$SCRIPT_DIR/ipdk-lib.sh"
 }
 
 #

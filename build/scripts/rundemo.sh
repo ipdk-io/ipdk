@@ -120,7 +120,7 @@ echo ""
 
 pushd /root/P4-OVS || exit
 # shellcheck source=/dev/null
-source /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
+. /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
 /root/scripts/set_hugepages.sh
 /root/scripts/run_ovs.sh
 popd || exit
@@ -131,7 +131,7 @@ echo ""
 
 pushd /root/P4-OVS || exit
 # shellcheck source=/dev/null
-source /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
+. /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
 gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,\
     device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-0,\
     port-type:LINK"
