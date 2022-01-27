@@ -56,17 +56,15 @@ RUN apt-get install -y apt-utils \
     connect-proxy \
     coreutils \
     vim \
-    sudo
-
-RUN if [ "$BASE_IMG" = "ubuntu:18.04" ] ; then \
+    sudo && \
+    if [ "$BASE_IMG" = "ubuntu:18.04" ] ; then \
        apt-get -y install python-pip; \
     else \
        apt-get -y install pip; \
-    fi
+    fi && \
+    apt-get -y clean all
 
-RUN apt-get -y clean all
-
-## Installing all PYTHON packages
+# Installing all PYTHON packages
 RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     python3 -m pip install --no-cache-dir grpcio && \
     python3 -m pip install --no-cache-dir ovspy \
