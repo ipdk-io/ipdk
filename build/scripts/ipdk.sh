@@ -42,6 +42,7 @@ initialize() {
 #
 # Perform ipdk installation tasks like adding scripts to path and creating 
 # user ipdk.env configuration file
+# $1 = Base environment name to use
 #
 install() {
 	# create ~/.ipdk directory
@@ -50,7 +51,7 @@ install() {
 	# add empty ipdk.env file if not already there
 	if [ -f "$HOME/.ipdk/ipdk.env" ]; then
 		echo "User changable IPDK configuration file is already defined at "
-		echo "'~/.ipdk/ipdk.env'. Remove this file when new install is required!"
+		echo "'~/.ipdk/ipdk.env'."
 	else
 		cat <<- EOF >> "$HOME"/.ipdk/ipdk.env
 			# 
@@ -60,6 +61,37 @@ install() {
 			# $SCRIPT_DIR contains the location of the 'sourcing' ipdk script when read.
 			#
 			EOF
+	fi
+
+	# change runtime environment if requested
+	if [ "$1" != "" ] ; then
+		case "$1" in
+			default) # change to default environment
+				remove_config_line "BASE_IMG" "$HOME/.ipdk/ipdk.env"
+				remove_config_line "IMAGE_NAME" "$HOME/.ipdk/ipdk.env"
+				remove_config_line "DOCKERFILE" "$HOME/.ipdk/ipdk.env"
+				;;
+			host) # change to host environment (Vagrant/other VM or bare metal)
+				change_config_line "BASE_IMG" "BASE_IMG=host" "$HOME/.ipdk/ipdk.env"
+				remove_config_line "IMAGE_NAME" "$HOME/.ipdk/ipdk.env"
+				remove_config_line "DOCKERFILE" "$HOME/.ipdk/ipdk.env"
+				;;
+			*) # Select one of the pre defined container runtime environments
+				# shellcheck disable=SC2153 # This is exception because RT_ENVS is sourced!
+				local RT_ENV="${RT_ENVS[$1]}"
+				if [ "${RT_ENV}" != "" ] ; then 
+					IFS="," read -r -a ENV_ATTR <<< "${RT_ENV}"
+					change_config_line "BASE_IMG" "BASE_IMG=${ENV_ATTR[0]}" "$HOME/.ipdk/ipdk.env"
+					change_config_line "IMAGE_NAME" "IMAGE_NAME=${ENV_ATTR[1]}" "$HOME/.ipdk/ipdk.env"
+					change_config_line "DOCKERFILE" "DOCKERFILE=${ENV_ATTR[2]}" "$HOME/.ipdk/ipdk.env"
+				else
+					# The user defined a unknown runtime environment
+					echo "Unknown runtime environment reference!" >&2
+					exit 1
+				fi
+				;;
+		esac
+		echo "Changed runtime environment to: $1"
 	fi
 
 	# Install a symlink in $HOME/.local/bin, $HOME/bin if in PATH
@@ -272,12 +304,19 @@ status() {
 	echo "generic variables:"
 	echo "PWD=$PWD"
 	echo "SCRIPT_DIR=$SCRIPT_DIR"
+	printf '%-12s | %-15s | %-25s | %-30s\n' "RT_ENVS" "BASE_IMAGE" "IMAGE_NAME" "DOCKERFILE";
+	echo '-------------------------------------------------------------------------------------------------------------------------' 
+	# shellcheck disable=SC2153 # This is exception because RT_ENVS is sourced!
+	for RT_ENV in "${!RT_ENVS[@]}" ; do
+		IFS="," read -r -a ENV_ATTR <<< "${RT_ENVS[$RT_ENV]}"
+		printf '%-12s | %-15s | %-25s | %-30s\n' "$RT_ENV" "${ENV_ATTR[@]}";
+	done
 	echo ""
 
 	echo "build arguments:"
 	echo "NO_CACHE=$NO_CACHE"
 	echo "PROXY=$PROXY"
-	echo "OS_VERSION=$OS_VERSION"
+	echo "BASE_IMG=$BASE_IMG"
 	echo "IMAGE_NAME=$IMAGE_NAME"
 	echo "TAG=$TAG"
 	echo "DOCKERFILE=$DOCKERFILE"
@@ -308,8 +347,11 @@ help() {
 		    'ipdk_default.env' & '~/.ipdk/ipdk.env'
 		 
 		Available commands are:
-		   install
+		   install [environment]
 		     Create the ~/.ipdk directory and create a blank 'ipdk.env' file.
+		     [Environment] can be used to set the environment to work in
+		     (value can be: default, host, or available container base image names).
+		     See the IPDK documentation for more information.
 		   build
 		     build the designated container image
 		       --no-cache - without using the docker cache
@@ -546,7 +588,7 @@ case $COMMAND in
 		status
 		;;
 	install)
-		install
+		install "${COMMANDS[1]}"
 		;;
 	help)
 		help
