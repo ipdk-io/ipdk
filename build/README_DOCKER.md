@@ -101,7 +101,7 @@ configuration file settings and inner workings!
 - The IPDK container is by default build with a `Fedora:33` base image. Build
   and run your IPDK container with the Ubuntu20.04 base image by setting
   `BASE_IMG=ubuntu:20.04`, `IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04` and
-  `DOCKERFILE=${SCRIPT_DIR}/Dockerfile.ubuntu` in your user CLI configuration
+  `DOCKERFILE=${SCRIPT_DIR}/../Dockerfile.ubuntu` in your user CLI configuration
   file.
 - Set the location of the working directory for the logs, interfaces and
   example VM images by setting the `VOLUME=` option in your user CLI
