@@ -84,5 +84,6 @@ COPY ./scripts scripts
 COPY ./examples /root/examples
 COPY ./start_p4ovs.sh /root/start_p4ovs.sh
 COPY ./run_ovs_cmds /root/run_ovs_cmds
+COPY ./patches /root/patches
 RUN  /root/start_p4ovs.sh /root && \
      /root/scripts/run_cleanup.sh /root ${KEEP_SOURCE_CODE}
