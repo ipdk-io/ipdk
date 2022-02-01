@@ -10,6 +10,17 @@ IPDK uses GitHub to manage reviews of pull requests.
 
 * Be sure to sign off on the [DCO](https://github.com/probot/dco#how-it-works).
 
+## Issues
+
+We use [GitHub Issues](https://github.com/ipdk-io/ipdk/issues) to track issues
+for the IPDK project. If you come across a bug, please feel free to open issue.
+Ideally, you would include as much information below in the issue:
+
+* Clear title presenting the issue.
+* A solid description with steps to reproduce the issue.
+* Are you using the IPDK container, or running natively?
+* Which supported version of the base OS are you running?
+
 ## Steps to Contribute
 
 Should you wish to work on an issue, please claim it first by commenting on the
@@ -31,3 +42,12 @@ from contributors on the same issue.
   [IPDK Slack](https://join.slack.com/t/ipdkworkspace/shared_invite/zt-xb97bi1d-Q0NY9YC3PYv3LTw~HngVbA).
 
 * Add tests relevant to the fixed bug or new feature.
+
+## Pull Request Merging
+
+* Assuming you've followed the steps to [prepare your PR](#pull-request-checklist),
+  reviewers will review you pull request. These could be general members of the
+  community, as well as [maintainers](MAINTAINERS.md).
+
+* Your pull request will be reviewed once it has at least one maintainer
+  approve it.
