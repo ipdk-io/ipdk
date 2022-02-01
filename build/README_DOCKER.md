@@ -69,6 +69,11 @@ execute the given `export PATH=<>` command to add the `ipdk` command
 to your current environment path each time you open a new terminal to your
 system!
 
+The IPDK CLI is by default setup for a `Fedora:33` environment. Build
+and run your IPDK container with the `ubuntu:20.04` or `ubuntu:18.04` base
+environment by running `ipdk install ubuntu2004` or `ipdk install ubuntu1804`.
+`ipdk install default` will bring you back to the default environment (fedora)
+
 ## Section 1: Bring-up IPDK Container
 
 ### Pre-requisites to run IPDK container
@@ -98,11 +103,6 @@ configuration file settings and inner workings!
 - By default source code for P4-OVS, p4-driver and P4C will not be retained in
   the IPDK container when build. If user wants to retain source code, set the
   (`KEEP_SOURCE_CODE=true`) option in the CLI configuration file.
-- The IPDK container is by default build with a `Fedora:33` base image. Build
-  and run your IPDK container with the Ubuntu20.04 base image by setting
-  `BASE_IMG=ubuntu:20.04`, `IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04` and
-  `DOCKERFILE=${SCRIPT_DIR}/../Dockerfile.ubuntu` in your user CLI configuration
-  file.
 - Set the location of the working directory for the logs, interfaces and
   example VM images by setting the `VOLUME=` option in your user CLI
   configuration file. Default location is `~/.ipdk/volume`
@@ -320,7 +320,7 @@ the host in `~/.ipdk/examples`, by executing:
     ipdk [options] examples
 ```
 
-# Section 4: Inner workings
+# Section 4: IPDK CLI inner workings
 
 TODO: Add all specific things about how the IPDK container and cli works.
 
