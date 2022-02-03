@@ -17,6 +17,7 @@ fi
 P4C_SHA=d2f0c2a22286c6b6643e5e3906cf020d6d698c70
 
 WORKDIR=$1
+PATCH_DIR=/root/patches
 cd "$WORKDIR"
 
 echo "Removing P4C directory if it already exits"
@@ -32,6 +33,13 @@ echo ""
 git clone https://github.com/p4lang/p4c.git --recursive P4C
 cd P4C
 git checkout $P4C_SHA
+#In protobuf version 3.18.1,'OK’ is no longer a member of
+#‘google::protobuf::util::status_internal::Status’. Instead a
+#public method (ok()) is available to check the return status.
+#This patch applies necessary changes to P4C code to accomodate
+#this change
+#TODO: See if this patch can be upstreamed to p4lang
+git apply $PATCH_DIR/PATCH-01-P4C
 mkdir build && cd build
 cmake -DENABLE_BMV2=OFF \ -DENABLE_P4C_GRAPHS=OFF -DENABLE_P4TEST=OFF \
       -DENABLE_GTESTS=OFF ..
