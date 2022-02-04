@@ -76,6 +76,6 @@ jobs:
         # When using ubuntu20.04
         BASE_IMG=ubuntu:20.04
         IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04
-        DOCKERFILE=${SCRIPT_DIR}/../Dockerfile.ubuntu
+        DOCKERFILE=${GITHUB_WORKSPACE}/build/Dockerfile.ubuntu
         EOF
         ipdk build --no-cache
