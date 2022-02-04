@@ -1,0 +1,83 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install dependencies
+      run: |
+        echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+        sudo apt-get -y install shellcheck apt-utils \
+                              git \
+                              libtool \
+                              clang \
+                              gcc \
+                              g++ \
+                              autoconf \
+                              automake \
+                              autoconf-archive \
+                              libconfig++-dev \
+                              libgc-dev \
+                              unifdef \
+                              libffi-dev \
+                              libboost-iostreams-dev \
+                              libboost-graph-dev \
+                              llvm \
+                              pkg-config \
+                              flex libfl-dev \
+                              zlib1g-dev \
+                              iproute2 \
+                              net-tools \
+                              iputils-arping \
+                              iputils-ping \
+                              iputils-tracepath \
+                              python \
+                              bison \
+                              python3-setuptools \
+                              python3-pip \
+                              python3-wheel \
+                              python3-cffi \
+                              libedit-dev \
+                              libgmp-dev \
+                              libexpat1-dev \
+                              libboost-dev \
+                              google-perftools \
+                              curl \
+                              connect-proxy \
+                              coreutils
+    
+    - name: Install Docker CE
+      run: |
+        sudo apt-get install ca-certificates curl gnupg lsb-release
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+        echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        sudo apt-get update
+        sudo apt-get install docker-ce docker-ce-cli containerd.io
+
+    - name: shellcheck
+      run: |
+        cd build && make shellcheck
+
+    - name: IPDK Ubuntu Container Build
+      run: |
+        cd build
+        ./ipdk install
+        cat << EOF >> ~/.ipdk/ipdk.env
+        # When using ubuntu20.04
+        BASE_IMG=ubuntu:20.04
+        IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04
+        DOCKERFILE=${SCRIPT_DIR}/../Dockerfile.ubuntu
+        EOF
+        ipdk build --no-cache
