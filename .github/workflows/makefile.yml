@@ -16,7 +16,7 @@ jobs:
     
     - name: Install dependencies
       run: |
-        echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+        sudo echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
         sudo apt-get -y install shellcheck apt-utils \
                               git \
                               libtool \
