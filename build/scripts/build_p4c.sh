@@ -38,6 +38,7 @@ git checkout $P4C_SHA
 #public method (ok()) is available to check the return status.
 #This patch applies necessary changes to P4C code to accomodate
 #this change
+#TODO: See if this patch can be upstreamed to p4lang
 git apply $PATCH_DIR/PATCH-01-P4C
 mkdir build && cd build
 cmake -DENABLE_BMV2=OFF \ -DENABLE_P4C_GRAPHS=OFF -DENABLE_P4TEST=OFF \
