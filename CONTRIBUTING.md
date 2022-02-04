@@ -35,6 +35,8 @@ from contributors on the same issue.
 
 * Commits should be as small as possible, while ensuring that each commit is
   correct independently (i.e., each commit should compile and pass tests).
+  *NOTE*: For a list of tests, see the existing GitHub Actions defined
+  [here](https://github.com/ipdk-io/ipdk/blob/main/.github/workflows/makefile.yml).
 
 * If your patch is not getting reviewed or you need a specific person to review
   it, you can @-reply a reviewer asking for a review in the pull request or a
