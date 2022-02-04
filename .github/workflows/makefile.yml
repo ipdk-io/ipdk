@@ -16,45 +16,8 @@ jobs:
     
     - name: Install dependencies
       run: |
-        echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-        sudo apt-get -y install shellcheck apt-utils \
-                              git \
-                              libtool \
-                              clang \
-                              gcc \
-                              g++ \
-                              autoconf \
-                              automake \
-                              autoconf-archive \
-                              libconfig++-dev \
-                              libgc-dev \
-                              unifdef \
-                              libffi-dev \
-                              libboost-iostreams-dev \
-                              libboost-graph-dev \
-                              llvm \
-                              pkg-config \
-                              flex libfl-dev \
-                              zlib1g-dev \
-                              iproute2 \
-                              net-tools \
-                              iputils-arping \
-                              iputils-ping \
-                              iputils-tracepath \
-                              python \
-                              bison \
-                              python3-setuptools \
-                              python3-pip \
-                              python3-wheel \
-                              python3-cffi \
-                              libedit-dev \
-                              libgmp-dev \
-                              libexpat1-dev \
-                              libboost-dev \
-                              google-perftools \
-                              curl \
-                              connect-proxy \
-                              coreutils
+        sudo echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
+        sudo apt-get -y install shellcheck apt-utils
     
     - name: Install Docker CE
       run: |
@@ -76,6 +39,6 @@ jobs:
         # When using ubuntu20.04
         BASE_IMG=ubuntu:20.04
         IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04
-        DOCKERFILE=${SCRIPT_DIR}/../Dockerfile.ubuntu
+        DOCKERFILE=${GITHUB_WORKSPACE}/build/Dockerfile.ubuntu
         EOF
         ipdk build --no-cache
