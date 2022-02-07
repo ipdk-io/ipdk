@@ -11,3 +11,8 @@ for increasing performance, optimizing resources and securing the
 infrastructure as an open source community.
 
 ![IPDK Architecture](https://github.com/ipdk-io/ipdk-io.github.io/blob/main/img/ipdk-icons-white.png)
+
+## Building and Using IPDK
+
+Instructions for how to build IPDK are found in the
+[build directory](build/README.md). Follow those to build and use IPDK.
