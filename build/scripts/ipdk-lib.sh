@@ -13,6 +13,42 @@ print_banner() {
 	echo ""
 }
 
+#
+# Replace configuration line with new line and if not exist add
+# $1 = SEARCH_FOR
+# $2 = NEW_LINE
+# $3 = FILE - filepath to replace/add line in/to
+#
+change_config_line() {
+	local SEARCH_FOR=$1; shift
+	local NEW_LINE=$1; shift
+	local FILE=$1
+	local NEW
+
+	# escape correctly for use in sed
+	NEW=$(echo "${NEW_LINE}" | sed 's/\//\\\//g')
+	# create file if not exist...
+	touch "${FILE}"
+	# shellcheck disable=SC2016 # Errored part needs to be between single quotes
+	sed -i '/'"${SEARCH_FOR}"'/{s/.*/'"${NEW}"'/;h};${x;/./{x;q100};x}' "${FILE}"
+	if [[ $? -ne 100 ]] && [[ ${NEW_LINE} != '' ]]
+	then
+		echo "${NEW_LINE}" >> "${FILE}"
+	fi
+}
+
+#
+# Remove configuration line if exist
+# $1 = SEARCH_FOR
+# $3 = FILE - filepath to remove from
+#
+remove_config_line() {
+	local SEARCH_FOR=$1; shift
+	local FILE=$1
+
+	sed -i '/'"${SEARCH_FOR}"'/d' "${FILE}"
+}
+
 # 
 # Get latest ubuntu cloud image from distribution server
 # $1 = RELEASE
