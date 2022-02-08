@@ -38,11 +38,5 @@ jobs:
     - name: IPDK Ubuntu Container Build
       run: |
         cd build
-        ./ipdk install
-        cat << EOF >> ~/.ipdk/ipdk.env
-        # When using ubuntu20.04
-        BASE_IMG=ubuntu:20.04
-        IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04
-        DOCKERFILE=${GITHUB_WORKSPACE}/build/Dockerfile.ubuntu
-        EOF
-        ipdk build --no-cache
+        ./ipdk install ubuntu2004
+        ipdk build --no-cache 
