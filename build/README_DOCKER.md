@@ -23,6 +23,14 @@ To ease usage of the IPDK P4OVS container, a Vagrant environment is provided
 which will spinup an Ubuntu VM with Docker already installed, allowing for a
 quick way to play with the containerized version of P4OVS.
 
+### Supported Vagrant + Virtualbox Setups
+
+The Vagrant setup is currently only tested with Virtualbox running on MacOS. As
+more uses test and report things working, this will be updated.
+
+It's also not advised to run multiple hypervisors at the same time, as this can lead
+to trouble with sharing the CPU's virtualization extensions.
+
 ### Bringup the Vagrant VM:
 ```
 $ cd vagrant-container
