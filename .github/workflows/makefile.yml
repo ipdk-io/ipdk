@@ -18,6 +18,9 @@ jobs:
   build:
     needs: shellcheck
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu2004, fedora33]
 
     steps:
     - uses: actions/checkout@v2
@@ -25,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
-        sudo apt-get -y install shellcheck apt-utils
+        sudo apt-get -y install apt-utils
 
     - name: Install Docker CE
       run: |
@@ -35,8 +38,8 @@ jobs:
         sudo apt-get update
         sudo apt-get install docker-ce docker-ce-cli containerd.io
 
-    - name: IPDK Ubuntu Container Build
+    - name: Container Build
       run: |
         cd build
-        ./ipdk install ubuntu2004
-        ipdk build --no-cache 
+        ./ipdk install ${{ matrix.os }}
+        ipdk build --no-cache
