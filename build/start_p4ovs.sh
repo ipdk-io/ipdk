@@ -20,28 +20,28 @@ export PATH="$WORKDIR/P4-OVS/:${PATH}"
 
 get_p4ovs_repo() {
     chmod +x ${SCRIPTS_DIR}/get_p4ovs_repo.sh && \
-        sh ${SCRIPTS_DIR}/get_p4ovs_repo.sh "$WORKDIR"
+        bash ${SCRIPTS_DIR}/get_p4ovs_repo.sh "$WORKDIR"
 }
 
 build_p4sde() {
     chmod +x ${SCRIPTS_DIR}/build_p4sde.sh && \
-        sh ${SCRIPTS_DIR}/build_p4sde.sh "$WORKDIR"
+        bash ${SCRIPTS_DIR}/build_p4sde.sh "$WORKDIR"
 }
 
 install_dependencies() {
     cd "$WORKDIR"/P4-OVS && sed -i 's/sudo //g' install_dep_packages.sh && \
-        sh ./install_dep_packages.sh "$WORKDIR"
+        bash ./install_dep_packages.sh "$WORKDIR"
     #...Removing Dependencies Source Code After Successful Installation...#
     rm -rf "${WORKDIR}/P4OVS_DEPS_SRC_CODE" || exit 1
 }
 
 build_p4c () {
     chmod +x ${SCRIPTS_DIR}/build_p4c.sh && \
-        sh ${SCRIPTS_DIR}/build_p4c.sh "$WORKDIR"
+        bash ${SCRIPTS_DIR}/build_p4c.sh "$WORKDIR"
 }
 
 build_p4ovs () {
-   cd "$WORKDIR"/P4-OVS && sh ./build-p4ovs.sh "$WORKDIR"/p4-sde/install
+   cd "$WORKDIR"/P4-OVS && bash ./build-p4ovs.sh "$WORKDIR"/p4-sde/install
 }
 
 if [ -z "${INSTALL_DEPENDENCIES}" ] || [ "${INSTALL_DEPENDENCIES}" == "y" ]
