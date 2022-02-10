@@ -158,6 +158,7 @@ cp -r /git/ipdk/build/scripts .
 cp -r /git/ipdk/build/examples .
 cp /git/ipdk/build/start_p4ovs.sh start_p4ovs.sh
 cp /git/ipdk/build/run_ovs_cmds run_ovs_cmds
+cp -r /git/ipdk/build/patches .
 popd
 
 export OS_VERSION=20.04
