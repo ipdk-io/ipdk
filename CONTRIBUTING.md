@@ -56,5 +56,5 @@ from contributors on the same issue.
   reviewers will review you pull request. These could be general members of the
   community, as well as [maintainers](MAINTAINERS.md).
 
-* Your pull request will be reviewed once it has at least one maintainer
-  approve it.
+* Pull requests will be reviewed by one or more maintainers and merged when
+  acceptable.
