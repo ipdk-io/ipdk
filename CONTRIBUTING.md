@@ -35,7 +35,7 @@ from contributors on the same issue.
 
 * Make sure you write a good commit message. Commit messages matter, it's
   important for other developers to understand the context behind your commit.
-  For help, [this artcile](https://cbea.ms/git-commit/) is a good place to
+  For help, [this article](https://cbea.ms/git-commit/) is a good place to
   start.
 
 * Commits should be as small as possible, while ensuring that each commit is
