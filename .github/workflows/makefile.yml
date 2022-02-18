@@ -83,16 +83,16 @@ jobs:
       if: github.event_name != 'pull_request'
       run: |
         ipdk build --no-cache \
-          --tags ${{ steps.image_meta.outputs.tags }} \
-          --labels ${{ steps.image_meta.outputs.labels }} \
+          --tags "${{ steps.image_meta.outputs.tags }}" \
+          --labels "${{ steps.image_meta.outputs.labels }}" \
           --push
 
     - name: IPDK image build and export
       if: github.event_name == 'pull_request'
       run: |
         ipdk build --no-cache \
-          --tags ${{ steps.image_meta.outputs.tags }} \
-          --labels ${{ steps.image_meta.outputs.labels }} \
+          --tags "${{ steps.image_meta.outputs.tags }}" \
+          --labels "${{ steps.image_meta.outputs.labels }}" \
           --export /tmp/${{ matrix.os }}-${{ runner.arch }}.tar
 
     - name: Upload build artifact
