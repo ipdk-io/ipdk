@@ -27,13 +27,13 @@ function check_buildx() {
 		return 1
 	fi
 
-	docker_version="$(docker --version | cut -d' ' -f3 | tr -cd '0-9.')"
+	docker_version="$(docker version --format '{{.Server.Version}}')"
 	if [[ "$(version "$docker_version")" < "$(version '19.03')" ]]; then
 		error "docker $docker_version too old. Need >= 19.03"
 		return 1
 	fi
 
-	docker_experimental="$(docker version | awk '/^ *Experimental:/ {print $2 ; exit}')"
+	docker_experimental="$(docker version --format='{{.Server.Experimental}}')"
 	if [[ "$docker_experimental" != 'true' ]]; then
 		echo "docker experimental flag not enabled: Set with 'export DOCKER_CLI_EXPERIMENTAL=enabled'" >&2
 		return 1
