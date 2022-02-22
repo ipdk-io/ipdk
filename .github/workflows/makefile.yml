@@ -33,6 +33,12 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    # Set an output parameter `arch` for use in subsequent steps
+    - name: Get processor architecture
+      id: system 
+      run: |
+        echo ::set-output name=arch::$(uname -m)
+
     - name: Set up QEMU        
       uses: docker/setup-qemu-action@v1
 
@@ -61,9 +67,9 @@ jobs:
         sep-tags: ","
         sep-labels: ","
         # list of names to use as base name for tags
+        # add for dockerhub: ipdk-io/ipdk-${{ matrix.os }}-${{ steps.system.outputs.arch }}
         images: |
-          ipdk-io/ipdk-${{ matrix.os }}-${{ runner.arch }}
-          ghcr.io/${{ github.repository_owner }}/ipdk-${{ matrix.os }}-${{ runner.arch }}
+          ghcr.io/${{ github.repository_owner }}/ipdk-${{ matrix.os }}-${{ steps.system.outputs.arch }}
         # Docker tags based on the following events/attributes
         tags: |
           type=schedule
@@ -78,6 +84,7 @@ jobs:
       run: |
         cd build
         ./ipdk install ${{ matrix.os }}
+        ipdk config IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/ipdk-${{ matrix.os }}-${{ steps.system.outputs.arch }}
  
     - name: IPDK image build and push
       if: github.event_name != 'pull_request'
@@ -93,12 +100,12 @@ jobs:
         ipdk build --no-cache \
           --tags "${{ steps.image_meta.outputs.tags }}" \
           --labels "${{ steps.image_meta.outputs.labels }}" \
-          --export /tmp/${{ matrix.os }}-${{ runner.arch }}.tar
+          --export /tmp/${{ matrix.os }}-${{ steps.system.outputs.arch }}.tar
 
     - name: Upload build artifact
       if: github.event_name == 'pull_request'
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.os }}-${{ runner.arch }}
-        path: /tmp/${{ matrix.os }}-${{ runner.arch }}.tar
+        name: ${{ matrix.os }}-${{ steps.system.outputs.arch }}
+        path: /tmp/${{ matrix.os }}-${{ steps.system.outputs.arch }}.tar
         retention-days: 1
