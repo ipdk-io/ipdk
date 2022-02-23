@@ -35,18 +35,7 @@ function check_buildx() {
 
 	docker_experimental="$(docker version --format='{{.Server.Experimental}}')"
 	if [[ "$docker_experimental" != 'true' ]]; then
-		# Try to enable experimental support
-		dockerexp=$(sudo mktemp)
-		sudo jq '.+{experimental:true}' /etc/docker/daemon.json | sudo tee -a "$dockerexp"
-		sudo mv "$dockerexp" /etc/docker/daemon.json
-		sudo systemctl restart docker.service
-
-		# Reverify
-		docker_experimental="$(docker version --format='{{.Server.Experimental}}')"
-		if [[ "$docker_experimental" != 'true' ]]; then
-			echo "docker experimental flag not enabled: Set with 'export DOCKER_CLI_EXPERIMENTAL=enabled'" >&2
-			return 1
-		fi
+		export DOCKER_CLI_EXPERIMENTAL=enabled
 	fi
 
 	kernel_version="$(uname -r)"
