@@ -125,11 +125,29 @@ install() {
 #
 build_image() {
 	pushd "${SCRIPT_DIR}/.." || exit
-		# build dynamic argument line
+		# create dynamic argument line and start with cache
 		local ARGS=()
 		if $NO_CACHE ; then
 			ARGS+=("--no-cache")
 		fi
+
+		# add extra tags
+		if [[ "$TAGS" != "" ]] ; then
+			IFS="," read -r -a TAG_LIST <<< "${TAGS}"
+			for i in "${TAG_LIST[@]}" ; do
+				ARGS+=("--tag" "${i}")
+			done
+		fi
+
+		# add labels
+		if [[ "$LABELS" != "" ]] ; then
+			IFS="," read -r -a LABEL_LIST <<< "${LABELS}"
+			for i in "${LABEL_LIST[@]}" ; do
+				ARGS+=("--label" "${i}")
+			done
+		fi
+			
+		# add build arguments
 		if [[ "$PROXY" != "" ]] ; then
 			ARGS+=("--build-arg" "HTTP_PROXY=$PROXY")
 			ARGS+=("--build-arg" "HTTPS_PROXY=$PROXY")
@@ -141,8 +159,47 @@ build_image() {
 		fi
 		ARGS+=("--build-arg" "BASE_IMG=$BASE_IMG")
 
+		# create build command
+		local BUILDCMD=()
+		if check_buildx ; then
+			echo "Use docker buildx build!"
+			BUILDCMD+=("buildx" "build")
+
+			if [ "$PLATFORM" != "" ] ; then
+				BUILDCMD+=("--platform" "$PLATFORM")
+				IFS="," read -r -a PLATFORM_LIST <<< "${PLATFORM}"
+			else
+				local PLATFORM_LIST=()
+			fi
+
+			# what to do with created image
+			if $PUSH ; then
+				# push to registry
+				BUILDCMD+=("--push")
+			elif [ "$TAR_EXPORT" != "" ] ; then
+			  # export to tar file
+				BUILDCMD+=("-o" "type=oci,dest=$TAR_EXPORT")
+			elif [ ${#PLATFORM_LIST[@]} -le 1 ] ; then
+				# push to local docker image store (recreate old docker behavior)
+				BUILDCMD+=("--load")
+			else
+				echo "No '--push' or '--export' and more then one '--platform' requested!" >&2
+				echo "This is not supported!" >&2
+				exit 1
+			fi
+
+		elif [ "$PLATFORM" != "" ] || $PUSH || [ "$TAR_EXPORT" != "" ]; then
+			echo "This host doesn't support docker buildx but '--platform', '--push', or '--export' option is requested" >&2
+			echo "This is not supported!" >&2
+			exit 1
+		else
+			echo "Use old docker build!" 
+			BUILDCMD+=("build")
+		fi
+
 		# run image build process
-		docker build -t "${IMAGE_NAME}":"${TAG}" -f "${DOCKERFILE}" "${ARGS[@]}" .
+		docker "${BUILDCMD[@]}" -t "${IMAGE_NAME}":"${TAG}" -f "${DOCKERFILE}" "${ARGS[@]}" .
+
 	popd || exit
 }
 
@@ -181,7 +238,20 @@ start_container() {
 		RUN_COMMAND+=("--rcfile" "/root/scripts/start.sh")
 	fi
 
-	docker run \
+	local RUNCMD=()
+	if check_buildx && [ "$PLATFORM" != "" ]; then
+		echo "Using docker run --platform"
+		RUNCMD+=("run")
+		RUNCMD+=("--platform" "$PLATFORM")
+	elif [ "$PLATFORM" == "" ]; then
+		echo "Using docker run!" 
+		RUNCMD+=("run")
+	else
+		echo "This host doesn't support ipdk start --platform"  >&2
+		exit 1
+	fi
+
+	docker "${RUNCMD[@]}" \
 		--name "${CONTAINER_NAME}" \
 		--rm \
 		--cap-add ALL \
@@ -241,10 +311,35 @@ rm_container() {
 }
 
 #
-# Push IPDK image to registry
+# Tag the current working image
+# $1 = tag to add to current working image
+#
+tag_image() {
+	local SET_TAG=$1
+	docker tag "${IMAGE_NAME}":"${TAG}" "${SET_TAG}"
+}
+
+#
+# Export the current working image to a tarred+zipped file
+# $1 FILENAME
+#
+export_image() {
+	local FILENAME=$1
+	docker save "${IMAGE_NAME}":"${TAG}" | gzip > "${FILENAME}"
+}
+
+#
+# Push current IPDK image to a registry
+# $1 = tag of image to push or none to push all set tags of current image
 #
 push_image() {
-	docker push "${IMAGE_NAME}":"${TAG}"
+	local SET_TAG=$1
+	if [ "${SET_TAG}" != "" ] ; then
+		tag_image "${SET_TAG}"
+		docker push "${SET_TAG}"
+	else
+		docker push --all-tags "${IMAGE_NAME}"
+	fi
 }
 
 #
@@ -277,11 +372,35 @@ startvms() {
 }
 
 #
+# change configuration option
+# $1 = option to change in '[key]=[value]' representation
+#
+config() {
+	if [ "$1" != "" ] ; then
+		IFS='=' read -ra OPTION <<< "$1"
+		if [ "${OPTION[1]}" = "" ] ; then
+			remove_config_line "${OPTION[0]}" "$HOME/.ipdk/ipdk.env"
+		else
+			change_config_line "${OPTION[0]}" "$1" "$HOME/.ipdk/ipdk.env"
+		fi
+	fi
+}
+
+#
 # Show status
 #
 status() {
 	echo ""
 
+	# docker buildx supported?
+	if check_buildx; then
+		echo "This host supports docker buildx!"
+		docker buildx ls
+	else
+		echo "This host doesn't support docker buildx!"
+	fi
+	echo ""
+	
 	# Container running?
 	if [ "$(docker ps -q -f name="${CONTAINER_NAME}")" ]; then
 		echo "Container with name:$CONTAINER_NAME is started"
@@ -359,12 +478,26 @@ help() {
 		         use the given proxy as defined in the PROXY environment variable
 		       --keep-source-code 
 		         keep the source code during build (Default is to remove the source code)
+		       --platform <build platforms to use>
+		         comma seperated list of platform architecture to build for.
+		         'docker buildx build --platform [build platforms to use]' will be executed.
+		       --tags
+		         comma seperated list of image tags to apply to the build image
+		       --labels
+		         comma seperated list of image labels to apply to the build image
+		       --push
+		         push the image to the tags referencing registries
+		       --export [filename]
+		         export the build image to a tarred file
 		   start
 		     run P4OVS in a long running IPDK docker container
 		       -d - run as daemon
 		       -v/--volume - run with given volume path connected to /tmp
 		       --name <container_name> 
 		         the name to run the IPDK container with
+		       --platform <platform to use>
+		         platform architecture to run container on.
+		         'docker run --platform [platform to use]' will be executed.
 		   connect [working dir]
 		     start a commandline in the running IPDK container
 		       --name <container_name> 
@@ -398,6 +531,14 @@ help() {
 		     stop the long running IPDK container
 		   rm
 		     stop and remove the long running IPDK container
+		   tag [tag]
+		     add tag to the working container image
+		   export [filename]
+		     export the working container image to a tarred+zipped file
+		   push [tag]
+		     push the working container image to a registry with tag
+		   config [option=value]
+		     configure extra option in the user configuration file (~/.ipdk/ipdk.env)
 		   status [long]
 		     show the current status of the IPDK environment
 		     long shows all global variables
@@ -432,6 +573,46 @@ while (( "$#" )); do
 				echo "Error: $1 is not the first option or argument is missing!" >&2
 				exit 1
 			fi
+			;;
+		--platform)
+			if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+				PLATFORM=$2
+				shift 2
+			else
+				echo "Error: Argument for $1 is missing" >&2
+				exit 1
+			fi
+			;;
+		--tags)
+			if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+				TAGS=$2
+				shift 2
+			else
+				echo "Error: Argument for $1 is missing" >&2
+				exit 1
+			fi
+			;;
+		--labels)
+			if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+				LABELS=$2
+				shift 2
+			else
+				echo "Error: Argument for $1 is missing" >&2
+				exit 1
+			fi
+			;;
+		--export)
+			if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+				TAR_EXPORT=$2
+				shift 2
+			else
+				echo "Error: Argument for $1 is missing" >&2
+				exit 1
+			fi
+			;;
+		--push)
+			PUSH=true
+			shift
 			;;
 		--no-cache)
 			NO_CACHE=true
@@ -572,8 +753,14 @@ case $COMMAND in
 	rm)
 		rm_container
 		;;
+	tag)
+		tag_image "${COMMANDS[1]}"
+		;;
+	export)
+		export_image "${COMMANDS[1]}"
+		;;
 	push)
-		push_image
+		push_image "${COMMANDS[1]}"
 		;;
 	demo)
 		run_demo
@@ -583,6 +770,9 @@ case $COMMAND in
 		;;
 	startvms)
 		startvms
+		;;
+	config)
+		config "${COMMANDS[1]}"
 		;;
 	status)
 		status

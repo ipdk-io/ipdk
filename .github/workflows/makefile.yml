@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
+concurrency:
+  # if workflow for PR or push is already running stop it, and start new one
+  group: makefile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   shellcheck:
     runs-on: ubuntu-latest
@@ -15,31 +20,92 @@ jobs:
     - name: shellcheck
       run: make -C build shellcheck
 
-  build:
+  build_containers:
     needs: shellcheck
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
+        # for OCI runner change to: runner: [ubuntu-latest, self-hosted]
+        runner: [ubuntu-latest]
         os: [ubuntu2004, fedora33]
 
     steps:
-    - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-    - name: Install dependencies
+    # Set an output parameter `arch` for use in subsequent steps
+    - name: Get processor architecture
+      id: system 
       run: |
-        sudo echo 'debconf debconf/frontend select Noninteractive' | sudo debconf-set-selections
-        sudo apt-get -y install apt-utils
+        echo ::set-output name=arch::$(uname -m)
 
-    - name: Install Docker CE
-      run: |
-        sudo apt-get install ca-certificates curl gnupg lsb-release
-        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-        echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-        sudo apt-get update
-        sudo apt-get install docker-ce docker-ce-cli containerd.io
+    - name: Set up QEMU        
+      uses: docker/setup-qemu-action@v1
 
-    - name: Container Build
+    - name: Set up Docker Buildx        
+      uses: docker/setup-buildx-action@v1
+
+#    - name: Login to DockerHub
+#      if: github.event_name != 'pull_request'
+#      uses: docker/login-action@v1 
+#      with:
+#        username: ${{ secrets.DOCKERHUB_USERNAME }}
+#        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Login to GitHub Container Registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v1 
+      with:
+        registry: ghcr.io
+        username: ${{ github.repository_owner }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Create tags and labels
+      id: image_meta
+      uses: docker/metadata-action@v3
+      with:
+        sep-tags: ","
+        sep-labels: ","
+        # list of names to use as base name for tags
+        # add for dockerhub: ipdk-io/ipdk-${{ matrix.os }}-${{ steps.system.outputs.arch }}
+        images: |
+          ghcr.io/${{ github.repository_owner }}/ipdk-${{ matrix.os }}-${{ steps.system.outputs.arch }}
+        # Docker tags based on the following events/attributes
+        tags: |
+          type=schedule
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=sha
+
+    - name: Install IPDK cli
       run: |
         cd build
         ./ipdk install ${{ matrix.os }}
-        ipdk build --no-cache
+        ipdk config IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/ipdk-${{ matrix.os }}-${{ steps.system.outputs.arch }}
+ 
+    - name: IPDK image build and push
+      if: github.event_name != 'pull_request'
+      run: |
+        ipdk build --no-cache \
+          --tags "${{ steps.image_meta.outputs.tags }}" \
+          --labels "${{ steps.image_meta.outputs.labels }}" \
+          --push
+
+    - name: IPDK image build and export
+      if: github.event_name == 'pull_request'
+      run: |
+        ipdk build --no-cache \
+          --tags "${{ steps.image_meta.outputs.tags }}" \
+          --labels "${{ steps.image_meta.outputs.labels }}" \
+          --export /tmp/${{ matrix.os }}-${{ steps.system.outputs.arch }}.tar
+
+    - name: Upload build artifact
+      if: github.event_name == 'pull_request'
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ matrix.os }}-${{ steps.system.outputs.arch }}
+        path: /tmp/${{ matrix.os }}-${{ steps.system.outputs.arch }}.tar
+        retention-days: 1
