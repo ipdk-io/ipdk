@@ -137,7 +137,7 @@ for creating the vhost socket interfaces in `volume/intf`, all the log files in
 `volume/logs` and can be used to share files with the IPDK daemon container
 where the `VOLUME` directory is available as '/tmp'.
 
-* Run - 'ipdk connect' - To connect to your IPDK container daemon and to use
+* Run - `ipdk connect` - To connect to your IPDK container daemon and to use
 it from a command line.
 
 If above commands are successful, at this point you should have your IPDK
