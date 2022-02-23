@@ -143,7 +143,13 @@ build_image() {
 		if [[ "$LABELS" != "" ]] ; then
 			IFS="," read -r -a LABEL_LIST <<< "${LABELS}"
 			for i in "${LABEL_LIST[@]}" ; do
-				ARGS+=("--label" "${i}")
+				if [[ "$i" == *"="* ]]; then	# solve the use of , in label string...
+					ARGS+=("--label" "${i}")
+				else
+					local LAST_INDEX=${#ARGS[@]}-1
+					local TEMP=${ARGS[${LAST_INDEX}]}
+					ARGS[${LAST_INDEX}]="${TEMP},${i}"
+				fi
 			done
 		fi
 			
