@@ -58,7 +58,7 @@ echo "Removing p4-driver repository if it already exists"
 if [ -d "p4-driver" ]; then rm -Rf p4-driver; fi
 echo "Compiling p4-driver"
 #TODO: Below link needs to be updated when code is open-sourced
-# Temporary fix
+## Temporary fix
 git clone https://github.com/ipdk-io/p4-dpdk-target.git --recursive p4-driver
 
 pip3 install distro
