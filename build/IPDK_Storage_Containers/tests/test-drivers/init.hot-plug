@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+[ "$DEBUG" == 'true' ] && set -x
+
+source /test-helpers
+
+wait_until_vm_is_up "${vm_serial}"
+log_in_with_default_credentials "${vm_serial}"
+
+is_virtio_blk_not_attached "${vm_serial}"
+
+attach_virtio_blk_over_monitor "${vm_monitor}"
+
+is_virtio_blk_attached "${vm_serial}"
+
+exit 0

@@ -1,0 +1,4 @@
+services:
+  test-driver:
+    volumes:
+      - ./test-drivers/init.fio:/init
