@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) Intel Corporation
 
 shared_volume=/ipdk-shared
 vm_serial=${shared_volume}/vm_socket

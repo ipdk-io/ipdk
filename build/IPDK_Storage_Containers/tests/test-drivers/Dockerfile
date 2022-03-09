@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) Intel Corporation
+
 FROM spdk
 
 # Generic args
@@ -9,6 +12,6 @@ ENV http_proxy=$HTTP_PROXY
 ENV https_proxy=$HTTPS_PROXY
 ENV no_proxy=$NO_PROXY
 
-RUN dnf install -y socat 
+RUN dnf install -y socat
 
 ENTRYPOINT ["/init"]

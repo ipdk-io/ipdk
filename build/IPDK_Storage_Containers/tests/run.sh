@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+#
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) Intel Corporation
+#
 
 set -e
 [ "$DEBUG" == 'true' ] && set -x
