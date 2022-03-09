@@ -1,5 +1,5 @@
+# Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
-# Copyright (c) Intel Corporation
 #
 # NOTICE: THIS FILE HAS BEEN MODIFIED BY INTEL CORPORATION UNDER COMPLIANCE
 # WITH THE APACHE 2.0 LICENSE FROM THE ORIGINAL WORK
