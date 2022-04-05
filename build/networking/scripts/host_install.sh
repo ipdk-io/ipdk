@@ -154,11 +154,11 @@ else
 fi
 
 pushd /root || exit
-cp -r /git/ipdk/build/scripts .
-cp -r /git/ipdk/build/examples .
-cp /git/ipdk/build/start_p4ovs.sh start_p4ovs.sh
-cp /git/ipdk/build/run_ovs_cmds run_ovs_cmds
-cp -r /git/ipdk/build/patches .
+cp -r /git/ipdk/build/networking/scripts .
+cp -r /git/ipdk/build/networking/examples .
+cp /git/ipdk/build/networking/start_p4ovs.sh start_p4ovs.sh
+cp /git/ipdk/build/networking/run_ovs_cmds run_ovs_cmds
+cp -r /git/ipdk/build/networking/patches .
 popd
 
 export OS_VERSION=20.04

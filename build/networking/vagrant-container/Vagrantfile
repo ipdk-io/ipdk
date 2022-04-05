@@ -8,7 +8,7 @@ Vagrant.configure("2") do |config|
     v.customize ['modifyvm', :id, '--nested-hw-virt', 'on']
   end
 
-  config.vm.synced_folder "../..", "/git/ipdk"
+  config.vm.synced_folder "../../..", "/git/ipdk"
 
   # NOTE: Configure any proxy below.
   #config.proxy.http     = "http://proxy:911"
