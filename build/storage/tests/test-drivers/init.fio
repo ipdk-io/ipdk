@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+
+set -e
+[ "$DEBUG" == 'true' ] && set -x
+
+source /test-helpers
+
+wait_until_vm_is_up "${vm_serial}"
+log_in_with_default_credentials "${vm_serial}"
+ 
+is_virtio_blk_attached ${vm_serial}
+
+echo "Run fio"
+fio_cmd="fio --filename=/dev/vda --direct=1 --rw=randrw \
+	--bs=4k --ioengine=libaio --iodepth=256 --runtime=10 \
+	--numjobs=4 --time_based --group_reporting --name=iops-test-job" 
+
+out=$(send_command_over_unix_socket_and_sample_output \
+	"${vm_serial}" "${fio_cmd}" 11)
+echo "${out}"
+
+echo "${out}" | grep "Disk stats (read/write)"
+echo "fio has been executed successfully!"
+
+exit 0

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+[ "$DEBUG" == 'true' ] && set -x
+
+shared_volume=/ipdk-shared
+
+attach_default_virtio_blk=" \
+-chardev socket,id=spdk_vhost_blk0,path=${shared_volume}/VirtioBlk0 \
+-device vhost-user-blk-pci,chardev=spdk_vhost_blk0,num-queues=2 "
+
+if [ "${DO_NOT_ATTACH_VIRTIO_BLK}" == "true" ]; then
+	attach_default_virtio_blk=""
+fi
+
+sleep 2
+
+echo "Starting vm"
+
+exec qemu-kvm \
+	--enable-kvm \
+	-cpu host \
+	-m 1G \
+	-smp 2 \
+	-drive file=vm.qcow2,if=none,id=disk \
+	-device ide-hd,drive=disk,bootindex=0 \
+	-object memory-backend-file,id=mem0,size=1G,mem-path=/dev/hugepages,share=on \
+	-numa node,memdev=mem0 \
+	-monitor unix:${shared_volume}/vm_monitor_socket,server,nowait \
+	-serial unix:${shared_volume}/vm_socket,server,nowait \
+	--nographic \
+	${attach_default_virtio_blk}
+
