@@ -80,4 +80,5 @@ FROM base AS p4-ebpf-container
 ARG KEEP_SOURCE_CODE
 WORKDIR /root
 COPY ./scripts /root/scripts
+COPY ./examples /root/examples
 RUN /root/scripts/host_install.sh
