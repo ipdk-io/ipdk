@@ -84,6 +84,7 @@ install() {
 					change_config_line "BASE_IMG" "BASE_IMG=${ENV_ATTR[0]}" "$HOME/.ipdk/ipdk.env"
 					change_config_line "IMAGE_NAME" "IMAGE_NAME=${ENV_ATTR[1]}" "$HOME/.ipdk/ipdk.env"
 					change_config_line "DOCKERFILE" "DOCKERFILE=${ENV_ATTR[2]}" "$HOME/.ipdk/ipdk.env"
+					change_config_line "DOCKERBUILDDIR" "DOCKERBUILDDIR=${ENV_ATTR[3]}" "$HOME/.ipdk/ipdk.env"
 				else
 					# The user defined a unknown runtime environment
 					echo "Unknown runtime environment reference!" >&2
@@ -198,7 +199,9 @@ build_image() {
 		fi
 
 		# run image build process
+		pushd "${DOCKERBUILDDIR}" || exit
 		docker "${BUILDCMD[@]}" -t "${IMAGE_NAME}":"${TAG}" -f "${DOCKERFILE}" "${ARGS[@]}" .
+		popd || exit
 
 	popd || exit
 }
