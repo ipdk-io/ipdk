@@ -6,6 +6,9 @@
 set -e
 [ "$DEBUG" == 'true' ] && set -x
 
+declare vm_serial
+declare vm_monitor
+# shellcheck disable=SC1091
 source /test-helpers
 
 wait_until_vm_is_up "${vm_serial}"

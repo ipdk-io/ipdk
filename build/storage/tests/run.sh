@@ -8,6 +8,9 @@ set -e
 [ "$DEBUG" == 'true' ] && set -x
 
 vm_file=./traffic-generator/vm.qcow2
+declare https_proxy
+declare http_proxy
+declare no_proxy
 export HTTPS_PROXY=${https_proxy}
 export HTTP_PROXY=${http_proxy}
 export NO_PROXY=${no_proxy}
@@ -19,14 +22,13 @@ function run_test() {
 		SUDO_FOR_DOCKER=
 	fi
 
-	DO_NOT_RUN_BUILD_BASE="--scale build_base=0"
 	${SUDO_FOR_DOCKER} docker-compose \
 		-f ./docker-compose.yml \
-		-f ./test-drivers/docker-compose.$1.yml \
+		-f "./test-drivers/docker-compose.$1.yml" \
 		up \
 		--build \
 		--exit-code-from test-driver \
-		${DO_NOT_RUN_BUILD_BASE}
+		--scale build_base=0
 }
 
 function provide_hugepages() {
@@ -58,9 +60,9 @@ provide_vm
 
 test_cases=(hot-plug fio)
 if [[ $# != 0 ]]; then
-	run_test ${1}
+	run_test "${1}"
 else
 	for i in "${test_cases[@]}"; do
-		run_test ${i}
+		run_test "${i}"
 	done
 fi
