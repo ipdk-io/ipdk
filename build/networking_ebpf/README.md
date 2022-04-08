@@ -8,6 +8,17 @@ A high-level overview of the architecture is as follows:
 
 ## Running
 
+### Bare Metal
+
+If you want to run natively (on bare metal or in a VM), do the following:
+
+```
+$ sudo ./vagrant/provision.sh
+$ sudo ./scripts/host_install.sh
+```
+
+### Vagrant
+
 The recipe has a built-in Vagrant virtual machine. To run this, you can
 simply do the following:
 
@@ -32,7 +43,7 @@ This will install the following components of the IPDK eBPF recipe:
 * psabpf CLI
 * psa-ebpf-demp
 * An old version of golang
-* ipdk-tap-plugin Docker CNM
+* ipdk-plugin Docker CNM
 
 ## Docker Instructions
 

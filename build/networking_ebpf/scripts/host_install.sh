@@ -106,13 +106,13 @@ if [ ! -f go1.11.13.linux-amd64.tar.gz ] ; then
     sudo tar -C /usr/local -xvf go1.11.13.linux-amd64.tar.gz
 fi
 export PATH=$PATH:/usr/local/go/bin
-if [ ! -d ~/go/src/ipdk-tap-plugin ] ; then
+if [ ! -d ~/go/src/ipdk-plugin ] ; then
     mkdir -p ~/go/src
     pushd ~/go/src || exit
-    git clone https://github.com/mestery/ipdk-tap-plugin
+    git clone https://github.com/mestery/ipdk-plugin
     popd || exit
 fi
-pushd ~/go/src/ipdk-tap-plugin || exit
+pushd ~/go/src/ipdk-plugin || exit
 go get
 go build
 popd || exit

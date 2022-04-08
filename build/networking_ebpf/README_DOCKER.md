@@ -9,7 +9,7 @@ built with the following components:
 3. [p4c eBPF PSA implementation](https://github.com/p4lang/p4c/tree/main/backends/ebpf/psa)
 4. [psabpf CLI](https://github.com/P4-Research/psabpf)
 5. [PSA eBPF Demo](https://github.com/P4-Research/psa-ebpf-demo)
-6. [IPDK Docker CNM](https://github.com/mestery/ipdk-tap-plugin) (Work in progress)
+6. [IPDK Docker CNM](https://github.com/mestery/ipdk-plugin) (Work in progress)
 
 The IPDK container dockerfile builds all the five components and their dependencies
 and integrates them providing a P4 based virtual networking switch, P4
