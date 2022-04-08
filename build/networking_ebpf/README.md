@@ -2,6 +2,10 @@
 
 This directory contains the recipe for running IPDK networking with eBPF.
 
+A high-level overview of the architecture is as follows:
+
+![IPDK eBPF Architecture](ipdk-ebpf.drawio.png)
+
 ## Running
 
 The recipe has a built-in Vagrant virtual machine. To run this, you can
@@ -29,3 +33,7 @@ This will install the following components of the IPDK eBPF recipe:
 * psa-ebpf-demp
 * An old version of golang
 * ipdk-tap-plugin Docker CNM
+
+## Docker Instructions
+
+See the [README_DOCKER.md](README_DOCKER.md) for Docker specific instructions.
