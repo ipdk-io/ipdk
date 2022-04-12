@@ -263,6 +263,12 @@ start_container() {
 		-p 9339:9339 \
 		-p 9559:9559 \
 		"${ARGS[@]}" -it "${IMAGE_NAME}":"${TAG}" "${RUN_COMMAND[@]}"
+
+	if [ "$LINK_NAMESPACE" ] ; then
+		IPDK_NAMESPACE=$(docker inspect -f '{{.State.Pid}}' ipdk)
+		sudo mkdir -p /var/run/netns
+		sudo ln -sf "/proc/${IPDK_NAMESPACE}/ns/net" /var/run/netns/switch
+	fi
 }
 
 #
@@ -300,6 +306,11 @@ log_container() {
 # Stop the running P4-OVS container
 #
 stop_container() {
+	# Remove the namespace link
+	if [ "$LINK_NAMESPACE" ] ; then
+		sudo rm -f /var/run/netns/switch
+	fi
+
 	docker stop "${CONTAINER_NAME}"
 	rm -rf "${VOLUME}"/intf
 }
@@ -706,6 +717,10 @@ while (( "$#" )); do
 				echo "Error: Argument for $1 is missing" >&2
 				exit 1
 			fi
+			;;
+		--link-namespace)
+			LINK_NAMESPACE=true
+			shift
 			;;
 		--help)
 			help
