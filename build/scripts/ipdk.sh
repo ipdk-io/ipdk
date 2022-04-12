@@ -84,6 +84,7 @@ install() {
 					change_config_line "BASE_IMG" "BASE_IMG=${ENV_ATTR[0]}" "$HOME/.ipdk/ipdk.env"
 					change_config_line "IMAGE_NAME" "IMAGE_NAME=${ENV_ATTR[1]}" "$HOME/.ipdk/ipdk.env"
 					change_config_line "DOCKERFILE" "DOCKERFILE=${ENV_ATTR[2]}" "$HOME/.ipdk/ipdk.env"
+					change_config_line "DOCKERBUILDDIR" "DOCKERBUILDDIR=${ENV_ATTR[3]}" "$HOME/.ipdk/ipdk.env"
 				else
 					# The user defined a unknown runtime environment
 					echo "Unknown runtime environment reference!" >&2
@@ -198,7 +199,9 @@ build_image() {
 		fi
 
 		# run image build process
+		pushd "${DOCKERBUILDDIR}" || exit
 		docker "${BUILDCMD[@]}" -t "${IMAGE_NAME}":"${TAG}" -f "${DOCKERFILE}" "${ARGS[@]}" .
+		popd || exit
 
 	popd || exit
 }
@@ -260,6 +263,12 @@ start_container() {
 		-p 9339:9339 \
 		-p 9559:9559 \
 		"${ARGS[@]}" -it "${IMAGE_NAME}":"${TAG}" "${RUN_COMMAND[@]}"
+
+	if [ "$LINK_NAMESPACE" ] ; then
+		IPDK_NAMESPACE=$(docker inspect -f '{{.State.Pid}}' ipdk)
+		sudo mkdir -p /var/run/netns
+		sudo ln -sf "/proc/${IPDK_NAMESPACE}/ns/net" /var/run/netns/switch
+	fi
 }
 
 #
@@ -297,6 +306,11 @@ log_container() {
 # Stop the running P4-OVS container
 #
 stop_container() {
+	# Remove the namespace link
+	if [ "$LINK_NAMESPACE" ] ; then
+		sudo rm -f /var/run/netns/switch
+	fi
+
 	docker stop "${CONTAINER_NAME}"
 	rm -rf "${VOLUME}"/intf
 }
@@ -703,6 +717,10 @@ while (( "$#" )); do
 				echo "Error: Argument for $1 is missing" >&2
 				exit 1
 			fi
+			;;
+		--link-namespace)
+			LINK_NAMESPACE=true
+			shift
 			;;
 		--help)
 			help

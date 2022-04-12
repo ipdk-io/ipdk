@@ -18,7 +18,7 @@ jobs:
     - uses: actions/checkout@v2
 
     - name: shellcheck
-      run: make -C build/networking shellcheck
+      run: make -C build shellcheck
 
   build_containers:
     needs: shellcheck
@@ -27,7 +27,7 @@ jobs:
       matrix:
         # for OCI runner change to: runner: [ubuntu-latest, self-hosted]
         runner: [ubuntu-latest]
-        os: [ubuntu2004, fedora33]
+        os: [ubuntu2004, fedora33, ebpf-ubuntu2004]
 
     steps:
     - name: Checkout repository
@@ -82,7 +82,7 @@ jobs:
 
     - name: Install IPDK cli
       run: |
-        cd build/networking
+        cd build
         ./ipdk install ${{ matrix.os }}
         ipdk config IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/ipdk-${{ matrix.os }}-${{ steps.system.outputs.arch }}
  

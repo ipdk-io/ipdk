@@ -3,7 +3,7 @@
 #SPDX-License-Identifier: Apache-2.0
 
 set -e
-# shellcheck source=scripts/os_ver_details.sh
+# shellcheck source=networking/scripts/os_ver_details.sh
 . os_ver_details.sh
 
 if [ -z "$1" ]
@@ -14,7 +14,7 @@ then
 fi
 
 #SHA on top which P4C is validated
-P4C_SHA=d2f0c2a22286c6b6643e5e3906cf020d6d698c70
+P4C_SHA=4837beadf3fc390dd3a39434fec4fa6658e993be
 
 WORKDIR=$1
 PATCH_DIR=/root/patches

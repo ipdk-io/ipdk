@@ -4,7 +4,7 @@
 
 set -e
 
-# shellcheck source=scripts/os_ver_details.sh
+# shellcheck source=networking/scripts/os_ver_details.sh
 . os_ver_details.sh
 get_os_ver_details
 
@@ -71,9 +71,9 @@ cd "$SDE/p4-driver" || exit
 ./autogen.sh
 ./configure --prefix="$SDE_INSTALL"
 make clean
-make $NUM_THREADS
-make $NUM_THREADS install
-make $NUM_THREADS clean
+make "$NUM_THREADS"
+make "$NUM_THREADS" install
+make "$NUM_THREADS" clean
 ldconfig
 
 set +e

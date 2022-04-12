@@ -4,7 +4,7 @@
 #
 # Version 0.1.0
 
-# shellcheck source=scripts/os_ver_details.sh
+# shellcheck source=networking/scripts/os_ver_details.sh
 source "${SCRIPT_DIR}/os_ver_details.sh"
 get_os_ver_details
 
