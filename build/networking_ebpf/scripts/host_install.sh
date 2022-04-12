@@ -100,22 +100,5 @@ fi
 # Clone, build and install ipdk-docker-cnm
 #
 
-# NOTE: Old version of golang, upgrade this
-if [ ! -f go1.11.13.linux-amd64.tar.gz ] ; then
-    curl -OL https://golang.org/dl/go1.11.13.linux-amd64.tar.gz
-    sudo tar -C /usr/local -xvf go1.11.13.linux-amd64.tar.gz
-fi
-export PATH=$PATH:/usr/local/go/bin
-if [ ! -d ~/go/src/ipdk-plugin ] ; then
-    mkdir -p ~/go/src
-    pushd ~/go/src || exit
-    git clone https://github.com/mestery/ipdk-plugin
-    popd || exit
-fi
-pushd ~/go/src/ipdk-plugin || exit
-go get
-go build
-popd || exit
-
 # Final popd
 popd || exit
