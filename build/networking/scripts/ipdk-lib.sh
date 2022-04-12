@@ -49,15 +49,23 @@ function check_buildx() {
 		return 1
 	fi
 
-	if ! command -v update-binfmts >/dev/null 2>&1; then
-		echo "Can't find update-binfmts." >&2
-		return 1
-	fi
+	distro=$(cat /etc/os-release | grep "^ID=" | cut -d= -f2)
+	if [[ "$distro" = "fedora" ]]; then
+		if ! systemctl is-active --quiet systemd-binfmt ; then
+			echo "Service systemd-binfmt is not started"
+			return 1
+		fi
+	elif [[ "$distro" = "ubuntu" ]]; then
+		if ! command -v update-binfmts >/dev/null 2>&1; then
+			echo "Can't find update-binfmts." >&2
+			return 1
+		fi
 
-	binfmt_version="$(update-binfmts --version | awk '{print $NF}')"
-	if [[ "$(version "$binfmt_version")" < "$(version '2.1.7')" ]]; then
-		echo "update-binfmts $binfmt_version too old. Need >= 2.1.7" >&2
-		return 1
+		binfmt_version="$(update-binfmts --version | awk '{print $NF}')"
+		if [[ "$(version "$binfmt_version")" < "$(version '2.1.7')" ]]; then
+			echo "update-binfmts $binfmt_version too old. Need >= 2.1.7" >&2
+			return 1
+		fi
 	fi
 
 	if [[ ! -e '/proc/sys/fs/binfmt_misc/qemu-aarch64' ]]; then
