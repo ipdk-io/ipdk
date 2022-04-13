@@ -265,7 +265,7 @@ start_container() {
 		"${ARGS[@]}" -it "${IMAGE_NAME}":"${TAG}" "${RUN_COMMAND[@]}"
 
 	if [ "$LINK_NAMESPACE" ] ; then
-		IPDK_NAMESPACE=$(docker inspect -f '{{.State.Pid}}' ipdk)
+		IPDK_NAMESPACE=$(docker inspect -f '{{.State.Pid}}' "$CONTAINER_NAME")
 		sudo mkdir -p /var/run/netns
 		sudo ln -sf "/proc/${IPDK_NAMESPACE}/ns/net" /var/run/netns/switch
 	fi
