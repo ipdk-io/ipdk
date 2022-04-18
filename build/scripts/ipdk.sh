@@ -363,7 +363,27 @@ run_demo() {
 	# TODO Check if P4-OVS is running locally or in IPDK container and depending
 	# on that start docker demo or host demo
 
-	start_docker_demo "$CONTAINER_NAME" "$VOLUME" "$KVM_GRAPHIC"
+	# Run P4-eBPF demo if using that image
+	if [ "${IMAGE_NAME}" == "ghcr.io/ipdk-io/ipdk-ebpf-ubuntu2004-x86_64" ] ; then
+		pushd "${DOCKERBUILDDIR}" || exit
+		make start-demo
+		popd || exit
+	else
+		start_docker_demo "$CONTAINER_NAME" "$VOLUME" "$KVM_GRAPHIC"
+	fi
+}
+
+#
+# Stop the demo from running
+#
+stop_demo() {
+	# TODO Stop the P4-OVS demo
+
+	if [ "${IMAGE_NAME}" == "ghcr.io/ipdk-io/ipdk-ebpf-ubuntu2004-x86_64" ] ; then
+		pushd "${DOCKERBUILDDIR}" || exit
+		make stop-demo
+		popd || exit
+	fi
 }
 
 #
@@ -525,6 +545,8 @@ help() {
 		       --graphic - start KVM VMs with X-Window
 		       --name <container_name> 
 		         the name of the IPDK container
+		   stop-demo
+		     stop the IPDK demo
 		   createvms
 		     create two demo KVM VMs
 		   startvms
@@ -782,6 +804,9 @@ case $COMMAND in
 		;;
 	demo)
 		run_demo
+		;;
+	stop-demo)
+		stop_demo
 		;;
 	createvms)
 		createvms

@@ -16,7 +16,7 @@ popd || exit
 
 # Load
 ulimit -l 131072
-psabpf-ctl pipeline load id 1 /root/ipdk-ebpf/simple_l3.o
+psabpf-ctl pipeline load id 1 /root/ipdk-ebpf/demo.o
 
 # Load on interfaces
 psabpf-ctl add-port pipe 1 dev psa_recirc
