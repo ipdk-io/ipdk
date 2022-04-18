@@ -193,17 +193,12 @@ control DemoIngress(inout headers hdr,
                     inout metadata meta,
                     in    psa_ingress_input_metadata_t  istd,
                     inout psa_ingress_output_metadata_t ostd) {
-    Meter<PortId_t>(100, PSA_MeterType_t.BYTES) meter;
 
     action forward(PortId_t port, mac_addr_t src_addr, mac_addr_t dst_addr) {
         PortId_t idx = port;
-        if (meter.execute(idx) != PSA_MeterColor_t.RED) {
-            send_to_port(ostd, port);
-            hdr.ethernet.src_addr = src_addr;
-            hdr.ethernet.dst_addr = dst_addr;
-        } else {
-            ingress_drop(ostd);
-        }
+        send_to_port(ostd, port);
+        hdr.ethernet.src_addr = src_addr;
+        hdr.ethernet.dst_addr = dst_addr;
     }
 
     action send_arp_reply(mac_addr_t src_addr) {

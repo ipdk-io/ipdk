@@ -63,9 +63,33 @@ vagrant@ubuntu2004:~$
 From here on, make sure to follow the instructions below while logged into
 the vagrant-container virtual machine.
 
-## Platform Specific Container Instructions
+## Using the P4-eBPF Docker Setup
 
-Coming soon.
+The demo environment created will have all of the following components:
+
+![Demo Setup](architecture/demo-Step0.png)
+
+To run the demo, make sure you are on the system where you built the ipdk
+P4-eBPF container. Go to the `network_ebpf` directory and run the following
+commands:
+
+```
+$ make start-demo
+```
+
+To tear all the demo components down, run the following command:
+
+```
+$ make stop-demo
+```
+
+The demo environment and setup executes the following in order:
+
+![Demo Step 1](architecture/demo-Step1.png)
+![Demo Step 1](architecture/demo-Step2.png)
+![Demo Step 1](architecture/demo-Step3.png)
+![Demo Step 1](architecture/demo-Step4.png)
+![Demo Step 1](architecture/demo-Step5.png)
 
 # Copyright
 

@@ -55,7 +55,8 @@ apt-get install -y apt-utils \
         telnet \
         qemu-kvm \
 	libelf-dev \
-	libjansson-dev
+	libjansson-dev \
+	psmisc
 
 pip install --upgrade pip
 pip install grpcio \

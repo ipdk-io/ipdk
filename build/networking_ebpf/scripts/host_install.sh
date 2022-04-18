@@ -97,8 +97,19 @@ fi
 # NOTE: For now, just clone
 
 #
-# Clone, build and install ipdk-docker-cnm
+# Clone, build and install TDI
 #
+if [ ! -d tdi ] ; then
+    git clone https://github.com/p4lang/tdi.git --recursive
+fi
+pushd tdi || exit
+if [ ! -d build ] ; then
+    mkdir -p build && pushd build || exit
+    cmake -DSTANDALONE=ON -DCMAKE_INSTALL_PREFIX=../install ..
+    make install -j8
+    popd || exit
+fi
+popd || exit
 
 # Final popd
 popd || exit

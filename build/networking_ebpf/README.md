@@ -4,7 +4,7 @@ This directory contains the recipe for running IPDK networking with eBPF.
 
 A high-level overview of the architecture is as follows:
 
-![IPDK eBPF Architecture](ipdk-ebpf.drawio.png)
+![IPDK eBPF Architecture](architecture/demo-Step0.png)
 
 ## Running
 
