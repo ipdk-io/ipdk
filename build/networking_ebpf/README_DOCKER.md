@@ -4,12 +4,12 @@
 The IPDK Container is a Virtual Networking Infrastructure Container and is
 built with the following components:
 
-1. [p4c compiler[(https://github.com/p4lang/p4c)
+1. [p4c compiler](https://github.com/p4lang/p4c)
 2. [p4c eBPF backend](https://github.com/p4lang/p4c/tree/main/backends/ebpf)
 3. [p4c eBPF PSA implementation](https://github.com/p4lang/p4c/tree/main/backends/ebpf/psa)
 4. [psabpf CLI](https://github.com/P4-Research/psabpf)
 5. [PSA eBPF Demo](https://github.com/P4-Research/psa-ebpf-demo)
-6. [IPDK Docker CNI](https://github.com/mestery/ipdk-plugin) (Work in progress)
+6. [IPDK Docker CNI](https://github.com/mestery/ipdk-plugin)
 
 The IPDK container dockerfile builds all the five components and their dependencies
 and integrates them providing a P4 based virtual networking switch, P4
