@@ -63,6 +63,21 @@ vagrant@ubuntu2004:~$
 From here on, make sure to follow the instructions below while logged into
 the vagrant-container virtual machine.
 
+### Build the IPDK p4-eBPF container
+
+```
+$ cd /git/ipdk/build
+$ ./ipdk install ebpf-ubuntu2004
+```
+
+Follow the instructions to update your PATH variable.
+
+Now, build the container:
+
+```
+$ ipdk build
+```
+
 ## Using the P4-eBPF Docker Setup
 
 The demo environment created will have all of the following components:
