@@ -7,6 +7,8 @@
 # WITH THE APACHE 2.0 LICENSE FROM THE ORIGINAL WORK
 #
 
+[ "$DEBUG" == 'true' ] && set -x
+
 app=spdk_tgt args=() limit_args=()
 
 # Override default app
@@ -16,7 +18,7 @@ fi
 
 # Define extra arguments to the app
 if [[ -n $SPDK_ARGS ]]; then
-	args=($SPDK_ARGS)
+	IFS=" " read -r -a args <<< "$SPDK_ARGS"
 fi
 
 # Limit the app with to following options,

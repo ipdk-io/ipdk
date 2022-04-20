@@ -12,8 +12,8 @@ dnf install -y /tmp/*.rpm
 
 # Be nice for docker exec and link SPDK scripts|binaries under common PATH
 # location like /usr/bin.
-ln -sf $(ls -1dpA /usr/local/bin/* | grep -v "/$") /usr/bin
-ln -sf $(ls -1dpA /usr/local/bin/fio/* | grep -v "/$") /usr/bin
+for f in /usr/local/bin/*; do ln -sf "$f" /usr/bin ; done
+for f in /usr/local/bin/fio/*; do ln -sf "$f" /usr/bin ; done
 ln -s /usr/libexec/spdk/scripts/rpc.py /usr/bin
 ln -s /usr/libexec/spdk/scripts/rpc_http_proxy.py /usr/bin
 ln -s /usr/libexec/spdk/scripts/setup.sh /usr/bin

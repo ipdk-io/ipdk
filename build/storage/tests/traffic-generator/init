@@ -20,17 +20,18 @@ sleep 2
 
 echo "Starting vm"
 
-exec qemu-kvm \
-	--enable-kvm \
-	-cpu host \
-	-m 1G \
-	-smp 2 \
-	-drive file=vm.qcow2,if=none,id=disk \
-	-device ide-hd,drive=disk,bootindex=0 \
-	-object memory-backend-file,id=mem0,size=1G,mem-path=/dev/hugepages,share=on \
-	-numa node,memdev=mem0 \
-	-monitor unix:${shared_volume}/vm_monitor_socket,server,nowait \
-	-serial unix:${shared_volume}/vm_socket,server,nowait \
-	--nographic \
-	${attach_default_virtio_blk}
+run_qemu="qemu-kvm \
+${attach_default_virtio_blk} \
+--enable-kvm \
+-cpu host \
+-m 1G \
+-smp 2 \
+-drive file=vm.qcow2,if=none,id=disk \
+-device ide-hd,drive=disk,bootindex=0 \
+-object memory-backend-file,id=mem0,size=1G,mem-path=/dev/hugepages,share=on \
+-numa node,memdev=mem0 \
+-monitor unix:${shared_volume}/vm_monitor_socket,server,nowait \
+-serial unix:${shared_volume}/vm_socket,server,nowait \
+--nographic"
 
+$run_qemu

@@ -1,0 +1,77 @@
+#Copyright (C) 2021 Intel Corporation
+#SPDX-License-Identifier: Apache-2.0
+#
+# Version 0.1.0
+
+ARG BASE_IMG=${BASE_IMG}
+
+FROM ${BASE_IMG} AS base
+LABEL maintainer="neha1.singh@intel.com"
+ARG PROXY
+
+# Installing dependent packages required for DPDK Build
+RUN dnf -y update && \
+    dnf install -y git \
+    meson \
+    cmake \
+    libtool \
+    clang \
+    gcc \
+    g++ \
+    autoconf \
+    automake \
+    autoconf-archive \
+    libconfig \
+    libgc-devel \
+    unifdef \
+    libffi-devel \
+    boost-iostreams \
+    boost-graph \
+    llvm \
+    pkg-config \
+    flex flex-devel \
+    zlib-devel \
+    iproute \
+    net-tools \
+    iputils \
+    python \
+    pip \
+    bison \
+    python3-setuptools \
+    python3-pip \
+    python3-wheel \
+    python3-cffi \
+    libedit-devel \
+    gmp-devel \
+    expat-devel \
+    boost-devel \
+    google-perftools \
+    curl \
+    connect-proxy \
+    coreutils \
+    which && \
+    dnf -y clean all && \
+    rm -rf /var/cache/yum
+
+# Installing all PYTHON packages
+RUN python -m pip install --upgrade pip && \
+    python -m pip install grpcio && \
+    python -m pip install ovspy && \
+    python -m pip install protobuf && \
+    python -m pip install p4runtime && \
+    pip3 install pyelftools && \
+    pip3 install scapy && \
+    pip3 install six
+
+WORKDIR /root
+
+FROM base AS p4-ovs-container
+ARG KEEP_SOURCE_CODE
+WORKDIR /root
+COPY ./scripts scripts
+COPY ./examples /root/examples
+COPY ./start_p4ovs.sh /root/start_p4ovs.sh 
+COPY ./run_ovs_cmds /root/run_ovs_cmds
+COPY ./patches /root/patches
+RUN  /root/start_p4ovs.sh /root && \
+     /root/scripts/run_cleanup.sh /root ${KEEP_SOURCE_CODE}
