@@ -86,8 +86,13 @@ if [ ! -f go1.18.linux-amd64.tar.gz ] ; then
     sudo tar -C /usr/local -xvf go1.18.linux-amd64.tar.gz
 fi
 echo "PATH=$PATH:/usr/local/go/bin" >> ~/.bashrc
+if [ ! -d ~/go ] ; then
+	mkdir -p ~/go
+fi
+if [ ! -d ~/go/src ] ; then
+	mkdir -p ~/go/src/
+fi
 if [ ! -d ~/go/src/ipdk-plugin ] ; then
-    mkdir -p ~/go/src
     pushd ~/go/src || exit
     git clone https://github.com/mestery/ipdk-plugin
     popd || exit

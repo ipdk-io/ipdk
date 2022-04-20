@@ -254,6 +254,10 @@ start_container() {
 		exit 1
 	fi
 
+	if "${IPDK_ULIMIT}" ; then
+		ARGS+=("--ulimit" "memlock=$(( 131072*1024 )):$(( 131072*1024 ))")
+	fi
+
 	docker "${RUNCMD[@]}" \
 		--name "${CONTAINER_NAME}" \
 		--rm \
@@ -742,6 +746,10 @@ while (( "$#" )); do
 			;;
 		--link-namespace)
 			LINK_NAMESPACE=true
+			shift
+			;;
+		--ulimit)
+			IPDK_ULIMIT=true
 			shift
 			;;
 		--help)
