@@ -254,7 +254,7 @@ start_container() {
 		exit 1
 	fi
 
-	if "${IPDK_ULIMIT}" ; then
+	if [ "${IPDK_ULIMIT}" ] ; then
 		ARGS+=("--ulimit" "memlock=$(( 131072*1024 )):$(( 131072*1024 ))")
 	fi
 
