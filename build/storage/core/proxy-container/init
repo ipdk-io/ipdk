@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+[ "$DEBUG" == 'true' ] && set -x && export GRPC_VERBOSITY=debug
+
+/init_spdk "$@" &
+
+/hot_plug_main.py --ip "${PROXY_IP_ADDR}" --port "${HOT_PLUG_SERVICE_PORT}" \
+    --shared-dir /ipdk-shared --host-shared-dir "${HOST_SHARED_VOLUME}"

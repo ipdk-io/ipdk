@@ -7,27 +7,16 @@
 # WITH THE APACHE 2.0 LICENSE FROM THE ORIGINAL WORK
 #
 set -e
-set -x
 
-spdk_repo=$(mktemp -dt "spdk.XXXXXX")
-spdk_tar=/spdk.tar.gz
+spdk_repo=/spdk
 
 cleanup() {
 
 	rm -f "$HOME/rpmbuild/rpm/x86_64/"*.rpm
-	rm -f "$spdk_tar"
 	rm -rf "$spdk_repo"
 }
 
 trap 'cleanup' EXIT
-
-if [[ ! -e $spdk_tar ]]; then
-	printf 'Missing %s\n' "$spdk_tar" >&2
-	exit 1
-fi
-
-tar -C "$spdk_repo" -xf "$spdk_tar"
-cd "$spdk_repo" && git checkout v21.10 && git submodule update --init && cd -
 
 # Required for building RPM
 dnf install -y rpm-build
@@ -48,6 +37,6 @@ DEPS="no" "$spdk_repo/rpmbuild/rpm.sh" \
 	--with-virtio \
 	--with-fio
 
-mv "$HOME/rpmbuild/rpm/x86_64/"*.rpm /tmp
-mv "/usr/src/fio/fio" /tmp
+mv "$HOME/rpmbuild/rpm/x86_64/"*.rpm "/spdk-rpm/"
+mv "/usr/src/fio/fio" "/spdk-rpm/"
 dnf clean all

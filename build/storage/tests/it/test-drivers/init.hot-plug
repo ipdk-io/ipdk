@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+set -e
+[ "$DEBUG" == 'true' ] && set -x
+
+current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+declare vm_serial
+declare nqn
+declare storage_target_ip
+declare proxy_ip
+# shellcheck disable=SC1091
+source "${current_script_dir}"/test-helpers
+
+controller_name=Nvme0
+create_subsystem_and_expose_to_another_machine \
+	"${storage_target_ip}" "${nqn}" "${proxy_ip}" "${controller_name}"
+
+number_of_512b_blocks=16
+create_ramdrive_and_attach_as_ns_to_subsystem \
+	"${storage_target_ip}" Malloc0 "${number_of_512b_blocks}" "${nqn}"
+create_ramdrive_and_attach_as_ns_to_subsystem \
+	"${storage_target_ip}" Malloc1 "${number_of_512b_blocks}" "${nqn}"
+create_ramdrive_and_attach_as_ns_to_subsystem \
+	"${storage_target_ip}" Malloc2 "${number_of_512b_blocks}" "${nqn}"
+
+HOT_PLUG_SERVICE_PORT="${HOT_PLUG_SERVICE_PORT:-50051}"
+
+wait_until_vm_is_up "${vm_serial}"
+log_in_with_default_credentials "${vm_serial}"
+
+is_virtio_blk_not_attached "${vm_serial}"
+
+vm_monitor=vm_monitor_socket
+virtio_blk_0_socket=VirtioBlk0
+echo ""
+echo "### Attach 3 virtio-blk devices ###"
+
+attach_ns_as_virtio_blk \
+	"${proxy_ip}" VirtioBlk0 "${controller_name}n1" \
+	"${HOT_PLUG_SERVICE_PORT}" "${vm_monitor}"
+check_number_of_virtio_blk_devices "${vm_serial}" 1
+
+attach_ns_as_virtio_blk \
+	"${proxy_ip}" VirtioBlk1 "${controller_name}n2" \
+	"${HOT_PLUG_SERVICE_PORT}" "${vm_monitor}"
+check_number_of_virtio_blk_devices "${vm_serial}" 2
+
+attach_ns_as_virtio_blk \
+	"${proxy_ip}" VirtioBlk2 "${controller_name}n3" \
+	"${HOT_PLUG_SERVICE_PORT}" "${vm_monitor}"
+check_number_of_virtio_blk_devices "${vm_serial}" 3
+
+echo ""
+echo "### Dettach 1st virtio-blk ###"
+dettach_virtio_blk "${PROXY_CONTAINER_IP}" "${HOT_PLUG_SERVICE_PORT}" \
+	"${vm_monitor}" "${virtio_blk_0_socket}"
+check_number_of_virtio_blk_devices "${vm_serial}" 2
+
+echo ""
+echo "### Attach 1st virtio-blk back ###"
+attach_virtio_blk "${PROXY_CONTAINER_IP}" "${HOT_PLUG_SERVICE_PORT}" \
+	"${vm_monitor}" "${virtio_blk_0_socket}"
+check_number_of_virtio_blk_devices "${vm_serial}" 3
+
+exit 0

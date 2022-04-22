@@ -1,0 +1,3 @@
+[submodule "build/storage/spdk"]
+	path = build/storage/spdk
+	url = https://github.com/spdk/spdk.git

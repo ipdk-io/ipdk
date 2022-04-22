@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+[ "$DEBUG" == 'true' ] && set -x && export GRPC_VERBOSITY=debug
+
+echo "Running host target server for ${IP_ADDR}:${PORT}"
+/host_target_main.py --ip "${IP_ADDR}" --port "${PORT}"

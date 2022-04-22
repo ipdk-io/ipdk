@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+set -e
+[ "$DEBUG" == 'true' ] && set -x
+
+current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+declare vm_serial
+declare nqn
+declare storage_target_ip
+declare proxy_ip
+# shellcheck disable=SC1091
+source "${current_script_dir}"/test-helpers
+
+[ -S "${vm_serial}" ] && rm "${vm_serial}"
+
+controller_name=Nvme0
+create_subsystem_and_expose_to_another_machine \
+	"${storage_target_ip}" "${nqn}" "${proxy_ip}" "${controller_name}"
+create_ramdrive_and_attach_as_ns_to_subsystem \
+	"${storage_target_ip}" Malloc0 16 "${nqn}"
+create_disk "${proxy_ip}" \
+	/ipdk-shared/VirtioBlk0 "${controller_name}n1"
+
+wait_until_vm_is_up "${vm_serial}"
+log_in_with_default_credentials "${vm_serial}"
+
+echo "check attachment"
+is_virtio_blk_attached "${vm_serial}"
+
+echo "Run fio"
+fio_cmd="fio --filename=/dev/vda --direct=1 --rw=randrw \
+	--bs=4k --ioengine=libaio --iodepth=256 --runtime=10 \
+	--numjobs=4 --time_based --group_reporting --name=iops-test-job"
+
+out=$(send_command_over_unix_socket "${vm_serial}" "${fio_cmd}" 11)
+echo "${out}"
+
+echo "${out}" | grep "Disk stats (read/write)"
+echo "fio has been executed successfully!"
+
+exit 0

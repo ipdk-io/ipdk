@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+[ "$DEBUG_VM" == 'true' ] && export GRPC_VERBOSITY=DEBUG
+
+current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+root_dir=${current_script_dir}/../..
+scripts_dir=${root_dir}/scripts
+
+# shellcheck disable=SC1091
+source "${scripts_dir}"/socket.sh
+# shellcheck disable=SC1091
+source "${scripts_dir}"/disk_infrastructure.sh
+
+function wait_until_vm_is_up() {
+	console="${1}"
+
+	[ "$DEBUG_VM" == 'true' ] && echo "Start waiting for VM... and console ${console}"
+
+	overall_wait_counter=0
+	overall_max_wait_counter=12
+	wait_period_sec=10
+
+	while [ ! -S "${console}" ] && \
+			[ "${overall_wait_counter}" -le "${overall_max_wait_counter}" ] ; do
+		sec=$(( overall_wait_counter * wait_period_sec  ))
+		[ "$DEBUG_VM" == 'true' ] && echo "Waiting for VM console: ${console}, sec ${sec} ..."
+		sleep "${wait_period_sec}"
+		overall_wait_counter=$(( overall_wait_counter + 1 ))
+	done
+
+	sleep 4
+
+	socket_output_wait_counter=0
+	while [ "$socket_output_wait_counter" -le 2 ] && \
+			[ "$overall_wait_counter" -le "${overall_max_wait_counter}" ] ; do
+		sec=$(( overall_wait_counter * wait_period_sec ))
+		[ "$DEBUG_VM" == 'true' ] && echo "Waiting for VM completes booting, sec ${sec} ..."
+		overall_wait_counter=$(( overall_wait_counter + 1 ))
+		out=$( get_output_from_unix_socket "${console}" ${wait_period_sec} )
+		[ "$DEBUG_VM" == 'true' ] && echo "${out}"
+		socket_output_wait_counter=$(( socket_output_wait_counter + 1 ))
+		if [[ -n "${out}" ]] ; then
+			socket_output_wait_counter=0
+		fi
+	done
+	return 0
+}
+
+function log_in() {
+	out=$( send_command_over_unix_socket "${1}" "${2}" 3 )
+	[ "$DEBUG_VM" == 'true' ] && echo "${out}"
+	out=$( send_command_over_unix_socket "${1}" "${3}" 3 )
+	[ "$DEBUG_VM" == 'true' ] && echo "${out}"
+	return 0
+}
+
+function log_in_with_default_credentials() {
+	log_in "${1}" "root" "root"
+}
+
+function hostname_to_ip() {
+	getent hosts "${1}" | awk '{ print $1 }'
+}
+
+storage_target_ip=$(hostname_to_ip "storage-target")
+export storage_target_ip="${storage_target_ip}"
+proxy_ip=$(hostname_to_ip "proxy-container")
+export proxy_ip="${proxy_ip}"
+export nqn="nqn.2016-06.io.spdk:cnode1"
+export shared_volume=/ipdk-shared
+export vm_serial=${shared_volume}/vm_socket
+export vm_monitor=${shared_volume}/vm_monitor_socket

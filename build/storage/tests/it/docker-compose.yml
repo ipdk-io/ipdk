@@ -1,0 +1,115 @@
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+# NOTICE: THIS FILE HAS BEEN MODIFIED BY INTEL CORPORATION UNDER COMPLIANCE
+# WITH THE APACHE 2.0 LICENSE FROM THE ORIGINAL WORK
+#
+version: "3.8"
+
+x-shared-volume: &shared-volume ipdk-shared:/ipdk-shared
+
+x-debug-env-var: &debug-env-var DEBUG=${DEBUG}
+x-storage-target-ip: &storage-target-ip IP_ADDR=192.168.42.2
+x-storage-target-port: &storage-target-port PORT=4420
+
+services:
+  storage-target:
+    image: spdk-app
+    build:
+      context: ../..
+      target: spdk-app
+      args:
+        - HTTP_PROXY=${HTTP_PROXY}
+        - HTTPS_PROXY=${HTTPS_PROXY}
+        - NO_PROXY=${NO_PROXY}
+        - SPDK_VERSION=${SPDK_VERSION}
+    container_name: storage-target
+    networks:
+      ipdk:
+        ipv4_address: 192.168.42.2
+    volumes:
+      - /dev/hugepages:/dev/hugepages
+    environment:
+      - SPDK_ARGS=-m 0x2
+      - *debug-env-var
+      - *storage-target-ip
+      - *storage-target-port
+    privileged: true
+  proxy-container:
+    image: proxy-container
+    build:
+      context: ../..
+      target: proxy-container
+      args:
+        - HTTP_PROXY=${HTTP_PROXY}
+        - HTTPS_PROXY=${HTTPS_PROXY}
+        - NO_PROXY=${NO_PROXY}
+        - SPDK_VERSION=${SPDK_VERSION}
+    container_name: proxy-container
+    networks:
+      ipdk:
+        ipv4_address: 192.168.42.3
+    volumes:
+      - /dev/hugepages:/dev/hugepages
+      - *shared-volume
+    environment:
+      - SPDK_ARGS=-m 0x4
+      - *debug-env-var
+      - *storage-target-ip
+      - *storage-target-port
+      - PROXY_IP_ADDR=192.168.42.3
+      - HOT_PLUG_SERVICE_PORT=50051
+      - HOST_SHARED_VOLUME=/ipdk-shared
+    privileged: true
+  traffic-generator:
+    image: traffic-generator
+    build:
+      context: ../..
+      target: traffic-generator
+      dockerfile: tests/it/traffic-generator/Dockerfile
+      args:
+        - HTTP_PROXY=${HTTP_PROXY}
+        - HTTPS_PROXY=${HTTPS_PROXY}
+        - NO_PROXY=${NO_PROXY}
+        - SPDK_VERSION=${SPDK_VERSION}
+    container_name: traffic-generator
+    depends_on:
+      - proxy-container
+    volumes:
+      - /dev/hugepages:/dev/hugepages
+      - *shared-volume
+    environment:
+      - *debug-env-var
+    privileged: true
+  test-driver:
+    image: test-driver
+    build:
+      context: ../..
+      target: test-driver
+      dockerfile: tests/it/test-drivers/Dockerfile
+      args:
+        - HTTP_PROXY=${HTTP_PROXY}
+        - HTTPS_PROXY=${HTTPS_PROXY}
+        - NO_PROXY=${NO_PROXY}
+        - SPDK_VERSION=${SPDK_VERSION}
+    container_name: test-driver
+    depends_on:
+      - traffic-generator
+    volumes:
+      - *shared-volume
+    networks:
+      ipdk:
+        ipv4_address: 192.168.42.4
+    environment:
+      - *debug-env-var
+      - PROXY_CONTAINER_IP=192.168.42.3
+    privileged: true
+networks:
+  ipdk:
+    name: "ipdk"
+    ipam:
+      config:
+        - subnet: 192.168.42.0/29
+          gateway: 192.168.42.1
+volumes:
+  ipdk-shared:

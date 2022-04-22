@@ -1,0 +1,28 @@
+// Copyright (C) 2022 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+//
+
+syntax = "proto3";
+
+package hot_plug;
+
+service HotPlug {
+  rpc HotPlugVirtioBlk (HotPlugRequest) returns (HotPlugReply) {}
+  rpc HotUnplugVirtioBlk (HotUnplugRequest) returns (HotUnplugReply) {}
+}
+
+message HotPlugRequest {
+  string vmId = 1;
+  string vhostVirtioBlkId = 2;
+}
+
+message HotPlugReply {
+}
+
+message HotUnplugRequest {
+  string vmId = 1;
+  string vhostVirtioBlkId = 2;
+}
+
+message HotUnplugReply {
+}

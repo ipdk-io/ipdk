@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+[ "$DEBUG" == 'true' ] && set -x ; export DEBUG_VM=true
+
+shared_volume=/ipdk-shared
+virtio_blk_socket=${shared_volume}/VirtioBlk0
+
+
+attach_default_virtio_blk=" \
+-chardev socket,id=spdk_vhost_blk0,path=${virtio_blk_socket} \
+-device vhost-user-blk-pci,chardev=spdk_vhost_blk0,num-queues=2 "
+
+if [ "${DO_NOT_ATTACH_VIRTIO_BLK}" == "true" ]; then
+	attach_default_virtio_blk=""
+else
+    wait_counter=1
+
+    while [ ! -S  ${virtio_blk_socket} ] && [ ${wait_counter} -le 10 ] ; do
+		echo "Wait for virtio-blk socket: ${virtio_blk_socket}"
+		sleep 5
+		wait_counter=$(( wait_counter + 1 ))
+    done
+    if [ ! -S  ${virtio_blk_socket} ] ; then
+		echo "ERROR virtio-blk socket is not detected: ${virtio_blk_socket}"
+		exit 1
+	else
+		echo "virtio-blk socket ${virtio_blk_socket} is detected"
+    fi
+	sleep 5
+fi
+
+
+echo "Starting vm"
+
+run_qemu="qemu-kvm \
+${attach_default_virtio_blk}
+--enable-kvm \
+-cpu host \
+-m 1G \
+-smp 2 \
+-drive file=vm.qcow2,if=none,id=disk \
+-device ide-hd,drive=disk,bootindex=0 \
+-object memory-backend-file,id=mem0,size=1G,mem-path=/dev/hugepages,share=on \
+-numa node,memdev=mem0 \
+-monitor unix:${shared_volume}/vm_monitor_socket,server,nowait \
+-serial unix:${shared_volume}/vm_socket,server,nowait \
+--nographic"
+
+$run_qemu
+
+echo "VM stopped"

@@ -35,7 +35,5 @@ if [[ -e /config ]]; then
 	args+=("--json" "/config")
 fi
 
-# Wait a bit to make sure ip is in place
-sleep 2s
-
-exec "$app" "${args[@]}"
+socat TCP-LISTEN:5260,reuseaddr,fork UNIX-CLIENT:/var/tmp/spdk.sock &
+$app "${args[@]}" -r /var/tmp/spdk.sock
