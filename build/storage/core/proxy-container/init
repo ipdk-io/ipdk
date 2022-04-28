@@ -4,11 +4,19 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-[ "$DEBUG" == 'true' ] && set -x && export GRPC_VERBOSITY=debug
+[ "$DEBUG" == 'true' ] && set -x && export SMA_LOGLEVEL=DEBUG
 
 spdk_pid_file="/spdk_pid"
 rm -f "$spdk_pid_file"
 
+IFS=' ' read -ra sock_path_line_content <<< "$(grep 'sock_path:' < /sma_config.yml)"
+sock_path=${sock_path_line_content[1]}
+
+if [ -n "$sock_path" ]; then
+    export SPDK_ARGS=" -S $sock_path "
+fi
+
+export EXPOSE_SPDK="false"
 /init_spdk "$@" &
 
 function wait_for_spdk_pid_file() {
@@ -46,5 +54,8 @@ fi
 HOT_PLUG_SERVICE_IP_ADDR="${HOT_PLUG_SERVICE_IP_ADDR:-"0.0.0.0"}"
 HOT_PLUG_SERVICE_PORT="${HOT_PLUG_SERVICE_PORT:-50051}"
 
-/hot_plug_main.py --ip "${HOT_PLUG_SERVICE_IP_ADDR}" --port "${HOT_PLUG_SERVICE_PORT}" \
-    --shared-dir /ipdk-shared --host-shared-dir "${HOST_SHARED_VOLUME}"
+export SMA_PLUGINS=spdk.sma.device.vhost_blk
+sma.py -c sma_config.yml
+
+#/hot_plug_main.py --ip "${HOT_PLUG_SERVICE_IP_ADDR}" --port "${HOT_PLUG_SERVICE_PORT}" \
+#    --shared-dir /ipdk-shared --host-shared-dir "${HOST_SHARED_VOLUME}"

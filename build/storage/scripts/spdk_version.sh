@@ -10,5 +10,5 @@ function get_spdk_version() {
     root_dir=${script_dir}/..
     spdk_dir="${root_dir}/spdk"
     spdk_version=$(git -C "${spdk_dir}" describe --tags --abbrev=0)
-    echo "${spdk_version}"
+    echo "${spdk_version%%-*}"
 }

@@ -48,6 +48,7 @@ services:
     volumes:
       - /dev/hugepages:/dev/hugepages
       - *shared-volume
+      - ./test_sma_config.yml:/sma_config.yml
     environment:
       - SPDK_ARGS=-m 0x4
       - *debug-env-var
@@ -65,6 +66,9 @@ services:
         - NO_PROXY=${NO_PROXY}
         - SPDK_VERSION=${SPDK_VERSION}
     container_name: traffic-generator
+    networks:
+      ipdk:
+        ipv4_address: 192.168.42.5
     depends_on:
       - proxy-container
     volumes:

@@ -153,3 +153,10 @@ class PciDeviceTests(TestCase):
 
         with self.assertRaises(FailedPciDeviceDetection) as ex:
             get_virtio_blk_path_by_pci_address("0000:00:04.0")
+
+    def test_get_device_by_pci_address_on_pci_bridge(self):
+        path = "/sys/devices/pci0000:00/0000:00:04.0/0000:01:01.0/virtio0/block/vda"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/vda")
+        dev_path = get_virtio_blk_path_by_pci_address("0000:01:01.0")
+        self.assertEqual(dev_path, "/dev/vda")

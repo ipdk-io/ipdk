@@ -44,13 +44,16 @@ function is_port_on_ip_addr_open() {
 	return $?
 }
 
-if is_port_on_ip_addr_open "$SPDK_IP_ADDR" "$SPDK_PORT"; then
-	echo "Cannot run socat for ${SPDK_IP_ADDR} and port ${SPDK_PORT}. Port is already in use." >&2
-	exit 1
-fi
-
-socat TCP-LISTEN:"${SPDK_PORT}",reuseaddr,bind="${SPDK_IP_ADDR}",fork \
+EXPOSE_SPDK="${EXPOSE_SPDK:-"true"}"
+if [ "$EXPOSE_SPDK" == "true" ]; then
+	if is_port_on_ip_addr_open "$SPDK_IP_ADDR" "$SPDK_PORT"; then
+		echo "Cannot run socat for ${SPDK_IP_ADDR} and port ${SPDK_PORT}." >&2
+		echo "Port is already in use." >&2
+		exit 1
+	fi
+	socat TCP-LISTEN:"${SPDK_PORT}",reuseaddr,bind="${SPDK_IP_ADDR}",fork \
 		UNIX-CLIENT:/var/tmp/spdk.sock &
+fi
 
 spdk_pid_file="/spdk_pid"
 rm -f "$spdk_pid_file"

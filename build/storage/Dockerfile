@@ -44,6 +44,10 @@ ARG NO_PROXY
 RUN mkdir /spdk-rpm
 COPY --from=base /spdk-rpm/*.rpm /spdk-rpm/
 COPY --from=base /spdk-rpm/fio /spdk-rpm/
+
+RUN dnf install -y python python3-pip
+RUN python -m pip install grpcio grpcio-tools
+
 # Wrap up the image
 COPY core/build_base/post-install /install
 RUN chmod +x /install
@@ -95,8 +99,8 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y python socat python3-pip
-RUN python -m pip install grpcio grpcio-tools grpcio-reflection
+RUN dnf install -y socat
+RUN pip install pyyaml
 
 COPY core/proxy-container/hot_plug.proto /hot_plug.proto
 COPY scripts/socket.sh /socket.sh

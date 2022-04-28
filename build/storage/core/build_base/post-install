@@ -19,6 +19,8 @@ ln -s /usr/libexec/spdk/scripts/rpc_http_proxy.py /usr/bin
 ln -s /usr/libexec/spdk/scripts/setup.sh /usr/bin
 ln -s /usr/libexec/spdk/include/spdk /usr/include
 ln -s /usr/libexec/spdk/scripts/ /usr
+ln -s /usr/libexec/spdk/scripts/sma.py /usr/bin
+ln -s /usr/libexec/spdk/scripts/sma-client.py /usr/bin
 
 mkdir -p /usr/src/fio
 mv /spdk-rpm/fio /usr/src/fio

@@ -21,6 +21,8 @@ trap 'cleanup' EXIT
 # Required for building RPM
 dnf install -y rpm-build
 
+export CONFIG_SMA=y
+
 # Spice it a bit with supported sources
 "$spdk_repo/scripts/pkgdep.sh" -d
 "$spdk_repo/test/common/config/vm_setup.sh" --test-conf=fio

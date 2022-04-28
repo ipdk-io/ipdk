@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
 
 export DEFAULT_SPDK_PORT=5260
+export DEFAULT_SMA_PORT=8080
+export DEFAULT_NVME_PORT=4420
 
 function get_number_of_virtio_blk() {
 	cmd="lsblk --output \"NAME,VENDOR,SUBSYSTEMS\""
@@ -43,30 +49,11 @@ function check_number_of_virtio_blk_devices() {
 	fi
 }
 
-function attach_virtio_blk() {
-	proxy_ip="${1}"
-	hot_plug_service_port="${2}"
-	vm_monitor="${3}"
-	virtio_blk_socket="${4}"
-	no_grpc_proxy="" grpc_cli call "${proxy_ip}":"${hot_plug_service_port}" HotPlugVirtioBlk \
-		"vmId: '${vm_monitor}' vhostVirtioBlkId: '${virtio_blk_socket}'"
-	return "$?"
-}
-
-function dettach_virtio_blk() {
-	proxy_ip="${1}"
-	hot_plug_service_port="${2}"
-	vm_monitor="${3}"
-	virtio_blk_socket="${4}"
-	no_grpc_proxy="" grpc_cli call "${proxy_ip}":"${hot_plug_service_port}" HotUnplugVirtioBlk \
-		"vmId: '${vm_monitor}' vhostVirtioBlkId: '${virtio_blk_socket}'"
-	return $?
-}
-
 function create_and_expose_sybsystem_over_tcp() {
 	ip_addr="${1}"
 	nqn="${2}"
-	storage_target_port="${3:-"$DEFAULT_SPDK_PORT"}"
+	port_to_expose="${3:-"$DEFAULT_NVME_PORT"}"
+	storage_target_port="${4:-"$DEFAULT_SPDK_PORT"}"
 
 	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
 		nvmf_create_subsystem "${nqn}" \
@@ -75,7 +62,7 @@ function create_and_expose_sybsystem_over_tcp() {
 		nvmf_create_transport -t TCP -u 8192
 	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
 		nvmf_subsystem_add_listener "${nqn}" -t TCP \
-		-f IPv4 -a "${ip_addr}" -s 4420
+		-f IPv4 -a "${ip_addr}" -s "${port_to_expose}"
 }
 
 function create_ramdrive_and_attach_as_ns_to_subsystem() {
@@ -87,58 +74,88 @@ function create_ramdrive_and_attach_as_ns_to_subsystem() {
 
 	rpc.py -s "${ip_addr}" -p "${storage_target_port}" \
 		bdev_malloc_create -b "${ramdrive_name}" \
-		"${number_of_512b_blocks}" 512
+		"${number_of_512b_blocks}" 512 &> /dev/null
 	rpc.py -s "${ip_addr}" -p "${storage_target_port}" \
 		nvmf_subsystem_add_ns "${nqn}" "${ramdrive_name}"
+	device_uuid=$(rpc.py -s "${ip_addr}" bdev_get_bdevs | \
+		jq -r ".[] | select(.name==\"${ramdrive_name}\") | .uuid")
+	echo "$device_uuid"
 }
 
-function attach_controller() {
-	ip_addr="${1}"
-	storage_target_ip_addr="${2}"
-	nqn="${3}"
-	controller_name="${4}"
-	proxy_container_port="${5:-"$DEFAULT_SPDK_PORT"}"
-
-	rpc.py -s "${ip_addr}" -p "$proxy_container_port" \
-		bdev_nvme_attach_controller -b "${controller_name}" -t TCP \
-		-f ipv4 -a "${storage_target_ip_addr}" -s 4420 -n "${nqn}"
+function uuid2base64() {
+	python <<- EOF
+		import base64, uuid
+		print(base64.b64encode(uuid.UUID("$1").bytes).decode())
+	EOF
 }
 
-function create_disk() {
-	ip_addr="${1}"
-	vhost_path="${2}"
-	ns="${3}"
-	proxy_container_port="${4:-"$DEFAULT_SPDK_PORT"}"
-	rpc.py -s "${ip_addr}" -p "${proxy_container_port}" \
-		vhost_create_blk_controller \
-		"${vhost_path}" "${ns}"
-}
-
-function attach_ns_as_virtio_blk() {
+function _create_virtio_blk() {
 	proxy_ip="${1}"
-	vhost_name="${2}"
-	exposed_controller_ns="${3}"
-	hot_plug_service_port="${4}"
-	vm_monitor="${5}"
-	proxy_container_port="${6:-"$DEFAULT_SPDK_PORT"}"
+	sma_port="${2}"
+	volume_id="${3}"
+	physical_id="${4}"
+	virtual_id="${5}"
+	hostnqn="${6}"
+	traddr="${7}"
+	trsvcid="${8}"
 
-	create_disk "${proxy_ip}" \
-		"/ipdk-shared/${vhost_name}" "${exposed_controller_ns}" \
-		"${proxy_container_port}"
-
-	attach_virtio_blk "${proxy_ip}" "${hot_plug_service_port}" \
-		"${vm_monitor}" "${vhost_name}"
+	sma-client.py --address="$proxy_ip" --port="$sma_port" <<- EOF
+	{
+		"method": "CreateDevice",
+		"params": {
+			"volume": {
+				"volume_id": "$(uuid2base64 "${volume_id}")",
+				"nvmf": {
+					"hostnqn": "${hostnqn}",
+					"discovery": {
+						"discovery_endpoints": [
+							{
+								"trtype": "tcp",
+								"traddr": "${traddr}",
+								"trsvcid": "${trsvcid}"
+							}
+						]
+					}
+				}
+			},
+			"virtio_blk": {
+				"physical_id": ${physical_id},
+				"virtual_id": ${virtual_id}
+			}
+		}
+	}
+	EOF
 }
 
-function create_subsystem_and_expose_to_another_machine() {
-	storage_target_ip="${1}"
-	nqn="${2}"
-	proxy_ip="${3}"
-	controller_name="${4}"
-	storage_target_port="${5:-"$DEFAULT_SPDK_PORT"}"
-	proxy_container_port="${6:-"$DEFAULT_SPDK_PORT"}"
-	create_and_expose_sybsystem_over_tcp "${storage_target_ip}" "${nqn}" \
-		"${storage_target_port}"
-	attach_controller "${proxy_ip}" "${storage_target_ip}" "${nqn}" \
-		"${controller_name}" "${proxy_container_port}"
+function create_virtio_blk() {
+	proxy_ip="${1}"
+	volume_id="${2}"
+	physical_id="${3}"
+	virtual_id="${4}"
+	hostnqn="${5}"
+	traddr="${6}"
+	trsvcid="${7:-"$DEFAULT_NVME_PORT"}"
+	sma_port="${8:-"$DEFAULT_SMA_PORT"}"
+
+	device_handle=$(_create_virtio_blk "$proxy_ip" "$sma_port" \
+					"$volume_id" "$physical_id" "$virtual_id" "$hostnqn" \
+					"$traddr" "$trsvcid" | jq -r '.handle')
+	sleep 2
+	echo "$device_handle"
+}
+
+function delete_virtio_blk() {
+	proxy_ip="${1}"
+	device_handle="${2}"
+	sma_port="${3:-"$DEFAULT_SMA_PORT"}"
+
+	sma-client.py --address="$proxy_ip" --port="$sma_port" <<- EOF
+	{
+		"method": "DeleteDevice",
+		"params": {
+			"handle": "${device_handle}"
+		}
+	}
+	EOF
+	return $?
 }
