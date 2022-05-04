@@ -96,5 +96,11 @@ if [ ! -d psa-ebpf-demo ] ; then
 fi
 # NOTE: For now, just clone
 
+# Setup LD_LIBRARY_PATH
+echo "/root/ipdk-ebpf/psabpf/build" >> /etc/ld.so.conf.d/ipdk.conf
+echo "/root/ipdk-ebpf/psabpf/libbpf/build" >> /etc/ld.so.conf.d/ipdk.conf
+echo "LD_LIBRARY_PATH=/usr/local/lib:/root/ipdk-ebpf/psabpf/build:/root/ipdk-ebpf/psabpf/libbpf/build:$LD_LIBRARY_PATH" >> ~/.bashrc
+ldconfig
+
 # Final popd
 popd || exit
