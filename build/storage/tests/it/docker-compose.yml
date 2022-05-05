@@ -52,7 +52,6 @@ services:
     environment:
       - SPDK_ARGS=-m 0x4
       - *debug-env-var
-      - HOST_SHARED_VOLUME=/ipdk-shared
     privileged: true
   traffic-generator:
     image: traffic-generator
