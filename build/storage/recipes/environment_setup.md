@@ -1,8 +1,10 @@
 # Environment preparation
 Currently the recipe environment should be represented by 2 separate machines,
-referred  as `storage-target` and `proxy-container`,
+referred  as `storage-target-platform` and `proxy-container-platform`,
 located in the same network. For each of them the steps from
 [System setup](#system-setup) section have to be performed.
+The containers running on those platforms are named `storage-target` and
+`proxy-container` respectively.
 
 # System setup
 The basic requirement for running the recipes is a modern Linux distribution
@@ -85,17 +87,17 @@ $ sudo systemctl stop apparmor
 
 # Deploy containers on the machines
 
-1. Download repositories on both platforms: `proxy-container` and
-`storage-target`
+1. Download repositories on both platforms: `proxy-container-platform` and
+`storage-target-platform`
 
 2. Run docker containers providing configuration scripts:
 
-On `storage-target`
+On `storage-target-platform`
 ```
 $ scripts/run_storage_target_container.sh
 ```
 
-On `proxy-container`
+On `proxy-container-platform`
 ```
 $ SHARED_VOLUME=<dir_to_expose_vhost_and_vm_monitors> \
 scripts/run_proxy_container.sh
@@ -104,32 +106,42 @@ scripts/run_proxy_container.sh
 `SHARED_VOLUME` points to a directory where vhost storage device and vm monitor
 will be exposed.
 
-3. Run the vm instance on `proxy-container` platform
+3. Run the vm instance on `proxy-container-platform` platform
 ```
-$ VM_DIR=<dir_to_expose_vhost_and_vm_monitors> scripts/vm/run_vm.sh
+$ SHARED_VOLUME=<dir_to_expose_vhost_and_vm_monitors> scripts/vm/run_vm.sh
 ```
 
-`VM_DIR` points to a directory where vhost storage device and vm monitor
-will be exposed(exactly one specified in `SHARED_VOLUME` to run `proxy-container`).
+`SHARED_VOLUME` points to a directory where vhost storage device and vm monitor
+will be exposed(exactly one specified in `SHARED_VOLUME` to run
+`proxy-container`).
+
+<a name="vm-console">
+Finally vm console will be opened.
+</a>
 
 login:password pair for the vm is `root:root`.
-Run `host-target` container within the vm
+Run `host-target` container within the vm console
 ```
 $ run_host_target_container.sh &
 ```
 
 4. Prepare environment to send commands to the storage containers.
 For that purpose we need to have spdk rpc.py and grpc-cli tools available.
-`test-driver` container from the [integration tests](../tests/it/README.md#introduction)
+`test-driver` image from the [integration tests](../tests/it/README.md#introduction)
 fits for this purpose well since it contains all required tools.
-In the recipes this `test-driver` will be referred as `cmd-sender`
+Let's use `test-driver` image instance to send all required commands.
+In the recipes this `test-driver` will be referred as `cmd-sender` to
+increase comprehension of the text. However, we should keep in mind that
+`cmd-sender` is a running instance of `test-driver` image.
 
-Run the integration tests to build that container on `proxy-container` machine.
+To use test-driver [install docker-compose](../tests/it/README.md#docker-compose-setup)
+and run the integration tests to build that container on `proxy-container-platform`
+machine.
 ```
 $ tests/it/run.sh
 ```
 
-Run `test-driver` on `proxy-container` machine
+Run `test-driver` on `proxy-container-platform` machine
 ```
 $ docker run -it --privileged --network host --entrypoint /bin/bash test-driver
 ```

@@ -46,8 +46,7 @@ function run_test() {
 }
 
 function provide_hugepages() {
-    required_number_of_2048kb_pages=2048
-    bash "${scripts_dir}"/allocate_hugepages.sh "${required_number_of_2048kb_pages}"
+    bash "${scripts_dir}"/allocate_hugepages.sh
 }
 
 provide_hugepages

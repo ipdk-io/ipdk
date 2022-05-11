@@ -15,7 +15,6 @@ ENV https_proxy=$HTTPS_PROXY
 ENV no_proxy=$NO_PROXY
 
 RUN dnf install -y wget
-ENV LIBGUESTFS_BACKEND direct
 RUN dnf install -y libguestfs-tools-c
 
 COPY scripts/* /scripts/

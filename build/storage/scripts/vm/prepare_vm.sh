@@ -14,6 +14,8 @@ if [[ $# != 1 ]] ; then
     exit 1
 fi
 
+export LIBGUESTFS_BACKEND=direct
+
 path_to_place_vm_file=${1}
 vm_file=${path_to_place_vm_file}/vm.qcow2
 
