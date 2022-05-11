@@ -14,6 +14,7 @@ To apply this scenario the following steps need to be applied:
 
 2. Make sure there is no virtio-blk device attached
 Run in [vm console](environment_setup.md#vm-console)
+```
 $ lsblk
 ```
 Expected output
