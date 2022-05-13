@@ -41,9 +41,8 @@ This will install the following components of the IPDK eBPF recipe:
 * protobuf
 * P4 compiler with eBPF PSA support
 * psabpf CLI
-* psa-ebpf-demp
-* An old version of golang
-* ipdk-plugin Docker CNM
+* psa-ebpf-demo
+* ipdk-plugin Docker CNI
 
 ## Docker Instructions
 

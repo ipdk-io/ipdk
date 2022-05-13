@@ -81,7 +81,7 @@ pushd psabpf || exit
 if [ ! -d build ] ; then
     ./build_libbpf.sh
     mkdir build && pushd build || exit
-    cmake ..
+    cmake -DBUILD_SHARED=on ..
     make -j4
     make install
     popd || exit
