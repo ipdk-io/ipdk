@@ -95,6 +95,7 @@ function wait_for_virtio_blk_in_os() {
 	local virtio_blk_handle="$1"
 	local wait_for_virtio_blk_sec="$2"
 
+	echo "$virtio_blk_handle" > /dev/null
 	# placeholder function for now
 	sleep "$wait_for_virtio_blk_sec"
 	return 0

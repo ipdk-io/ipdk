@@ -30,8 +30,12 @@ if [ "$AS_DAEMON" == "true" ] ; then
     ARGS+=("-d")
 fi
 
+if [ "$WITHOUT_TTY" != "true" ] ; then
+    ARGS+=("-t")
+fi
+
 docker run \
-    -it \
+    -i \
     --privileged \
     "${ARGS[@]}" \
     -e DEBUG="$DEBUG" \

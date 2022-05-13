@@ -28,8 +28,6 @@ malloc1=$(create_ramdrive_and_attach_as_ns_to_subsystem \
 malloc2=$(create_ramdrive_and_attach_as_ns_to_subsystem \
 	"${storage_target_ip}" Malloc2 "${number_of_512b_blocks}" "${nqn}")
 
-HOT_PLUG_SERVICE_PORT="${HOT_PLUG_SERVICE_PORT:-50051}"
-
 wait_until_vm_is_up "${vm_serial}"
 log_in_with_default_credentials "${vm_serial}"
 
@@ -59,6 +57,7 @@ check_number_of_virtio_blk_devices "${vm_serial}" 3
 echo ""
 echo "### Dettach 1st virtio-blk ###"
 delete_virtio_blk "${proxy_ip}" "${virtio_blk0}"
+check_number_of_virtio_blk_devices "${vm_serial}" 2
 
 echo ""
 echo "### Attach 1st virtio-blk back ###"

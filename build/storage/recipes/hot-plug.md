@@ -12,7 +12,7 @@ To apply this scenario the following steps need to be applied:
 
 1. Perform all steps described in [environment setup](environment_setup.md)
 
-2. Make sure there is no virtio-blk device attached
+2. Make sure there is no virtio-blk device attached.
 Run in [vm console](environment_setup.md#vm-console)
 ```
 $ lsblk
@@ -31,7 +31,7 @@ sda      8:0    0    5G  0 disk
 zram0  252:0    0  964M  0 disk [SWAP]
 ```
 
-3. Create subsystem and expose it over NVMe/TCP
+3. Create subsystem and expose it over NVMe/TCP.
 Send from your `cmd-sender`
 ```
 $ create_and_expose_sybsystem_over_tcp \
@@ -46,7 +46,7 @@ $ malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
 ```
 
 
-5. Attach exposed ramdrive to the vm
+5. Attach exposed ramdrive to the vm.
 Send from your `cmd-sender`
 ```
 $ virtio_blk0=$(create_virtio_blk <proxy_container_platform_ip> "${malloc0}" \
@@ -54,7 +54,7 @@ $ virtio_blk0=$(create_virtio_blk <proxy_container_platform_ip> "${malloc0}" \
 ```
 
 
-6. Check if virtio-blk is attached to the vm
+6. Check if virtio-blk is attached to the vm.
 Open the [vm console](environment_setup.md#vm-console) and run the following command
 ```
 $ lsblk
@@ -74,13 +74,13 @@ vda    251:0    0   64M  0 disk
 zram0  252:0    0  964M  0 disk [SWAP]
 ```
 
-7. Perform unplug
+7. Perform unplug.
 Run the command below on `cmd-sender` to hot-unplug device
 ```
 delete_virtio_blk <proxy_container_platform_ip> "${virtio_blk0}"
 ```
 
-8. Check there is no virtio-blk device
+8. Check there is no virtio-blk device.
 Open the [vm console](environment_setup.md#vm-console) and run the following command
 ```
 $ lsblk

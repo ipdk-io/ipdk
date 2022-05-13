@@ -114,7 +114,7 @@ SPDK_IP_ADDR="127.0.0.1" SPDK_PORT=5261 scripts/run_storage_target_container.sh
 ```
 By default, `SPDK_IP_ADDR` is set to `0.0.0.0` and `SPDK_PORT` is set to `5260`
 
-3. Run the vm instance on `proxy-container-platform` platform
+3. Run the vm instance on `proxy-container-platform` platform.
 ```
 $ SHARED_VOLUME=<dir_to_expose_vhost> scripts/vm/run_vm.sh
 ```
@@ -128,10 +128,6 @@ Finally vm console will be opened.
 </a>
 
 login:password pair for the vm is `root:root`.
-Run `host-target` container within the vm console
-```
-$ AS_DAEMON=true run_host_target_container.sh
-```
 
 4. Prepare environment to send commands to the storage containers.
 For that purpose we need to have spdk rpc.py and grpc-cli tools available.
