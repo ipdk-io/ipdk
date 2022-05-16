@@ -10,8 +10,8 @@ declare https_proxy
 declare http_proxy
 declare no_proxy
 SPDK_CONFIG_FILE="${SPDK_CONFIG_FILE:-}"
-IP_ADDR="${IP_ADDR:-"0.0.0.0"}"
-PORT="${PORT:-4420}"
+SPDK_IP_ADDR="${SPDK_IP_ADDR:-"0.0.0.0"}"
+SPDK_PORT="${SPDK_PORT:-5260}"
 
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
@@ -24,14 +24,14 @@ function check_all_variables_are_set() {
     number_re='^[0-9]+$'
     ip_addr_re='^(([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))\.){3}([1-9]?[0-9]|1[0-9][0-9]|2([0-4][0-9]|5[0-5]))$'
 
-    if [ -z "${IP_ADDR}" ]; then
-        print_error_and_exit "IP_ADDR is not set"
-    elif ! [[ "${IP_ADDR}" =~ ${ip_addr_re} ]]; then
-        print_error_and_exit "IP_ADDR does not represent ip address"
-    elif [ -z "${PORT}" ]; then
-        print_error_and_exit "PORT is not set"
-    elif ! [[ "${PORT}" =~ ${number_re} ]] ; then
-        print_error_and_exit "PORT is not a number"
+    if [ -z "${SPDK_IP_ADDR}" ]; then
+        print_error_and_exit "SPDK_IP_ADDR is not set"
+    elif ! [[ "${SPDK_IP_ADDR}" =~ ${ip_addr_re} ]]; then
+        print_error_and_exit "SPDK_IP_ADDR does not represent ip address"
+    elif [ -z "${SPDK_PORT}" ]; then
+        print_error_and_exit "SPDK_PORT is not set"
+    elif ! [[ "${SPDK_PORT}" =~ ${number_re} ]] ; then
+        print_error_and_exit "SPDK_PORT is not a number"
     fi
 }
 
@@ -52,8 +52,8 @@ docker_run="docker run \
     --privileged \
     -v /dev/hugepages:/dev/hugepages \
     ${config_file_option} \
-    -e IP_ADDR=${IP_ADDR} \
-    -e PORT=${PORT} \
+    -e SPDK_IP_ADDR=${SPDK_IP_ADDR} \
+    -e SPDK_PORT=${SPDK_PORT} \
     -e DEBUG=${DEBUG} \
     -e HTTPS_PROXY=${https_proxy} \
     -e HTTP_PROXY=${http_proxy} \

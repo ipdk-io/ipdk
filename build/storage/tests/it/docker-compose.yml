@@ -9,8 +9,6 @@ version: "3.8"
 x-shared-volume: &shared-volume ipdk-shared:/ipdk-shared
 
 x-debug-env-var: &debug-env-var DEBUG=${DEBUG}
-x-storage-target-ip: &storage-target-ip IP_ADDR=192.168.42.2
-x-storage-target-port: &storage-target-port PORT=4420
 
 services:
   storage-target:
@@ -32,8 +30,6 @@ services:
     environment:
       - SPDK_ARGS=-m 0x2
       - *debug-env-var
-      - *storage-target-ip
-      - *storage-target-port
     privileged: true
   proxy-container:
     image: proxy-container
@@ -55,10 +51,6 @@ services:
     environment:
       - SPDK_ARGS=-m 0x4
       - *debug-env-var
-      - *storage-target-ip
-      - *storage-target-port
-      - PROXY_IP_ADDR=192.168.42.3
-      - HOT_PLUG_SERVICE_PORT=50051
       - HOST_SHARED_VOLUME=/ipdk-shared
     privileged: true
   traffic-generator:
@@ -102,7 +94,6 @@ services:
         ipv4_address: 192.168.42.4
     environment:
       - *debug-env-var
-      - PROXY_CONTAINER_IP=192.168.42.3
     privileged: true
 networks:
   ipdk:

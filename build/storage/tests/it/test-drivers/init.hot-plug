@@ -56,13 +56,13 @@ check_number_of_virtio_blk_devices "${vm_serial}" 3
 
 echo ""
 echo "### Dettach 1st virtio-blk ###"
-dettach_virtio_blk "${PROXY_CONTAINER_IP}" "${HOT_PLUG_SERVICE_PORT}" \
+dettach_virtio_blk "${proxy_ip}" "${HOT_PLUG_SERVICE_PORT}" \
 	"${vm_monitor}" "${virtio_blk_0_socket}"
 check_number_of_virtio_blk_devices "${vm_serial}" 2
 
 echo ""
 echo "### Attach 1st virtio-blk back ###"
-attach_virtio_blk "${PROXY_CONTAINER_IP}" "${HOT_PLUG_SERVICE_PORT}" \
+attach_virtio_blk "${proxy_ip}" "${HOT_PLUG_SERVICE_PORT}" \
 	"${vm_monitor}" "${virtio_blk_0_socket}"
 check_number_of_virtio_blk_devices "${vm_serial}" 3
 

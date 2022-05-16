@@ -106,6 +106,24 @@ scripts/run_proxy_container.sh
 `SHARED_VOLUME` points to a directory where vhost storage device and vm monitor
 will be exposed.
 
+<a name="non-default-port">
+It is also possible to specify ip addresses and ports where spdk service is
+exposed on by specifying `SPDK_IP_ADDR` and `SPDK_PORT` environment variables.
+Those environment variables can be applied to both `storage-target` and
+`proxy-container`
+e.g.
+</a>
+```
+SPDK_IP_ADDR="127.0.0.1" SPDK_PORT=5261 scripts/run_storage_target_container.sh
+```
+or
+```
+$ SPDK_IP_ADDR="127.0.0.1" SPDK_PORT=5262 \
+SHARED_VOLUME=<dir_to_expose_vhost_and_vm_monitors> \
+scripts/run_proxy_container.sh
+```
+By default, `SPDK_IP_ADDR` is set to `0.0.0.0` and `SPDK_PORT` is set to `5260`
+
 3. Run the vm instance on `proxy-container-platform` platform
 ```
 $ SHARED_VOLUME=<dir_to_expose_vhost_and_vm_monitors> scripts/vm/run_vm.sh

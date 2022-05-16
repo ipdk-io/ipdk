@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+export DEFAULT_SPDK_PORT=5260
+
 function get_number_of_virtio_blk() {
 	cmd="lsblk --output \"NAME,VENDOR,SUBSYSTEMS\""
 	out=$( send_command_over_unix_socket "${1}" "${cmd}" 1 )
@@ -64,11 +66,15 @@ function dettach_virtio_blk() {
 function create_and_expose_sybsystem_over_tcp() {
 	ip_addr="${1}"
 	nqn="${2}"
+	storage_target_port="${3:-"$DEFAULT_SPDK_PORT"}"
 
-	rpc.py -s "${ip_addr}" nvmf_create_subsystem "${nqn}" \
+	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
+		nvmf_create_subsystem "${nqn}" \
 		-s SPDK00000000000001 -a
-	rpc.py -s "${ip_addr}" nvmf_create_transport -t TCP -u 8192
-	rpc.py -s "${ip_addr}" nvmf_subsystem_add_listener "${nqn}" -t TCP \
+	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
+		nvmf_create_transport -t TCP -u 8192
+	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
+		nvmf_subsystem_add_listener "${nqn}" -t TCP \
 		-f IPv4 -a "${ip_addr}" -s 4420
 }
 
@@ -77,10 +83,13 @@ function create_ramdrive_and_attach_as_ns_to_subsystem() {
 	ramdrive_name="${2}"
 	number_of_512b_blocks="${3}"
 	nqn="${4}"
+	storage_target_port="${5:-"$DEFAULT_SPDK_PORT"}"
 
-	rpc.py -s "${ip_addr}" bdev_malloc_create -b "${ramdrive_name}" \
+	rpc.py -s "${ip_addr}" -p "${storage_target_port}" \
+		bdev_malloc_create -b "${ramdrive_name}" \
 		"${number_of_512b_blocks}" 512
-	rpc.py -s "${ip_addr}" nvmf_subsystem_add_ns "${nqn}" "${ramdrive_name}"
+	rpc.py -s "${ip_addr}" -p "${storage_target_port}" \
+		nvmf_subsystem_add_ns "${nqn}" "${ramdrive_name}"
 }
 
 function attach_controller() {
@@ -88,8 +97,10 @@ function attach_controller() {
 	storage_target_ip_addr="${2}"
 	nqn="${3}"
 	controller_name="${4}"
+	proxy_container_port="${5:-"$DEFAULT_SPDK_PORT"}"
 
-	rpc.py -s "${ip_addr}" bdev_nvme_attach_controller -b "${controller_name}" -t TCP \
+	rpc.py -s "${ip_addr}" -p "$proxy_container_port" \
+		bdev_nvme_attach_controller -b "${controller_name}" -t TCP \
 		-f ipv4 -a "${storage_target_ip_addr}" -s 4420 -n "${nqn}"
 }
 
@@ -97,7 +108,9 @@ function create_disk() {
 	ip_addr="${1}"
 	vhost_path="${2}"
 	ns="${3}"
-	rpc.py -s "${ip_addr}" vhost_create_blk_controller \
+	proxy_container_port="${4:-"$DEFAULT_SPDK_PORT"}"
+	rpc.py -s "${ip_addr}" -p "${proxy_container_port}" \
+		vhost_create_blk_controller \
 		"${vhost_path}" "${ns}"
 }
 
@@ -107,9 +120,11 @@ function attach_ns_as_virtio_blk() {
 	exposed_controller_ns="${3}"
 	hot_plug_service_port="${4}"
 	vm_monitor="${5}"
+	proxy_container_port="${6:-"$DEFAULT_SPDK_PORT"}"
 
 	create_disk "${proxy_ip}" \
-		"/ipdk-shared/${vhost_name}" "${exposed_controller_ns}"
+		"/ipdk-shared/${vhost_name}" "${exposed_controller_ns}" \
+		"${proxy_container_port}"
 
 	attach_virtio_blk "${proxy_ip}" "${hot_plug_service_port}" \
 		"${vm_monitor}" "${vhost_name}"
@@ -120,6 +135,10 @@ function create_subsystem_and_expose_to_another_machine() {
 	nqn="${2}"
 	proxy_ip="${3}"
 	controller_name="${4}"
-	create_and_expose_sybsystem_over_tcp "${storage_target_ip}" "${nqn}"
-	attach_controller "${proxy_ip}" "${storage_target_ip}" "${nqn}" "${controller_name}"
+	storage_target_port="${5:-"$DEFAULT_SPDK_PORT"}"
+	proxy_container_port="${6:-"$DEFAULT_SPDK_PORT"}"
+	create_and_expose_sybsystem_over_tcp "${storage_target_ip}" "${nqn}" \
+		"${storage_target_port}"
+	attach_controller "${proxy_ip}" "${storage_target_ip}" "${nqn}" \
+		"${controller_name}" "${proxy_container_port}"
 }

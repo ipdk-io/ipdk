@@ -6,7 +6,45 @@
 
 [ "$DEBUG" == 'true' ] && set -x && export GRPC_VERBOSITY=debug
 
+spdk_pid_file="/spdk_pid"
+rm -f "$spdk_pid_file"
+
 /init_spdk "$@" &
 
-/hot_plug_main.py --ip "${PROXY_IP_ADDR}" --port "${HOT_PLUG_SERVICE_PORT}" \
+function wait_for_spdk_pid_file() {
+    spdk_pid_file="$1"
+    max_wait_for_pid_counter="$2"
+    wait_for_pid_counter=0
+    while [ ! -f "$spdk_pid_file" ] ; do
+        if [ "$wait_for_pid_counter" -ge "$max_wait_for_pid_counter" ] ; then
+            return 1
+        fi
+        wait_for_pid_counter=$(( wait_for_pid_counter + 1 ))
+        sleep 1
+    done
+    return 0
+}
+
+function is_pid_running() {
+    pid="$1"
+    kill -0 "$pid" &> /dev/null
+    return $?
+}
+
+wait_max_sec=5
+if ! wait_for_spdk_pid_file "$spdk_pid_file" "$wait_max_sec" ; then
+    echo "Failed to start spdk-app or socat to expose port." >&2
+    exit 1
+fi
+
+pid=$(cat "$spdk_pid_file")
+if ! is_pid_running "$pid" ; then
+    echo "Spdk is not running." >&2
+    exit 1
+fi
+
+HOT_PLUG_SERVICE_IP_ADDR="${HOT_PLUG_SERVICE_IP_ADDR:-"0.0.0.0"}"
+HOT_PLUG_SERVICE_PORT="${HOT_PLUG_SERVICE_PORT:-50051}"
+
+/hot_plug_main.py --ip "${HOT_PLUG_SERVICE_IP_ADDR}" --port "${HOT_PLUG_SERVICE_PORT}" \
     --shared-dir /ipdk-shared --host-shared-dir "${HOST_SHARED_VOLUME}"

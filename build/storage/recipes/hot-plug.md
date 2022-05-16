@@ -31,6 +31,18 @@ $ create_subsystem_and_expose_to_another_machine \
 	<storage_target_platform_ip> nqn.2016-06.io.spdk:cnode0 \
 	<proxy_container_platform_ip> Nvme0
 ```
+or
+```
+$ create_subsystem_and_expose_to_another_machine \
+	<storage_target_platform_ip> nqn.2016-06.io.spdk:cnode0 \
+	<proxy_container_platform_ip> Nvme0 \
+	<storage_target_SPDK_PORT> <proxy_container_SPDK_PORT>
+```
+Where `storage_target_SPDK_PORT` is non-default `SPDK_PORT` specified for
+`run_storage_target_container.sh`
+Where `proxy_container_SPDK_PORT` is non-default `SPDK_PORT` specified for
+`run_proxy_container.sh`
+Please see [here](environment_setup.md#non-default-port)
 
 4. Create ramdrive on `storage-target` and attach to the subsystem
 Send from your `cmd-sender`
@@ -38,6 +50,15 @@ Send from your `cmd-sender`
 $ create_ramdrive_and_attach_as_ns_to_subsystem \
 	<storage_target_platform_ip> Malloc0 16 nqn.2016-06.io.spdk:cnode0
 ```
+or
+```
+$ create_ramdrive_and_attach_as_ns_to_subsystem \
+	<storage_target_platform_ip> Malloc0 16 nqn.2016-06.io.spdk:cnode0 \
+	<storage_target_SPDK_PORT>
+```
+Where `storage_target_SPDK_PORT` is non-default `SPDK_PORT` specified for
+`run_storage_target_container.sh`
+Please see [here](environment_setup.md#non-default-port)
 
 5. Attach exposed ramdrive to the vm
 Send from your `cmd-sender`
@@ -46,6 +67,15 @@ $ attach_ns_as_virtio_blk \
 	<proxy_container_platform_ip> VirtioBlk0 Nvme0n1 50051 \
 	vm_monitor
 ```
+or
+```
+$ attach_ns_as_virtio_blk \
+	<proxy_container_platform_ip> VirtioBlk0 Nvme0n1 50051 \
+	vm_monitor <proxy_container_SPDK_PORT>
+```
+Where `proxy_container_SPDK_PORT` is non-default `SPDK_PORT` specified for
+`run_proxy_container.sh`
+Please see [here](environment_setup.md#non-default-port)
 
 6. Check if virtio-blk is attached to the vm
 Open the [vm console](environment_setup.md#vm-console) machine and run the following command
