@@ -81,7 +81,7 @@ pushd psabpf || exit
 if [ ! -d build ] ; then
     ./build_libbpf.sh
     mkdir build && pushd build || exit
-    cmake ..
+    cmake -DBUILD_SHARED=on ..
     make -j4
     make install
     popd || exit
@@ -96,20 +96,11 @@ if [ ! -d psa-ebpf-demo ] ; then
 fi
 # NOTE: For now, just clone
 
-#
-# Clone, build and install TDI
-#
-if [ ! -d tdi ] ; then
-    git clone https://github.com/p4lang/tdi.git --recursive
-fi
-pushd tdi || exit
-if [ ! -d build ] ; then
-    mkdir -p build && pushd build || exit
-    cmake -DSTANDALONE=ON -DCMAKE_INSTALL_PREFIX=../install ..
-    make install -j8
-    popd || exit
-fi
-popd || exit
+# Setup LD_LIBRARY_PATH
+echo "/root/ipdk-ebpf/psabpf/build" >> /etc/ld.so.conf.d/ipdk.conf
+echo "/root/ipdk-ebpf/psabpf/libbpf/build" >> /etc/ld.so.conf.d/ipdk.conf
+echo "LD_LIBRARY_PATH=/usr/local/lib:/root/ipdk-ebpf/psabpf/build:/root/ipdk-ebpf/psabpf/libbpf/build:$LD_LIBRARY_PATH" >> ~/.bashrc
+ldconfig
 
 # Final popd
 popd || exit

@@ -13,15 +13,15 @@ shellcheck: ;../networking/scripts/run-shellcheck.sh
 .PHONY: demo-start
 
 start-demo:
-	ipdk start -d --link-namespace
+	ipdk start -d --link-namespace --ulimit
 	sudo cp -f ~/go/src/ipdk-plugin/ipdk.json /etc/docker/plugins/
 	sudo ~/go/src/ipdk-plugin/ipdk-plugin &
-	docker network create -d=ipdk --ipam-driver=ipdk --subnet=192.168.100.0/24 --gateway=192.168.100.1 ipdk_net
-	sleep 3
-	docker run --net=ipdk_net --ip=192.168.100.2 --name "hasipdk1" --cap-add NET_ADMIN -itd wbitt/network-multitool sh
-	docker run --net=ipdk_net --ip=192.168.100.3 --name "hasipdk2" --cap-add NET_ADMIN -itd wbitt/network-multitool sh
-	docker exec -it hasipdk1 ping -c 5 192.168.100.3
-	docker exec -it hasipdk2 ping -c 5 192.168.100.2
+	sleep 10
+	docker network create -d=ipdk --ipam-driver=ipdk --subnet=192.168.27.0/24 --gateway=192.168.27.1 ipdk_net
+	docker run --net=ipdk_net --ip=192.168.27.2 --name "hasipdk1" --cap-add NET_ADMIN -itd wbitt/network-multitool sh
+	docker run --net=ipdk_net --ip=192.168.27.3 --name "hasipdk2" --cap-add NET_ADMIN -itd wbitt/network-multitool sh
+	docker exec -it hasipdk1 ping -c 5 192.168.27.3
+	docker exec -it hasipdk2 ping -c 5 192.168.27.2
 
 .PHONY: demo-stop
 
