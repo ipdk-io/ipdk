@@ -2,4 +2,4 @@
 #SPDX-License-Identifier: Apache-2.0
 #
 
-shellcheck: ;../networking/scripts/run-shellcheck.sh
+shellcheck: ;../scripts/run-shellcheck.sh

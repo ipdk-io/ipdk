@@ -12,8 +12,14 @@ is_bash() {
     return 1
 }
 
+is_excluded_from_check() {
+    [[ $1 == */spdk/* ]] && return 0
+
+    return 1
+}
+
 while IFS= read -r -d $'' file; do
-    if is_bash "$file"; then
+    if ! is_excluded_from_check "$file" && is_bash "$file" ; then
         shellcheck -x -W0 -s bash "$file" || continue
     fi
 done < <(find . -type f \! -path "./.git/*" -print0)

@@ -1,0 +1,24 @@
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+# NOTICE: THIS FILE HAS BEEN MODIFIED BY INTEL CORPORATION UNDER COMPLIANCE
+# WITH THE APACHE 2.0 LICENSE FROM THE ORIGINAL WORK
+#
+FROM spdk-app AS test-driver
+
+# Generic args
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+
+ENV http_proxy=$HTTP_PROXY
+ENV https_proxy=$HTTPS_PROXY
+ENV no_proxy=$NO_PROXY
+
+RUN dnf install -y socat
+RUN dnf install -y grpc-cli
+
+COPY tests/it/test-drivers/test-helpers /test-helpers
+COPY scripts/ /scripts
+
+ENTRYPOINT ["/init"]

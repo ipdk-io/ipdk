@@ -10,6 +10,8 @@
 [ "$DEBUG" == 'true' ] && set -x
 
 app=spdk_tgt args=() limit_args=()
+SPDK_PORT="${SPDK_PORT:-5260}"
+SPDK_IP_ADDR="${SPDK_IP_ADDR:-"0.0.0.0"}"
 
 # Override default app
 if [[ -n $SPDK_APP ]]; then
@@ -35,7 +37,21 @@ if [[ -e /config ]]; then
 	args+=("--json" "/config")
 fi
 
-# Wait a bit to make sure ip is in place
-sleep 2s
+function is_port_on_ip_addr_open() {
+	ip_addr="$1"
+	port="$2"
+	timeout 1 bash -c "cat < /dev/null > /dev/tcp/${ip_addr}/${port}" &> /dev/null
+	return $?
+}
 
-exec "$app" "${args[@]}"
+if is_port_on_ip_addr_open "$SPDK_IP_ADDR" "$SPDK_PORT"; then
+	echo "Cannot run socat for ${SPDK_IP_ADDR} and port ${SPDK_PORT}. Port is already in use." >&2
+	exit 1
+fi
+
+socat TCP-LISTEN:"${SPDK_PORT}",reuseaddr,bind="${SPDK_IP_ADDR}",fork \
+		UNIX-CLIENT:/var/tmp/spdk.sock &
+
+spdk_pid_file="/spdk_pid"
+rm -f "$spdk_pid_file"
+$app "${args[@]}" -r /var/tmp/spdk.sock -f "$spdk_pid_file"
