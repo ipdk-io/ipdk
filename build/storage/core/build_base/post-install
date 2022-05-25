@@ -8,7 +8,7 @@
 #
 set -e
 
-dnf install -y /tmp/*.rpm
+dnf install -y /spdk-rpm/*.rpm
 
 # Be nice for docker exec and link SPDK scripts|binaries under common PATH
 # location like /usr/bin.
@@ -21,7 +21,7 @@ ln -s /usr/libexec/spdk/include/spdk /usr/include
 ln -s /usr/libexec/spdk/scripts/ /usr
 
 mkdir -p /usr/src/fio
-mv /tmp/fio /usr/src/fio
+mv /spdk-rpm/fio /usr/src/fio
 
 dnf clean all
 rm -f /tmp/*.rpm
