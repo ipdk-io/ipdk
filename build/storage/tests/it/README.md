@@ -14,7 +14,7 @@ All containers are run in the isolated docker compose environment described by
 `docker-compose` files. It allows to configure the environment to run tests in
 a flexible way.
 The figure below illustrates the overall testing design:
-![Running virtio-blk traffic over NVMeTCP](img_virtio_blk_over_nvmetcp_1.svg "Running virtio-blk traffic over NVMeTCP")
+![Running virtio-blk traffic over NVMeTCP](img_virtio_blk_over_nvmetcp_1.png "Running virtio-blk traffic over NVMeTCP")
 
 # Test environment preparation
 Please make sure that steps described in

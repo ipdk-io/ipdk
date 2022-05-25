@@ -10,4 +10,4 @@ device.
 In both cases host target platform is implied as KVM.
 
 The picture below demonstrates the configuration exercised in these recipes
-![System configuration for recipes](./system_configuration.svg "System configuration for recipes")
+![System configuration for recipes](./system_configuration.png "System configuration for recipes")
