@@ -10,7 +10,7 @@ The containers running on those platforms are named `storage-target` and
 The basic requirement for running the recipes is a modern Linux distribution
 with docker support.
 So far, the recipe has been successfully tested on the following systems:
-- Fedora 33
+- Fedora 34
 - Ubuntu 18.04
 
 To run the recipe some basic system preparations are required, in particular:

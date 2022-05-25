@@ -56,7 +56,7 @@ $ ./run.sh fio
 The script `run.sh` returns a non-zero value only in case of an error.
 
 **Note:**
-The script `run.sh` will download a `Fedora 33` image into `traffic-generator`
+The script `run.sh` will download a `Fedora 36` image into `traffic-generator`
 directory and set up login-password pair as root-root if there is no `vm.qcow2`
 image provided in that directory. `run.sh` will also try to allocate 2048 2MB
 hugepages if not yet allocated and it will request administrative privileges

@@ -10,7 +10,7 @@
 # This image is used to provide environment for spdk build and get it in the
 # form of spdk packages
 ################################################################################
-FROM fedora:33 AS base
+FROM fedora:36 AS base
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
@@ -30,7 +30,7 @@ RUN /install
 # Contains installed SPDK from build_base rpm packages.
 # Does not contain dependencies required to build SPDK
 ################################################################################
-FROM fedora:33 AS spdk
+FROM fedora:36 AS spdk
 
 LABEL maintainer=spdk.io
 
@@ -95,7 +95,7 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y python socat
+RUN dnf install -y python socat python3-pip
 RUN python -m pip install grpcio grpcio-tools grpcio-reflection
 
 COPY core/proxy-container/hot_plug.proto /hot_plug.proto
@@ -127,13 +127,13 @@ ENTRYPOINT [ "/init" ]
 # It has to be placed into host(a vm for KVM case or physical host for IPU case)
 # It uses gRPC to expose this service.
 ################################################################################
-FROM fedora:33 AS host-target
+FROM fedora:36 AS host-target
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y python fio
+RUN dnf install -y python fio python3-pip
 RUN python -m pip install grpcio grpcio-tools grpcio-reflection
 
 COPY core/host-target/init /init
@@ -148,13 +148,13 @@ ENTRYPOINT [ "/init" ]
 ################################################################################
 # ipdk-unit-tests
 ################################################################################
-FROM fedora:33 AS ipdk-unit-tests
+FROM fedora:36 AS ipdk-unit-tests
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y python fio
+RUN dnf install -y python fio python3-pip
 RUN python -m pip install grpcio-reflection pyfakefs
 COPY tests/ut/proxy-container /proxy-container/tests
 COPY --from=proxy-container hot_plug_*pb2.py /proxy-container/generated/
