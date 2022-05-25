@@ -17,8 +17,7 @@ class DeviceExerciserTests(TestCase):
         pass
 
     def test_successful_fio_run(self):
-        self.fs.create_dir(
-            "/sys/devices/pci0000:00/0000:00:04.0/virtio0/block/vda")
+        self.fs.create_dir("/sys/devices/pci0000:00/0000:00:04.0/virtio0/block/vda")
         self.fs.create_file("/dev/vda")
         fio_arguments = "--name=test --size=4MB"
 
@@ -27,11 +26,13 @@ class DeviceExerciserTests(TestCase):
             self.assertTrue("vda" in fio_args)
             self.assertTrue(fio_arguments in fio_args)
             return "output"
+
         fio_do_nothing.was_called = False
 
         exerciser = DeviceExerciser(
             fio_runner=fio_do_nothing,
-            virtio_blk_detector=get_virtio_blk_path_by_pci_address)
+            virtio_blk_detector=get_virtio_blk_path_by_pci_address,
+        )
         out = exerciser.run_fio("0000:00:04.0", fio_arguments)
         self.assertTrue(fio_do_nothing.was_called)
         self.assertEqual(out, "output")
@@ -39,8 +40,9 @@ class DeviceExerciserTests(TestCase):
     def test_any_errors_at_exercising(self):
         def raise_exception(unused):
             raise BaseException()
+
         exerciser = DeviceExerciser(
-            fio_runner=raise_exception,
-            virtio_blk_detector=raise_exception)
+            fio_runner=raise_exception, virtio_blk_detector=raise_exception
+        )
         with self.assertRaises(DeviceExerciserError) as ex:
             exerciser.run_fio("pcie_address", "fio_arguments")

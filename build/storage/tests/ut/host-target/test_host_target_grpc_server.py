@@ -44,8 +44,8 @@ class HostTargetServerTests(unittest.TestCase):
     def test_run_fio_does_not_propagate_exception(self):
         def fio_throws_exception(unused):
             raise BaseException()
-        server = HostTargetService(
-            fio_throws_exception, detect_virtio_blk_device)
+
+        server = HostTargetService(fio_throws_exception, detect_virtio_blk_device)
         request = host_target_pb2.RunFioRequest()
         request.pciAddress = "unused"
         request.fioArgs = "unused"
@@ -58,8 +58,8 @@ class HostTargetServerTests(unittest.TestCase):
     def test_run_fio_does_not_propagate_exception(self):
         def detect_virtio_blk_throws_exception(unused):
             raise BaseException()
-        server = HostTargetService(
-            successfull_fio, detect_virtio_blk_throws_exception)
+
+        server = HostTargetService(successfull_fio, detect_virtio_blk_throws_exception)
         request = host_target_pb2.RunFioRequest()
         request.pciAddress = "unused"
         request.fioArgs = "unused"

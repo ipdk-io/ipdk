@@ -34,21 +34,22 @@ class HotPlugService(hot_plug_pb2_grpc.HotPlugServicer):
 
     def HotPlugVirtioBlk(self, request, context):
         return self.__execute_server_operation(
-            request, context,
-            self.hot_plug_provider.hot_plug_vhost_virtio_blk)
+            request, context, self.hot_plug_provider.hot_plug_vhost_virtio_blk
+        )
 
     def HotUnplugVirtioBlk(self, request, context):
         return self.__execute_server_operation(
-            request, context,
-            self.hot_plug_provider.hot_unplug_vhost_virtio_blk)
+            request, context, self.hot_plug_provider.hot_unplug_vhost_virtio_blk
+        )
 
 
 def run_grpc_server(ip_address, port, hot_plug_provider):
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     hot_plug_pb2_grpc.add_HotPlugServicer_to_server(
-        HotPlugService(hot_plug_provider), server)
+        HotPlugService(hot_plug_provider), server
+    )
     service_names = (
-        hot_plug_pb2.DESCRIPTOR.services_by_name['HotPlug'].full_name,
+        hot_plug_pb2.DESCRIPTOR.services_by_name["HotPlug"].full_name,
         reflection.SERVICE_NAME,
     )
     reflection.enable_server_reflection(service_names, server)

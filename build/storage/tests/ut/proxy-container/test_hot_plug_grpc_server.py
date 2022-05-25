@@ -20,8 +20,9 @@ class HotPlugServerTests(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def _test_server_does_not_propagate_exception(self, stub_provider_operation,
-                                                  server_operation):
+    def _test_server_does_not_propagate_exception(
+        self, stub_provider_operation, server_operation
+    ):
         err_description = "exception description"
         stub_provider_operation.side_effect = BaseException(err_description)
         request = hot_plug_pb2.HotPlugRequest()
@@ -34,15 +35,16 @@ class HotPlugServerTests(unittest.TestCase):
     @patch.object(HotPlugProvider, "hot_plug_vhost_virtio_blk")
     def test_hot_plug_does_not_propagate_exception(self, mock_provider):
         self._test_server_does_not_propagate_exception(
-            mock_provider, self.server.HotPlugVirtioBlk)
+            mock_provider, self.server.HotPlugVirtioBlk
+        )
 
     @patch.object(HotPlugProvider, "hot_unplug_vhost_virtio_blk")
     def test_hot_unplug_does_not_propagate_exception(self, mock_provider):
         self._test_server_does_not_propagate_exception(
-            mock_provider, self.server.HotUnplugVirtioBlk)
+            mock_provider, self.server.HotUnplugVirtioBlk
+        )
 
-    def _test_server_operation_success(self, stub_provider_operation,
-                                       server_operation):
+    def _test_server_operation_success(self, stub_provider_operation, server_operation):
         vm = "vm"
         vhost = "vhost"
         request = hot_plug_pb2.HotPlugRequest()
@@ -59,10 +61,10 @@ class HotPlugServerTests(unittest.TestCase):
 
     @patch.object(HotPlugProvider, "hot_plug_vhost_virtio_blk")
     def test_hot_plug_success(self, mock_provider):
-        self._test_server_operation_success(
-            mock_provider, self.server.HotPlugVirtioBlk)
+        self._test_server_operation_success(mock_provider, self.server.HotPlugVirtioBlk)
 
     @patch.object(HotPlugProvider, "hot_unplug_vhost_virtio_blk")
     def test_hot_unplug_success(self, mock_provider):
         self._test_server_operation_success(
-            mock_provider, self.server.HotUnplugVirtioBlk)
+            mock_provider, self.server.HotUnplugVirtioBlk
+        )

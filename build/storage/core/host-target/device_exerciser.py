@@ -11,8 +11,11 @@ class DeviceExerciserError(RuntimeError):
 
 
 class DeviceExerciser:
-    def __init__(self, fio_runner=fio_runner.run_fio,
-                 virtio_blk_detector=pci_devices.get_virtio_blk_path_by_pci_address):
+    def __init__(
+        self,
+        fio_runner=fio_runner.run_fio,
+        virtio_blk_detector=pci_devices.get_virtio_blk_path_by_pci_address,
+    ):
         self.fio_runner = fio_runner
         self.virtio_blk_detector = virtio_blk_detector
 

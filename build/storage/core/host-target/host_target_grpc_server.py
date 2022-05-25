@@ -23,14 +23,12 @@ class InvalidHotPlugProvider(RuntimeError):
 class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
     def __init__(self, fio_runner, virtio_blk_detector):
         super().__init__()
-        self.device_exerciser = DeviceExerciser(
-            fio_runner, virtio_blk_detector)
+        self.device_exerciser = DeviceExerciser(fio_runner, virtio_blk_detector)
 
     def RunFio(self, request, context):
         output = None
         try:
-            output = self.device_exerciser.run_fio(
-                request.pciAddress, request.fioArgs)
+            output = self.device_exerciser.run_fio(request.pciAddress, request.fioArgs)
         except BaseException as ex:
             context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
             context.set_details(str(ex))
@@ -41,9 +39,10 @@ def run_grpc_server(ip_address, port, server_creator=grpc.server):
     try:
         server = server_creator(futures.ThreadPoolExecutor(max_workers=10))
         host_target_pb2_grpc.add_HostTargetServicer_to_server(
-            HostTargetService(run_fio, get_virtio_blk_path_by_pci_address), server)
+            HostTargetService(run_fio, get_virtio_blk_path_by_pci_address), server
+        )
         service_names = (
-            host_target_pb2.DESCRIPTOR.services_by_name['HostTarget'].full_name,
+            host_target_pb2.DESCRIPTOR.services_by_name["HostTarget"].full_name,
             reflection.SERVICE_NAME,
         )
         reflection.enable_server_reflection(service_names, server)

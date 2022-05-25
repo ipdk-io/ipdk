@@ -24,17 +24,20 @@ class RunGrpcServer(unittest.TestCase):
     def test_success_on_keyboard_interrupt_exception(self):
         server_mock = unittest.mock.Mock()
         server_mock.add_insecure_port.side_effect = KeyboardInterrupt()
+
         def server_creator(unused):
             return server_mock
+
         self.assertEqual(run_grpc_server("Unused", "Unused", server_creator), 0)
         self.assertTrue(server_mock.add_insecure_port.was_called)
 
-
-    @patch.object(host_target_pb2_grpc, 'add_HostTargetServicer_to_server')
+    @patch.object(host_target_pb2_grpc, "add_HostTargetServicer_to_server")
     def test_required_methods_were_called(self, add_servicer_mock):
         server_mock = unittest.mock.Mock()
+
         def server_creator(unused):
             return server_mock
+
         ip_addr = "ip_addr"
         port = "port"
 
@@ -49,5 +52,7 @@ class RunGrpcServer(unittest.TestCase):
 
         self.assertTrue(add_servicer_mock.was_called)
         self.assertTrue(len(add_servicer_mock.call_args.args) == 2)
-        self.assertTrue(isinstance(add_servicer_mock.call_args.args[0], HostTargetService))
+        self.assertTrue(
+            isinstance(add_servicer_mock.call_args.args[0], HostTargetService)
+        )
         self.assertTrue(add_servicer_mock.call_args.args[1] == server_mock)

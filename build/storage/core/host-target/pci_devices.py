@@ -8,7 +8,8 @@ import glob
 
 
 pci_validator = re.compile(
-    r'[0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-1]{1}[0-9a-fA-F]{1}\.[0-7]{1}')
+    r"[0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-1]{1}[0-9a-fA-F]{1}\.[0-7]{1}"
+)
 
 
 class PciAddress:
@@ -16,7 +17,7 @@ class PciAddress:
         return pci_validator.search(pci_address) != None
 
     def _parse_pci_address(pci_address):
-        split_pci_address = pci_address.replace('.', ':').split(":")
+        split_pci_address = pci_address.replace(".", ":").split(":")
         split_pci_address.reverse()
         function = split_pci_address[0].strip()
         device = split_pci_address[1].strip()
@@ -27,8 +28,12 @@ class PciAddress:
     def __init__(self, pci_address) -> None:
         if not PciAddress.validate_pci_address(pci_address):
             raise InvalidPciAddress(pci_address + " is invalid")
-        self.domain, self.bus, self.device, self.function = \
-            PciAddress._parse_pci_address(pci_address)
+        (
+            self.domain,
+            self.bus,
+            self.device,
+            self.function,
+        ) = PciAddress._parse_pci_address(pci_address)
 
     def get_domain_bus_prefix(self):
         return self.domain + ":" + self.bus
@@ -52,7 +57,7 @@ def get_all_files_by_pattern(pattern):
     return glob.glob(pattern)
 
 
-def directory_find(atom, root='.'):
+def directory_find(atom, root="."):
     dirs = get_directories(root)
     if dirs and atom in dirs:
         return os.path.join(root, atom)
@@ -70,35 +75,45 @@ class FailedPciDeviceDetection(RuntimeError):
 def get_virtio_blk_path_by_pci_address(pci_address):
     addr = PciAddress(pci_address)
 
-    domain_bus_dir = os.path.join("/sys/devices", "pci" +
-                                  addr.get_domain_bus_prefix())
-    pci_dev_sysfs_dir = directory_find(addr.get_full_address(),
-                                       domain_bus_dir)
+    domain_bus_dir = os.path.join("/sys/devices", "pci" + addr.get_domain_bus_prefix())
+    pci_dev_sysfs_dir = directory_find(addr.get_full_address(), domain_bus_dir)
     if pci_dev_sysfs_dir == None:
         raise FailedPciDeviceDetection(
-            "No pci device with " + pci_address + " exists under " + domain_bus_dir)
+            "No pci device with " + pci_address + " exists under " + domain_bus_dir
+        )
     block_directory_pattern = os.path.join(pci_dev_sysfs_dir, "virtio*/block")
     block_device_matches = get_all_files_by_pattern(block_directory_pattern)
     if len(block_device_matches) == 0:
         raise FailedPciDeviceDetection(
-            "No devices found for pattern " + block_directory_pattern)
+            "No devices found for pattern " + block_directory_pattern
+        )
     elif len(block_device_matches) > 1:
         raise FailedPciDeviceDetection(
-            "Found more than one device for pattern" +
-            block_directory_pattern + " : " + str(block_device_matches))
+            "Found more than one device for pattern"
+            + block_directory_pattern
+            + " : "
+            + str(block_device_matches)
+        )
 
     devices = get_directories(block_device_matches[0])
     if not devices or len(devices) == 0:
         raise FailedPciDeviceDetection(
-            "No device exist under " + block_directory_pattern +
-            " for pci device '" + pci_address + "'")
+            "No device exist under "
+            + block_directory_pattern
+            + " for pci device '"
+            + pci_address
+            + "'"
+        )
     elif len(devices) > 1:
         raise FailedPciDeviceDetection(
-            "Multiple devices are dected " + str(devices) +
-            " for pci address '" + pci_address +"'")
+            "Multiple devices are dected "
+            + str(devices)
+            + " for pci address '"
+            + pci_address
+            + "'"
+        )
     device_path = os.path.join("/dev", devices[0])
     if not os.path.exists(device_path):
-        raise FailedPciDeviceDetection(
-            "Device " + device_path + " does not exist")
+        raise FailedPciDeviceDetection("Device " + device_path + " does not exist")
 
     return device_path

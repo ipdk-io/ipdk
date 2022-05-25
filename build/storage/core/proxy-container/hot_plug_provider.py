@@ -25,21 +25,21 @@ class HotPlugProvider:
         self.shared_dir_path = shared_dir_path
         self.host_shared_dir_path = host_shared_dir_path
 
-    def _hot_plug_action(self, vm_monitor,
-                         vhost_virtio_blk, device_id):
+    def _hot_plug_action(self, vm_monitor, vhost_virtio_blk, device_id):
         vm_monitor_path = os.path.join(self.shared_dir_path, vm_monitor)
         vhost_path = os.path.join(self.host_shared_dir_path, vhost_virtio_blk)
-        ret = subprocess.call("/hot-plug.sh " + vm_monitor_path +
-                              " " + vhost_path +
-                              " " + str(device_id), shell=True)
+        ret = subprocess.call(
+            "/hot-plug.sh " + vm_monitor_path + " " + vhost_path + " " + str(device_id),
+            shell=True,
+        )
         if ret != 0:
             raise ActionExecutionError("Error at hot-plug execution")
 
-    def _hot_unplug_action(self, vm_monitor,
-                           unused, device_id):
+    def _hot_unplug_action(self, vm_monitor, unused, device_id):
         vm_monitor_path = os.path.join(self.shared_dir_path, vm_monitor)
-        ret = subprocess.call("/hot-unplug.sh " + vm_monitor_path +
-                              " " + str(device_id), shell=True)
+        ret = subprocess.call(
+            "/hot-unplug.sh " + vm_monitor_path + " " + str(device_id), shell=True
+        )
         if ret != 0:
             raise ActionExecutionError("Error at hot-unplug execution")
 
@@ -54,16 +54,17 @@ class HotPlugProvider:
 
     def __check_socket_path(path):
         if not HotPlugProvider.__is_socket(path):
-            raise FileNotFoundError(errno.ENOENT, os.strerror(
-                errno.ENOENT), path)
+            raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), path)
 
     def _validate_vhost_virtio_blk(self, vhost_virtio_blk):
-        HotPlugProvider.__check_socket_path(os.path.join(
-            self.shared_dir_path, vhost_virtio_blk))
+        HotPlugProvider.__check_socket_path(
+            os.path.join(self.shared_dir_path, vhost_virtio_blk)
+        )
 
     def _validate_vm_monitor(self, vm_monitor):
-        HotPlugProvider.__check_socket_path(os.path.join(
-            self.shared_dir_path, vm_monitor))
+        HotPlugProvider.__check_socket_path(
+            os.path.join(self.shared_dir_path, vm_monitor)
+        )
 
     def _validate_input(self, vm_monitor, vhost_virtio_blk):
         self._validate_vhost_virtio_blk(vhost_virtio_blk)
@@ -92,8 +93,10 @@ class HotPlugProvider:
 
     def hot_plug_vhost_virtio_blk(self, vm_monitor, vhost_virtio_blk):
         self._perform_disk_operation(
-            vm_monitor, vhost_virtio_blk, self._hot_plug_action)
+            vm_monitor, vhost_virtio_blk, self._hot_plug_action
+        )
 
     def hot_unplug_vhost_virtio_blk(self, vm_monitor, vhost_virtio_blk):
         self._perform_disk_operation(
-            vm_monitor, vhost_virtio_blk, self._hot_unplug_action)
+            vm_monitor, vhost_virtio_blk, self._hot_unplug_action
+        )
