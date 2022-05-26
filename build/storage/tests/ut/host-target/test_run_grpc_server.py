@@ -12,14 +12,27 @@ from unittest.mock import patch
 from host_target_grpc_server import run_grpc_server
 from host_target_grpc_server import HostTargetService
 import host_target_pb2_grpc
+import sys
+
+
+class HiddenPrints:
+    def __enter__(self):
+        self._original_stdout = sys.stdout
+        sys.stdout = open(os.devnull, "w")
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        sys.stdout.close()
+        sys.stdout = self._original_stdout
 
 
 class RunGrpcServer(unittest.TestCase):
     def test_fail_on_invalid_address_to_listen_to(self):
-        self.assertNotEqual(run_grpc_server("Invalid ip addr", 1010), 0)
+        with HiddenPrints():
+            self.assertNotEqual(run_grpc_server("Invalid ip addr", 1010), 0)
 
     def test_fail_on_invalid_port_to_listen_to(self):
-        self.assertNotEqual(run_grpc_server("0.0.0.0", "Invalid port"), 0)
+        with HiddenPrints():
+            self.assertNotEqual(run_grpc_server("0.0.0.0", "Invalid port"), 0)
 
     def test_success_on_keyboard_interrupt_exception(self):
         server_mock = unittest.mock.Mock()

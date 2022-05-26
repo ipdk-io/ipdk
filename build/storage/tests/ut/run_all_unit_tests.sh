@@ -4,7 +4,12 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-[ "$DEBUG" == 'true' ] && set -x
+if [ "$DEBUG" == 'true' ]; then
+    set -x
+    export GRPC_VERBOSITY=ERROR
+else
+    export GRPC_VERBOSITY=NONE
+fi
 ls -l /host-target/tests
 
 result=0
