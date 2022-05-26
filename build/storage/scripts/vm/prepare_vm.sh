@@ -22,7 +22,7 @@ vm_file=${path_to_place_vm_file}/vm.qcow2
 if [ ! -f "${vm_file}" ]; then
     vm_tmp_file="${path_to_place_vm_file}/vm_original.qcow2"
     wget -O "${vm_tmp_file}" https://download.fedoraproject.org/pub/fedora/linux/\
-releases/33/Cloud/x86_64/images/Fedora-Cloud-Base-33-1.2.x86_64.qcow2
+releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     virt-customize -a "${vm_tmp_file}" \
         --memsize 1260 \
         --root-password password:root \
