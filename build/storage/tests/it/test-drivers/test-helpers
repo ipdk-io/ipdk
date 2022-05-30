@@ -73,4 +73,4 @@ export proxy_ip="${proxy_ip}"
 export nqn="nqn.2016-06.io.spdk:cnode1"
 export shared_volume=/ipdk-shared
 export vm_serial=${shared_volume}/vm_socket
-export vm_monitor=${shared_volume}/vm_monitor_socket
+export vm_monitor=${shared_volume}/vm_monitor

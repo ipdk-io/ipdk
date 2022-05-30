@@ -10,14 +10,14 @@ set -e
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)/..
 
 if [[ $# != 1 ]] ; then
-    echo "Directory to place vm file has to be specified"
+    echo "Disk to boot vm file has to be specified"
     exit 1
 fi
 
 export LIBGUESTFS_BACKEND=direct
 
-path_to_place_vm_file=${1}
-vm_file=${path_to_place_vm_file}/vm.qcow2
+vm_file="${1}"
+path_to_place_vm_file=$(dirname "$vm_file")
 
 if [ ! -f "${vm_file}" ]; then
     vm_tmp_file="${path_to_place_vm_file}/vm_original.qcow2"
