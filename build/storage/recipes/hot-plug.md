@@ -19,81 +19,65 @@ $ lsblk
 ```
 Expected output
 ```
-NAME   MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
-sda      8:0    0   4G  0 disk
-└─sda1   8:1    0   4G  0 part /
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sda      8:0    0    5G  0 disk
+├─sda1   8:1    0    1M  0 part
+├─sda2   8:2    0 1000M  0 part /boot
+├─sda3   8:3    0  100M  0 part /boot/efi
+├─sda4   8:4    0    4M  0 part
+└─sda5   8:5    0  3.9G  0 part /var/lib/docker/btrfs
+                                /home
+                                /
+zram0  252:0    0  964M  0 disk [SWAP]
 ```
 
-3. Create subsystem and expose it to `proxy-container`
+3. Create subsystem and expose it over NVMe/TCP
 Send from your `cmd-sender`
 ```
-$ create_subsystem_and_expose_to_another_machine \
-	<storage_target_platform_ip> nqn.2016-06.io.spdk:cnode0 \
-	<proxy_container_platform_ip> Nvme0
+$ create_and_expose_sybsystem_over_tcp \
+	<storage_target_platform_ip> nqn.2016-06.io.spdk:cnode0
 ```
-or
-```
-$ create_subsystem_and_expose_to_another_machine \
-	<storage_target_platform_ip> nqn.2016-06.io.spdk:cnode0 \
-	<proxy_container_platform_ip> Nvme0 \
-	<storage_target_SPDK_PORT> <proxy_container_SPDK_PORT>
-```
-Where `storage_target_SPDK_PORT` is non-default `SPDK_PORT` specified for
-`run_storage_target_container.sh`
-Where `proxy_container_SPDK_PORT` is non-default `SPDK_PORT` specified for
-`run_proxy_container.sh`
-Please see [here](environment_setup.md#non-default-port)
 
 4. Create ramdrive on `storage-target` and attach to the subsystem
 Send from your `cmd-sender`
 ```
-$ create_ramdrive_and_attach_as_ns_to_subsystem \
-	<storage_target_platform_ip> Malloc0 16 nqn.2016-06.io.spdk:cnode0
+$ malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+	<storage_target_platform_ip> Malloc0 64 nqn.2016-06.io.spdk:cnode0)
 ```
-or
-```
-$ create_ramdrive_and_attach_as_ns_to_subsystem \
-	<storage_target_platform_ip> Malloc0 16 nqn.2016-06.io.spdk:cnode0 \
-	<storage_target_SPDK_PORT>
-```
-Where `storage_target_SPDK_PORT` is non-default `SPDK_PORT` specified for
-`run_storage_target_container.sh`
-Please see [here](environment_setup.md#non-default-port)
+
 
 5. Attach exposed ramdrive to the vm
 Send from your `cmd-sender`
 ```
-$ attach_ns_as_virtio_blk \
-	<proxy_container_platform_ip> VirtioBlk0 Nvme0n1 50051 \
-	vm_monitor
+$ virtio_blk0=$(create_virtio_blk <proxy_container_platform_ip> "${malloc0}" \
+	"0" "0" nqn.2016-06.io.spdk:cnode0 <storage_target_platform_ip>)
 ```
-or
-```
-$ attach_ns_as_virtio_blk \
-	<proxy_container_platform_ip> VirtioBlk0 Nvme0n1 50051 \
-	vm_monitor <proxy_container_SPDK_PORT>
-```
-Where `proxy_container_SPDK_PORT` is non-default `SPDK_PORT` specified for
-`run_proxy_container.sh`
-Please see [here](environment_setup.md#non-default-port)
+
 
 6. Check if virtio-blk is attached to the vm
-Open the [vm console](environment_setup.md#vm-console) machine and run the following command
+Open the [vm console](environment_setup.md#vm-console) and run the following command
 ```
 $ lsblk
 ```
 The expected output is
 ```
-NAME   MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
-sda      8:0    0   4G  0 disk
-└─sda1   8:1    0   4G  0 part /
-vda    252:0    0  16M  0 disk
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sda      8:0    0    5G  0 disk
+├─sda1   8:1    0    1M  0 part
+├─sda2   8:2    0 1000M  0 part /boot
+├─sda3   8:3    0  100M  0 part /boot/efi
+├─sda4   8:4    0    4M  0 part
+└─sda5   8:5    0  3.9G  0 part /var/lib/docker/btrfs
+                                /home
+                                /
+vda    251:0    0   64M  0 disk
+zram0  252:0    0  964M  0 disk [SWAP]
 ```
 
 7. Perform unplug
 Run the command below on `cmd-sender` to hot-unplug device
 ```
-dettach_virtio_blk <proxy_container_platform_ip> 50051 vm_monitor VirtioBlk0
+delete_virtio_blk <proxy_container_platform_ip> "${virtio_blk0}"
 ```
 
 8. Check there is no virtio-blk device
@@ -103,7 +87,14 @@ $ lsblk
 ```
 The expected output is
 ```
-NAME   MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
-sda      8:0    0   4G  0 disk
-└─sda1   8:1    0   4G  0 part /
+NAME   MAJ:MIN RM  SIZE RO TYPE MOUNTPOINTS
+sda      8:0    0    5G  0 disk
+├─sda1   8:1    0    1M  0 part
+├─sda2   8:2    0 1000M  0 part /boot
+├─sda3   8:3    0  100M  0 part /boot/efi
+├─sda4   8:4    0    4M  0 part
+└─sda5   8:5    0  3.9G  0 part /var/lib/docker/btrfs
+                                /home
+                                /
+zram0  252:0    0  964M  0 disk [SWAP]
 ```
