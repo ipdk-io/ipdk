@@ -44,13 +44,12 @@ $ sudo apt install wget
 ```
 
 ### docker
-```
-$ sudo dnf install docker
-```
-or
-```
-$ sudo apt install docker
-```
+Docker 21.10.10 or greater is required.
+
+Installation guideline for [Fedora](https://docs.docker.com/engine/install/fedora/).
+
+Installation guideline for [Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
+
 **Note:**
 Make sure that required proxy settings are configured for docker.
 Please, refer to [this](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy)
