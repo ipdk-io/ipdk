@@ -59,6 +59,7 @@ if [ -d "p4-driver" ]; then rm -Rf p4-driver; fi
 echo "Compiling p4-driver"
 #TODO: Below link needs to be updated when code is open-sourced
 git clone https://github.com/p4lang/p4-dpdk-target.git --recursive p4-driver
+git checkout 780b3dfa205815e87f4580383cc37bfa30187f7c
 
 pip3 install distro
 cd p4-driver/tools/setup
