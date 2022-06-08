@@ -6,9 +6,6 @@
 
 [ "$DEBUG" == 'true' ] && set -x
 
-declare https_proxy
-declare http_proxy
-declare no_proxy
 IP_ADDR="${IP_ADDR:-"0.0.0.0"}"
 PORT="${PORT:-50051}"
 
@@ -40,18 +37,11 @@ if [[ $(docker images --filter=reference='host-target' -q) == "" ]]; then
     bash "${scripts_dir}"/build_container.sh host-target
 fi
 
-docker_run="docker run \
-    -it \
-    --privileged \
-    -e IP_ADDR=${IP_ADDR} \
-    -e PORT=${PORT} \
-    -e DEBUG=${DEBUG} \
-    -e HTTPS_PROXY=${https_proxy} \
-    -e HTTP_PROXY=${http_proxy} \
-    -e NO_PROXY=${no_proxy} \
-    --network host \
-    -v /dev:/dev \
-    host-target"
-$docker_run
+IMAGE_NAME="host-target"
+ARGS=()
+ARGS+=("-v" "/dev:/dev")
+ARGS+=("-e" "IP_ADDR=${IP_ADDR}")
+ARGS+=("-e" "PORT=${PORT}")
 
-
+# shellcheck source=./scripts/run_container.sh
+source "${scripts_dir}/run_container.sh"
