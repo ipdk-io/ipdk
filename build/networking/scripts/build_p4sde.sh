@@ -63,7 +63,7 @@ cd p4-driver
 git checkout 780b3dfa205815e87f4580383cc37bfa30187f7c
 
 pip3 install distro
-cd p4-driver/tools/setup
+cd ./tools/setup
 if [ "${OS}" = "Ubuntu" ]; then
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 fi
