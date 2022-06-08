@@ -26,6 +26,10 @@ if [ "$BUILD_IMAGE" == "true" ] ; then
     bash "${scripts_dir}"/build_container.sh "$IMAGE_NAME"
 fi
 
+if [ "$AS_DAEMON" == "true" ] ; then
+    ARGS+=("-d")
+fi
+
 docker run \
     -it \
     --privileged \
