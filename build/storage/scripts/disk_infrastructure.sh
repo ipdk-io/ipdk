@@ -7,6 +7,7 @@
 export DEFAULT_SPDK_PORT=5260
 export DEFAULT_SMA_PORT=8080
 export DEFAULT_NVME_PORT=4420
+export MAX_NUMBER_OF_NAMESPACES_ON_COTROLLER=1024
 
 function get_number_of_virtio_blk() {
 	cmd="lsblk --output \"NAME,VENDOR,SUBSYSTEMS\""
@@ -57,7 +58,8 @@ function create_and_expose_sybsystem_over_tcp() {
 
 	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
 		nvmf_create_subsystem "${nqn}" \
-		-s SPDK00000000000001 -a
+		-s SPDK00000000000001 -a \
+		-m "$MAX_NUMBER_OF_NAMESPACES_ON_COTROLLER"
 	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
 		nvmf_create_transport -t TCP -u 8192
 	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
