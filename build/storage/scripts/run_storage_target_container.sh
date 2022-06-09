@@ -6,9 +6,6 @@
 
 [ "$DEBUG" == 'true' ] && set -x
 
-declare https_proxy
-declare http_proxy
-declare no_proxy
 SPDK_CONFIG_FILE="${SPDK_CONFIG_FILE:-}"
 SPDK_IP_ADDR="${SPDK_IP_ADDR:-"0.0.0.0"}"
 SPDK_PORT="${SPDK_PORT:-5260}"
@@ -37,27 +34,12 @@ function check_all_variables_are_set() {
 
 check_all_variables_are_set
 
-bash "${scripts_dir}"/build_container.sh storage-target
-bash "${scripts_dir}"/allocate_hugepages.sh
+ALLOCATE_HUGEPAGES="true"
+BUILD_IMAGE="true"
+IMAGE_NAME="storage-target"
+ARGS=()
+ARGS+=("-e" "SPDK_IP_ADDR=${SPDK_IP_ADDR}")
+ARGS+=("-e" "SPDK_PORT=${SPDK_PORT}")
 
-config_file_option=
-if [[ -n "${SPDK_CONFIG_FILE}" ]]; then
-    SPDK_CONFIG_FILE=$(realpath "${SPDK_CONFIG_FILE}")
-    config_file_option="-v ${SPDK_CONFIG_FILE}:/config"
-fi
-
-docker_run="docker run \
-    -it \
-    --privileged \
-    -v /dev/hugepages:/dev/hugepages \
-    ${config_file_option} \
-    -e SPDK_IP_ADDR=${SPDK_IP_ADDR} \
-    -e SPDK_PORT=${SPDK_PORT} \
-    -e DEBUG=${DEBUG} \
-    -e HTTPS_PROXY=${https_proxy} \
-    -e HTTP_PROXY=${http_proxy} \
-    -e NO_PROXY=${no_proxy} \
-    --network host \
-    storage-target"
-
-$docker_run
+# shellcheck source=./scripts/run_container.sh
+source "${scripts_dir}/run_container.sh"

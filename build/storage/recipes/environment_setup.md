@@ -130,7 +130,7 @@ Finally vm console will be opened.
 login:password pair for the vm is `root:root`.
 Run `host-target` container within the vm console
 ```
-$ run_host_target_container.sh &
+$ AS_DAEMON=true run_host_target_container.sh
 ```
 
 4. Prepare environment to send commands to the storage containers.

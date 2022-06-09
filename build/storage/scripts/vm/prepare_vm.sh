@@ -40,6 +40,7 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
         run_customize+=(--install "dnf-plugins-core,docker-ce,docker-ce-cli,containerd.io")
         run_customize+=(--copy-in "${path_to_place_vm_file}/host-target.tar:/")
         run_customize+=(--copy-in "${scripts_dir}/run_host_target_container.sh:/usr/local/bin")
+        run_customize+=(--copy-in "${scripts_dir}/run_container.sh:/usr/local/bin")
         run_customize+=(--run-command 'systemctl enable docker.service')
         run_customize+=(--run-command 'service docker start')
         run_customize+=(--firstboot-command 'docker load --input /host-target.tar')

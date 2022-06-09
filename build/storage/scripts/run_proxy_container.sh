@@ -13,9 +13,6 @@ source "$scripts_dir/vm/vm_default_variables.sh"
 # shellcheck disable=SC1091
 source "$scripts_dir/sma_config_file.sh"
 
-declare https_proxy
-declare http_proxy
-declare no_proxy
 SHARED_VOLUME=${SHARED_VOLUME:-$(realpath .)}
 QMP_IP_ADDR="${QMP_IP_ADDR:-${DEFAULT_QMP_ADDRESS}}"
 QMP_PORT="${QMP_PORT:-"$DEFAULT_QMP_PORT"}"
@@ -71,29 +68,17 @@ function cleanup() {
 }
 trap 'cleanup' EXIT
 
-bash "${scripts_dir}"/build_container.sh proxy-container
-bash "${scripts_dir}"/allocate_hugepages.sh
+ALLOCATE_HUGEPAGES="true"
+BUILD_IMAGE="true"
+IMAGE_NAME="proxy-container"
+ARGS=()
+ARGS+=("-v" "${SHARED_VOLUME}:/${SHARED_VOLUME}")
+ARGS+=("-v" "${tmp_sma_config_file}:/sma_config.yml")
+ARGS+=("-e" "SPDK_IP_ADDR=${SPDK_IP_ADDR}")
+ARGS+=("-e" "SPDK_PORT=${SPDK_PORT}")
+ARGS+=("-e" "HOT_PLUG_SERVICE_IP_ADDR=${HOT_PLUG_SERVICE_IP_ADDR}")
+ARGS+=("-e" "HOT_PLUG_SERVICE_PORT=${HOT_PLUG_SERVICE_PORT}")
+ARGS+=("-e" "HOST_SHARED_VOLUME=${SHARED_VOLUME}")
 
-spdk_config_file_option=
-if [[ -n "${SPDK_CONFIG_FILE}" ]]; then
-    SPDK_CONFIG_FILE=$(realpath "${SPDK_CONFIG_FILE}")
-    spdk_config_file_option="-v ${SPDK_CONFIG_FILE}:/config"
-fi
-
-docker_run="docker run \
-    -it \
-    --privileged \
-    -v /dev/hugepages:/dev/hugepages \
-    -v ${SHARED_VOLUME}:/${SHARED_VOLUME} \
-    -v ${tmp_sma_config_file}:/sma_config.yml \
-    ${spdk_config_file_option} \
-    -e HOT_PLUG_SERVICE_IP_ADDR=${HOT_PLUG_SERVICE_IP_ADDR} \
-    -e HOT_PLUG_SERVICE_PORT=${HOT_PLUG_SERVICE_PORT} \
-    -e HOST_SHARED_VOLUME=${SHARED_VOLUME} \
-    -e DEBUG=${DEBUG} \
-    -e HTTPS_PROXY=${https_proxy} \
-    -e HTTP_PROXY=${http_proxy} \
-    -e NO_PROXY=${no_proxy} \
-    --network host \
-    proxy-container"
-$docker_run
+# shellcheck source=./scripts/run_container.sh
+source "${scripts_dir}/run_container.sh"
