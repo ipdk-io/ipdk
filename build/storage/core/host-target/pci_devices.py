@@ -57,11 +57,19 @@ def get_all_files_by_pattern(pattern):
     return glob.glob(pattern)
 
 
-def directory_find(atom, root="."):
-    dirs = get_directories(root)
-    if dirs and atom in dirs:
-        return os.path.join(root, atom)
-    return None
+def find_pci_directory_in_sys_fs(pci_address):
+    sys_fs_pci = "/sys/devices/pci*/"
+    found_elements = get_all_files_by_pattern(
+        sys_fs_pci + pci_address.get_full_address()
+    )
+    found_elements += get_all_files_by_pattern(
+        sys_fs_pci + "/*/" + pci_address.get_full_address()
+    )
+    if not found_elements:
+        raise FailedPciDeviceDetection(
+            "No pci device with " + pci_address.get_full_address() + " found"
+        )
+    return found_elements[0]
 
 
 class InvalidPciAddress(ValueError):
@@ -75,13 +83,8 @@ class FailedPciDeviceDetection(RuntimeError):
 def get_virtio_blk_path_by_pci_address(pci_address):
     addr = PciAddress(pci_address)
 
-    domain_bus_dir = os.path.join("/sys/devices", "pci" + addr.get_domain_bus_prefix())
-    pci_dev_sysfs_dir = directory_find(addr.get_full_address(), domain_bus_dir)
-    if pci_dev_sysfs_dir == None:
-        raise FailedPciDeviceDetection(
-            "No pci device with " + pci_address + " exists under " + domain_bus_dir
-        )
-    block_directory_pattern = os.path.join(pci_dev_sysfs_dir, "virtio*/block")
+    pci_device_dir = find_pci_directory_in_sys_fs(addr)
+    block_directory_pattern = os.path.join(pci_device_dir, "virtio*/block")
     block_device_matches = get_all_files_by_pattern(block_directory_pattern)
     if len(block_device_matches) == 0:
         raise FailedPciDeviceDetection(

@@ -12,21 +12,21 @@ declare vm_serial
 declare nqn
 declare storage_target_ip
 declare proxy_ip
-declare vm_monitor
+declare virtio_blk_virtual_id
+declare port_to_expose
 # shellcheck disable=SC1091
 source "${current_script_dir}"/test-helpers
 
-controller_name=Nvme0
-create_subsystem_and_expose_to_another_machine \
-	"${storage_target_ip}" "${nqn}" "${proxy_ip}" "${controller_name}"
+create_and_expose_sybsystem_over_tcp \
+	"${storage_target_ip}" "${nqn}" "${port_to_expose}"
 
 number_of_512b_blocks=16
-create_ramdrive_and_attach_as_ns_to_subsystem \
-	"${storage_target_ip}" Malloc0 "${number_of_512b_blocks}" "${nqn}"
-create_ramdrive_and_attach_as_ns_to_subsystem \
-	"${storage_target_ip}" Malloc1 "${number_of_512b_blocks}" "${nqn}"
-create_ramdrive_and_attach_as_ns_to_subsystem \
-	"${storage_target_ip}" Malloc2 "${number_of_512b_blocks}" "${nqn}"
+malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+	"${storage_target_ip}" Malloc0 "${number_of_512b_blocks}" "${nqn}")
+malloc1=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+	"${storage_target_ip}" Malloc1 "${number_of_512b_blocks}" "${nqn}")
+malloc2=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+	"${storage_target_ip}" Malloc2 "${number_of_512b_blocks}" "${nqn}")
 
 HOT_PLUG_SERVICE_PORT="${HOT_PLUG_SERVICE_PORT:-50051}"
 
@@ -35,35 +35,36 @@ log_in_with_default_credentials "${vm_serial}"
 
 is_virtio_blk_not_attached "${vm_serial}"
 
-virtio_blk_0_socket=VirtioBlk0
 echo ""
 echo "### Attach 3 virtio-blk devices ###"
 
-attach_ns_as_virtio_blk \
-	"${proxy_ip}" VirtioBlk0 "${controller_name}n1" \
-	"${HOT_PLUG_SERVICE_PORT}" "${vm_monitor}"
+virtio_blk0_physical_id=0
+virtio_blk0=$(create_virtio_blk "${proxy_ip}" "${malloc0}" \
+	"${virtio_blk0_physical_id}" "${virtio_blk_virtual_id}" \
+	"${nqn}" "${storage_target_ip}" "${port_to_expose}")
 check_number_of_virtio_blk_devices "${vm_serial}" 1
 
-attach_ns_as_virtio_blk \
-	"${proxy_ip}" VirtioBlk1 "${controller_name}n2" \
-	"${HOT_PLUG_SERVICE_PORT}" "${vm_monitor}"
+virtio_blk1_physical_id=1
+create_virtio_blk "${proxy_ip}" "${malloc1}" \
+	"${virtio_blk1_physical_id}" "${virtio_blk_virtual_id}" \
+	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
 check_number_of_virtio_blk_devices "${vm_serial}" 2
 
-attach_ns_as_virtio_blk \
-	"${proxy_ip}" VirtioBlk2 "${controller_name}n3" \
-	"${HOT_PLUG_SERVICE_PORT}" "${vm_monitor}"
+virtio_blk2_physical_id=2
+create_virtio_blk "${proxy_ip}" "${malloc2}" \
+	"${virtio_blk2_physical_id}" "${virtio_blk_virtual_id}" \
+	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
 check_number_of_virtio_blk_devices "${vm_serial}" 3
 
 echo ""
 echo "### Dettach 1st virtio-blk ###"
-dettach_virtio_blk "${proxy_ip}" "${HOT_PLUG_SERVICE_PORT}" \
-	"${vm_monitor}" "${virtio_blk_0_socket}"
-check_number_of_virtio_blk_devices "${vm_serial}" 2
+delete_virtio_blk "${proxy_ip}" "${virtio_blk0}"
 
 echo ""
 echo "### Attach 1st virtio-blk back ###"
-attach_virtio_blk "${proxy_ip}" "${HOT_PLUG_SERVICE_PORT}" \
-	"${vm_monitor}" "${virtio_blk_0_socket}"
+create_virtio_blk "${proxy_ip}" "${malloc0}" \
+	"${virtio_blk0_physical_id}" "${virtio_blk_virtual_id}" \
+	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
 check_number_of_virtio_blk_devices "${vm_serial}" 3
 
 exit 0

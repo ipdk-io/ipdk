@@ -36,7 +36,6 @@ function check_all_variables_are_set() {
 }
 
 check_all_variables_are_set
-SPDK_CONFIG_FILE=$(realpath "${SPDK_CONFIG_FILE}")
 
 bash "${scripts_dir}"/build_container.sh storage-target
 bash "${scripts_dir}"/allocate_hugepages.sh

@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: Apache-2.0
 
 services:
+  traffic-generator:
+    environment:
+      - DO_NOT_ATTACH_VIRTIO_BLK=true
   test-driver:
     volumes:
       - ./test-drivers/init.fio:/init

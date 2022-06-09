@@ -17,12 +17,58 @@ the vm(step 5)
 
 3. Run fio. Execute the following command from `cmd-sender`
 ```
-$ no_grpc_proxy= grpc_cli call <vm_ip>:50051 \
-RunFio "pciAddress: '0000:00:04.0' fioArgs: '--direct=1 --rw=randrw --bs=4k --ioengine=libaio --iodepth=256 --runtime=1 --numjobs=4 --time_based --group_reporting --name=iops-test-job'"
+$ echo -e $(no_grpc_proxy= grpc_cli call <vm_ip>:50051 \
+RunFio "pciAddress: '0000:01:00.0' fioArgs: '--direct=1 --rw=randrw --bs=4k --ioengine=libaio --iodepth=256 --runtime=1 --numjobs=4 --time_based --group_reporting --name=iops-test-job'")
 ```
 
 Expected output
 ```
 connecting to 192.168.53.76:50051
-fioOutput: "iops-test-job: (g=0): rw=randrw, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=256\n...\nfio-3.21\nStarting 4 processes\n\niops-test-job: (groupid=0, jobs=4): err= 0: pid=18: Fri Feb 25 07:18:16 2022\n  read: IOPS=18.0k, BW=74.2MiB/s (77.8MB/s)(742MiB/10008msec)\n    slat (usec): min=2, max=11636, avg=102.74, stdev=479.43\n    clat (usec): min=6703, max=62683, avg=26796.45, stdev=9296.56\n     lat (usec): min=6707, max=62704, avg=26899.45, stdev=9327.52\n    clat percentiles (usec):\n     |  1.00th=[11469],  5.00th=[12125], 10.00th=[12780], 20.00th=[16909],\n     | 30.00th=[22938], 40.00th=[25035], 50.00th=[26870], 60.00th=[29492],\n     | 70.00th=[31851], 80.00th=[34866], 90.00th=[38536], 95.00th=[41681],\n     | 99.00th=[48497], 99.50th=[51643], 99.90th=[56886], 99.95th=[58459],\n     | 99.99th=[60556]\n   bw (  KiB/s): min=55800, max=100312, per=99.78%, avg=75797.47, stdev=2986.36, samples=76\n   iops        : min=13950, max=25078, avg=18949.37, stdev=746.59, samples=76\n  write: IOPS=18.0k, BW=74.1MiB/s (77.7MB/s)(742MiB/10008msec); 0 zone resets\n    slat (usec): min=2, max=9856, avg=103.06, stdev=476.92\n    clat (usec): min=5141, max=62700, avg=26812.92, stdev=9302.68\n     lat (usec): min=6695, max=62704, avg=26916.24, stdev=9334.34\n    clat percentiles (usec):\n     |  1.00th=[11469],  5.00th=[12125], 10.00th=[12780], 20.00th=[16909],\n     | 30.00th=[22938], 40.00th=[25035], 50.00th=[26870], 60.00th=[29492],\n     | 70.00th=[31851], 80.00th=[34866], 90.00th=[38536], 95.00th=[41681],\n     | 99.00th=[48497], 99.50th=[51643], 99.90th=[56361], 99.95th=[57934],\n     | 99.99th=[60031]\n   bw (  KiB/s): min=56728, max=100464, per=99.83%, avg=75788.21, stdev=2943.55, samples=76\n   iops        : min=14182, max=25116, avg=18947.05, stdev=735.89, samples=76\n  lat (msec)   : 10=0.06%, 20=24.99%, 50=74.23%, 100=0.72%\n  cpu          : usr=2.21%, sys=4.23%, ctx=41669, majf=0, minf=55\n  IO depths    : 1=0.1%, 2=0.1%, 4=0.1%, 8=0.1%, 16=0.1%, 32=0.1%, >=64=99.9%\n     submit    : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%\n     complete  : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.1%\n     issued rwts: total=190063,189952,0,0 short=0,0,0,0 dropped=0,0,0,0\n     latency   : target=0, window=0, percentile=100.00%, depth=256\n\nRun status group 0 (all jobs):\n   READ: bw=74.2MiB/s (77.8MB/s), 74.2MiB/s-74.2MiB/s (77.8MB/s-77.8MB/s), io=742MiB (778MB), run=10008-10008msec\n  WRITE: bw=74.1MiB/s (77.7MB/s), 74.1MiB/s-74.1MiB/s (77.7MB/s-77.7MB/s), io=742MiB (778MB), run=10008-10008msec\n\nDisk stats (read/write):\n  vda: ios=187480/187373, merge=0/0, ticks=1237509/1230145, in_queue=2467655, util=99.67%\n"
+Rpc succeeded with OK status
+fioOutput: "iops-test-job: (g=0): rw=randrw, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=256
+...
+fio-3.29
+Starting 4 processes
+
+iops-test-job: (groupid=0, jobs=4): err= 0: pid=58: Tue May 31 15:43:41 2022
+ read: IOPS=20.9k, BW=81.8MiB/s (85.8MB/s)(82.2MiB/1005msec)
+ slat (nsec): min=789, max=12745k, avg=93034.77, stdev=440827.15
+ clat (usec): min=2708, max=81274, avg=23768.74, stdev=7565.45
+ lat (usec): min=3141, max=81276, avg=23861.91, stdev=7588.09
+ clat percentiles (usec):
+ | 1.00th=[ 8029], 5.00th=[12256], 10.00th=[14615], 20.00th=[18220],
+ | 30.00th=[21103], 40.00th=[22676], 50.00th=[23987], 60.00th=[25035],
+ | 70.00th=[26346], 80.00th=[28443], 90.00th=[31065], 95.00th=[33424],
+ | 99.00th=[48497], 99.50th=[69731], 99.90th=[74974], 99.95th=[77071],
+ | 99.99th=[78119]
+ bw ( KiB/s): min=77869, max=86361, per=98.04%, avg=82115.00, stdev=1475.70, samples=8
+ iops : min=19467, max=21590, avg=20528.50, stdev=368.94, samples=8
+ write: IOPS=21.4k, BW=83.5MiB/s (87.5MB/s)(83.9MiB/1005msec); 0 zone resets
+ slat (nsec): min=853, max=8977.0k, avg=93356.96, stdev=445000.49
+ clat (usec): min=2546, max=81274, avg=23808.95, stdev=7555.22
+ lat (usec): min=3204, max=81275, avg=23902.42, stdev=7572.43
+ clat percentiles (usec):
+ | 1.00th=[ 7898], 5.00th=[12387], 10.00th=[14615], 20.00th=[18220],
+ | 30.00th=[21365], 40.00th=[22676], 50.00th=[23987], 60.00th=[25035],
+ | 70.00th=[26346], 80.00th=[28705], 90.00th=[31327], 95.00th=[33424],
+ | 99.00th=[49546], 99.50th=[68682], 99.90th=[74974], 99.95th=[76022],
+ | 99.99th=[81265]
+ bw ( KiB/s): min=78782, max=88923, per=98.09%, avg=83852.50, stdev=1623.16, samples=8
+ iops : min=19695, max=22230, avg=20962.50, stdev=405.79, samples=8
+ lat (msec) : 4=0.17%, 10=2.25%, 20=22.98%, 50=73.63%, 100=0.96%
+ cpu : usr=0.80%, sys=1.57%, ctx=4785, majf=0, minf=59
+ IO depths : 1=0.1%, 2=0.1%, 4=0.1%, 8=0.1%, 16=0.2%, 32=0.3%, >=64=99.4%
+ submit : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+ complete : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.1%
+ issued rwts: total=21043,21479,0,0 short=0,0,0,0 dropped=0,0,0,0
+ latency : target=0, window=0, percentile=100.00%, depth=256
+
+Run status group 0 (all jobs):
+ READ: bw=81.8MiB/s (85.8MB/s), 81.8MiB/s-81.8MiB/s (85.8MB/s-85.8MB/s), io=82.2MiB (86.2MB), run=1005-1005msec
+ WRITE: bw=83.5MiB/s (87.5MB/s), 83.5MiB/s-83.5MiB/s (87.5MB/s-87.5MB/s), io=83.9MiB (88.0MB), run=1005-1005msec
+
+Disk stats (read/write):
+ vda: ios=18762/19163, merge=0/0, ticks=70841/72050, in_queue=142891, util=93.09%
+"
+
 ```

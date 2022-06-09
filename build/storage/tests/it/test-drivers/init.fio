@@ -12,20 +12,24 @@ declare vm_serial
 declare nqn
 declare storage_target_ip
 declare proxy_ip
+declare virtio_blk_virtual_id
+declare port_to_expose
 # shellcheck disable=SC1091
 source "${current_script_dir}"/test-helpers
 
-[ -S "${vm_serial}" ] && rm "${vm_serial}"
-
-controller_name=Nvme0
-create_subsystem_and_expose_to_another_machine \
-	"${storage_target_ip}" "${nqn}" "${proxy_ip}" "${controller_name}"
-create_ramdrive_and_attach_as_ns_to_subsystem \
-	"${storage_target_ip}" Malloc0 16 "${nqn}"
-create_disk "${proxy_ip}" \
-	/ipdk-shared/VirtioBlk0 "${controller_name}n1"
+create_and_expose_sybsystem_over_tcp \
+	"${storage_target_ip}" "${nqn}" "${port_to_expose}"
 
 wait_until_vm_is_up "${vm_serial}"
+
+number_of_512b_blocks=16
+malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+	"${storage_target_ip}" Malloc0 "${number_of_512b_blocks}" "${nqn}")
+virtio_blk0_physical_id=0
+create_virtio_blk "${proxy_ip}" "${malloc0}" \
+	"${virtio_blk0_physical_id}" "${virtio_blk_virtual_id}" \
+	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
+
 log_in_with_default_credentials "${vm_serial}"
 
 echo "check attachment"
