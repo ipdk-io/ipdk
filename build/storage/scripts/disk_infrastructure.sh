@@ -130,6 +130,11 @@ function _create_virtio_blk() {
 }
 
 function create_virtio_blk() {
+	create_virtio_blk_without_delay "$@"
+	sleep 2
+}
+
+function create_virtio_blk_without_delay() {
 	proxy_ip="${1}"
 	volume_id="${2}"
 	physical_id="${3}"
@@ -142,7 +147,6 @@ function create_virtio_blk() {
 	device_handle=$(_create_virtio_blk "$proxy_ip" "$sma_port" \
 					"$volume_id" "$physical_id" "$virtual_id" "$hostnqn" \
 					"$traddr" "$trsvcid" | jq -r '.handle')
-	sleep 2
 	echo "$device_handle"
 }
 

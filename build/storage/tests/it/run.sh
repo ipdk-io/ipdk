@@ -24,6 +24,9 @@ export SPDK_VERSION="${spdk_version}"
 export DOCKER_BUILDKIT=${DOCKER_BUILDKIT:-1}
 export COMPOSE_DOCKER_CLI_BUILD=${COMPOSE_DOCKER_CLI_BUILD:-1}
 
+export NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT=\
+"${NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT:-64}"
+
 function run_test() {
     sudo_for_docker="sudo"
     is_user_docker_group_member=$(groups | grep docker &> /dev/null ; echo $?)
@@ -51,7 +54,7 @@ function provide_hugepages() {
 
 provide_hugepages
 
-test_cases=(hot-plug fio)
+test_cases=(hot-plug fio scale-out)
 if [[ $# != 0 ]]; then
     run_test "${1}"
 else
