@@ -54,7 +54,11 @@ function provide_hugepages() {
 
 provide_hugepages
 
-test_cases=(hot-plug fio scale-out)
+test_cases=(hot-plug fio)
+if [ "${BASE_TESTS_ONLY}" != "true" ]; then
+    test_cases+=(scale-out)
+fi
+
 if [[ $# != 0 ]]; then
     run_test "${1}"
 else
