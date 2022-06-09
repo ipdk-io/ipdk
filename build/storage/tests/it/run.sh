@@ -39,9 +39,9 @@ function run_test() {
         export BUILDKIT_PROGRESS=plain
     fi
 
+    export TEST_CASE_NAME="$1"
     ${sudo_for_docker} docker-compose \
         -f "${current_script_dir}/docker-compose.yml" \
-        -f "${current_script_dir}/test-drivers/docker-compose.$1.yml" \
         up \
         --build \
         --exit-code-from test-driver \

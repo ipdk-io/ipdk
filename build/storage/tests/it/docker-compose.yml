@@ -94,6 +94,7 @@ services:
       - traffic-generator
     volumes:
       - *shared-volume
+      - ./test-drivers/init.${TEST_CASE_NAME}:/init
     networks:
       ipdk:
         ipv4_address: 192.168.42.4
