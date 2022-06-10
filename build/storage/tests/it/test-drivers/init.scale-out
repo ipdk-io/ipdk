@@ -39,11 +39,13 @@ echo "Create $NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT virtio-blk disks backed b
 virtio_blk_devices=()
 for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
-    virtio_blk_devices+=("$(create_virtio_blk_without_delay "${proxy_ip}" \
+    virtio_blk_devices+=("$(create_virtio_blk_without_disk_check "${proxy_ip}" \
         "${ramdrives[$i]}" "${i}" "${virtio_blk_virtual_id}" \
         "${nqn}" "${storage_target_ip}" "${port_to_expose}")")
 done
-sleep 5
+
+wait_for_virtio_blk_sec=5
+wait_for_virtio_blk_in_os "${virtio_blk_devices[-1]}" "$wait_for_virtio_blk_sec"
 
 check_number_of_virtio_blk_devices "${vm_serial}" \
     "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"

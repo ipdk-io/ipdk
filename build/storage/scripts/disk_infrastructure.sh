@@ -91,6 +91,15 @@ function uuid2base64() {
 	EOF
 }
 
+function wait_for_virtio_blk_in_os() {
+	local virtio_blk_handle="$1"
+	local wait_for_virtio_blk_sec="$2"
+
+	# placeholder function for now
+	sleep "$wait_for_virtio_blk_sec"
+	return 0
+}
+
 function _create_virtio_blk() {
 	proxy_ip="${1}"
 	sma_port="${2}"
@@ -130,11 +139,15 @@ function _create_virtio_blk() {
 }
 
 function create_virtio_blk() {
-	create_virtio_blk_without_delay "$@"
-	sleep 2
+	local disk_handle=""
+	disk_handle=$(create_virtio_blk_without_disk_check "$@")
+	local wait_for_virtio_blk_sec=2
+	wait_for_virtio_blk_in_os "$disk_handle" "$wait_for_virtio_blk_sec"
+
+	echo "$disk_handle"
 }
 
-function create_virtio_blk_without_delay() {
+function create_virtio_blk_without_disk_check() {
 	proxy_ip="${1}"
 	volume_id="${2}"
 	physical_id="${3}"
