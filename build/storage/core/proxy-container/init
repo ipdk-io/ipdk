@@ -51,11 +51,5 @@ if ! is_pid_running "$pid" ; then
     exit 1
 fi
 
-HOT_PLUG_SERVICE_IP_ADDR="${HOT_PLUG_SERVICE_IP_ADDR:-"0.0.0.0"}"
-HOT_PLUG_SERVICE_PORT="${HOT_PLUG_SERVICE_PORT:-50051}"
-
 export SMA_PLUGINS=spdk.sma.device.vhost_blk
 sma.py -c sma_config.yml
-
-#/hot_plug_main.py --ip "${HOT_PLUG_SERVICE_IP_ADDR}" --port "${HOT_PLUG_SERVICE_PORT}" \
-#    --shared-dir /ipdk-shared --host-shared-dir "${HOST_SHARED_VOLUME}"

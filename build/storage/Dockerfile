@@ -102,24 +102,8 @@ ARG NO_PROXY
 RUN dnf install -y socat
 RUN pip install pyyaml
 
-COPY core/proxy-container/hot_plug.proto /hot_plug.proto
-COPY scripts/socket.sh /socket.sh
-COPY core/proxy-container/hot_plug_grpc_server.py /hot_plug_grpc_server.py
-COPY core/proxy-container/hot_plug_provider.py /hot_plug_provider.py
-COPY core/proxy-container/hot_plug_main.py /hot_plug_main.py
 COPY core/proxy-container/init /init
-COPY core/proxy-container/hot-plug.sh /hot-plug.sh
-COPY core/proxy-container/hot-unplug.sh /hot-unplug.sh
 COPY --from=spdk-app /init /init_spdk
-
-# Currently proxy-container relies on spdk json rpc to execute comamnds.
-# However, there is no ability to hot-plug a vhost virtio-blk to a vm
-# by means of SPDK servce.
-# A dedicate service is currently used to provide this hot-plug functionality
-# as an addition to SPDK service.
-# Later, both will be replaced by SPDK SMA later.
-RUN python -m grpc_tools.protoc -I/ --python_out=. --grpc_python_out=/ \
-    /hot_plug.proto
 
 ENTRYPOINT [ "/init" ]
 
@@ -160,11 +144,6 @@ ARG NO_PROXY
 
 RUN dnf install -y python fio python3-pip
 RUN python -m pip install grpcio-reflection pyfakefs
-COPY tests/ut/proxy-container /proxy-container/tests
-COPY --from=proxy-container hot_plug_*pb2.py /proxy-container/generated/
-COPY --from=proxy-container hot_plug_*pb2_grpc.py /proxy-container/generated/
-COPY --from=proxy-container hot_plug_grpc_server.py /proxy-container/src/
-COPY --from=proxy-container hot_plug_provider.py /proxy-container/src/
 
 COPY tests/ut/host-target /host-target/tests
 COPY --from=host-target fio_runner.py /host-target/src/
@@ -177,6 +156,6 @@ COPY --from=host-target host_target_*pb2_grpc.py /host-target/generated/
 
 COPY tests/ut/run_all_unit_tests.sh /
 
-ENV PYTHONPATH=/proxy-container/generated:/proxy-container/src:/host-target/src:/host-target/generated
+ENV PYTHONPATH=/host-target/src:/host-target/generated
 
 ENTRYPOINT [ "/run_all_unit_tests.sh" ]
