@@ -24,6 +24,9 @@ export SPDK_VERSION="${spdk_version}"
 export DOCKER_BUILDKIT=${DOCKER_BUILDKIT:-1}
 export COMPOSE_DOCKER_CLI_BUILD=${COMPOSE_DOCKER_CLI_BUILD:-1}
 
+export NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT=\
+"${NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT:-64}"
+
 function run_test() {
     sudo_for_docker="sudo"
     is_user_docker_group_member=$(groups | grep docker &> /dev/null ; echo $?)
@@ -36,9 +39,9 @@ function run_test() {
         export BUILDKIT_PROGRESS=plain
     fi
 
+    export TEST_CASE_NAME="$1"
     ${sudo_for_docker} docker-compose \
         -f "${current_script_dir}/docker-compose.yml" \
-        -f "${current_script_dir}/test-drivers/docker-compose.$1.yml" \
         up \
         --build \
         --exit-code-from test-driver \
@@ -52,6 +55,10 @@ function provide_hugepages() {
 provide_hugepages
 
 test_cases=(hot-plug fio)
+if [ "${BASE_TESTS_ONLY}" != "true" ]; then
+    test_cases+=(scale-out)
+fi
+
 if [[ $# != 0 ]]; then
     run_test "${1}"
 else

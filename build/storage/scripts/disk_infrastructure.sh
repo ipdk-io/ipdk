@@ -7,6 +7,7 @@
 export DEFAULT_SPDK_PORT=5260
 export DEFAULT_SMA_PORT=8080
 export DEFAULT_NVME_PORT=4420
+export MAX_NUMBER_OF_NAMESPACES_ON_COTROLLER=1024
 
 function get_number_of_virtio_blk() {
 	cmd="lsblk --output \"NAME,VENDOR,SUBSYSTEMS\""
@@ -57,7 +58,8 @@ function create_and_expose_sybsystem_over_tcp() {
 
 	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
 		nvmf_create_subsystem "${nqn}" \
-		-s SPDK00000000000001 -a
+		-s SPDK00000000000001 -a \
+		-m "$MAX_NUMBER_OF_NAMESPACES_ON_COTROLLER"
 	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
 		nvmf_create_transport -t TCP -u 8192
 	rpc.py -s "${ip_addr}" -p "$storage_target_port" \
@@ -87,6 +89,15 @@ function uuid2base64() {
 		import base64, uuid
 		print(base64.b64encode(uuid.UUID("$1").bytes).decode())
 	EOF
+}
+
+function wait_for_virtio_blk_in_os() {
+	local virtio_blk_handle="$1"
+	local wait_for_virtio_blk_sec="$2"
+
+	# placeholder function for now
+	sleep "$wait_for_virtio_blk_sec"
+	return 0
 }
 
 function _create_virtio_blk() {
@@ -128,6 +139,15 @@ function _create_virtio_blk() {
 }
 
 function create_virtio_blk() {
+	local disk_handle=""
+	disk_handle=$(create_virtio_blk_without_disk_check "$@")
+	local wait_for_virtio_blk_sec=2
+	wait_for_virtio_blk_in_os "$disk_handle" "$wait_for_virtio_blk_sec"
+
+	echo "$disk_handle"
+}
+
+function create_virtio_blk_without_disk_check() {
 	proxy_ip="${1}"
 	volume_id="${2}"
 	physical_id="${3}"
@@ -140,7 +160,6 @@ function create_virtio_blk() {
 	device_handle=$(_create_virtio_blk "$proxy_ip" "$sma_port" \
 					"$volume_id" "$physical_id" "$virtual_id" "$hostnqn" \
 					"$traddr" "$trsvcid" | jq -r '.handle')
-	sleep 2
 	echo "$device_handle"
 }
 

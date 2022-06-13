@@ -16,6 +16,12 @@ if [ -n "$sock_path" ]; then
     export SPDK_ARGS=" -S $sock_path "
 fi
 
+# SPDK consumes many file descriptors if we create vhost user devices
+# Increase the number of file descriptors per process in order to cover
+# scale out scenario.
+MAX_BUMBER_OF_FILE_DESCRIPTORS_PER_PROCESS=4096
+ulimit -n "$MAX_BUMBER_OF_FILE_DESCRIPTORS_PER_PROCESS"
+
 export EXPOSE_SPDK="false"
 /init_spdk "$@" &
 
