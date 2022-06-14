@@ -179,3 +179,26 @@ function delete_virtio_blk() {
 	EOF
 	return $?
 }
+
+function is_port_on_ip_addr_open() {
+	local ip_addr="$1"
+	local port="$2"
+	timeout 1 bash -c "cat < /dev/null > /dev/tcp/${ip_addr}/${port}" &> /dev/null
+	return $?
+}
+
+function wait_until_port_on_ip_addr_open() {
+	local ip_addr="$1"
+	local port="$2"
+	local wait_for_sec="${3:-5}"
+	local wait_counter=0
+
+	while [ "${wait_counter}" -le "${wait_for_sec}" ] ; do
+		if is_port_on_ip_addr_open "$ip_addr" "$port"; then
+			return 0
+		fi
+		sleep 1
+		wait_counter=$(( wait_counter + 1 ))
+	done
+	return 1
+}
