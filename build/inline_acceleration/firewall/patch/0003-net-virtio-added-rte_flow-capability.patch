@@ -1,0 +1,1572 @@
+From cf554a824cc2d2ba36823a6c807204cde6f5b04b Mon Sep 17 00:00:00 2001
+From: Atul Patel <atul.patel@intel.com>
+Date: Wed, 22 Dec 2021 06:47:02 +0000
+Subject: [PATCH] net/virtio: added rte_flow capability
+
+Only the parsing and validating of some basic flows are added.
+Later, p4ctl trigger added when a flow is needed to be
+offloaded.
+
+Signed-off-by: Atul Patel <atul.patel@intel.com>
+Signed-off-by: Mohammad Abdul Awal <mohammad.abdul.awal@intel.com>
+---
+ drivers/net/virtio/meson.build     |    1 +
+ drivers/net/virtio/virtio.h        |    8 +
+ drivers/net/virtio/virtio_ethdev.c |   15 +
+ drivers/net/virtio/virtio_flow.c   | 1293 ++++++++++++++++++++++++++++
+ drivers/net/virtio/virtio_flow.h   |  154 ++++
+ 5 files changed, 1471 insertions(+)
+ create mode 100644 drivers/net/virtio/virtio_flow.c
+ create mode 100644 drivers/net/virtio/virtio_flow.h
+
+diff --git a/drivers/net/virtio/meson.build b/drivers/net/virtio/meson.build
+index 01a333ada2..4746507cb4 100644
+--- a/drivers/net/virtio/meson.build
++++ b/drivers/net/virtio/meson.build
+@@ -15,6 +15,7 @@ sources += files(
+         'virtio_rxtx.c',
+         'virtio_rxtx_simple.c',
+         'virtqueue.c',
++        'virtio_flow.c',
+ )
+ deps += ['kvargs', 'bus_pci']
+ 
+diff --git a/drivers/net/virtio/virtio.h b/drivers/net/virtio/virtio.h
+index 5c8f71a44d..cbb7ac69c2 100644
+--- a/drivers/net/virtio/virtio.h
++++ b/drivers/net/virtio/virtio.h
+@@ -186,6 +186,13 @@ struct virtio_net_config {
+ 	uint32_t supported_hash_types;
+ } __rte_packed;
+ 
++struct rte_flow {
++	TAILQ_ENTRY(rte_flow) node;
++	void *rule;
++	uint16_t port_id;
++};
++TAILQ_HEAD(virtio_flow_list, rte_flow);
++
+ struct virtio_hw {
+ 	struct virtqueue **vqs;
+ 	uint64_t guest_features;
+@@ -228,6 +235,7 @@ struct virtio_hw {
+ 	uint64_t req_guest_features;
+ 	struct virtnet_ctl *cvq;
+ 	bool use_va;
++	struct virtio_flow_list flows;
+ };
+ 
+ struct virtio_ops {
+diff --git a/drivers/net/virtio/virtio_ethdev.c b/drivers/net/virtio/virtio_ethdev.c
+index c2588369b2..6d62ba7dff 100644
+--- a/drivers/net/virtio/virtio_ethdev.c
++++ b/drivers/net/virtio/virtio_ethdev.c
+@@ -32,10 +32,12 @@
+ #include "virtio.h"
+ #include "virtio_logs.h"
+ #include "virtqueue.h"
++#include "virtio_flow.h"
+ #include "virtio_rxtx.h"
+ #include "virtio_rxtx_simple.h"
+ #include "virtio_user/virtio_user_dev.h"
+ 
++
+ static int  virtio_dev_configure(struct rte_eth_dev *dev);
+ static int  virtio_dev_start(struct rte_eth_dev *dev);
+ static int virtio_dev_promiscuous_enable(struct rte_eth_dev *dev);
+@@ -86,6 +88,8 @@ static int virtio_mac_addr_set(struct rte_eth_dev *dev,
+ static int virtio_intr_disable(struct rte_eth_dev *dev);
+ static int virtio_get_monitor_addr(void *rx_queue,
+ 				struct rte_power_monitor_cond *pmc);
++static int virtio_flow_ops_get(struct rte_eth_dev *dev,
++				const struct rte_flow_ops **ops);
+ 
+ static int virtio_dev_queue_stats_mapping_set(
+ 	struct rte_eth_dev *eth_dev,
+@@ -807,6 +811,16 @@ virtio_dev_close(struct rte_eth_dev *dev)
+ 	return VIRTIO_OPS(hw)->dev_close(hw);
+ }
+ 
++static int
++virtio_flow_ops_get(struct rte_eth_dev *dev,
++			const struct rte_flow_ops **ops)
++{
++	if (dev == NULL)
++		return -EINVAL;
++	*ops = &virtio_flow_ops;
++	return 0;
++}
++
+ static int
+ virtio_dev_promiscuous_enable(struct rte_eth_dev *dev)
+ {
+@@ -1054,6 +1068,7 @@ static const struct eth_dev_ops virtio_eth_dev_ops = {
+ 	.mac_addr_remove         = virtio_mac_addr_remove,
+ 	.mac_addr_set            = virtio_mac_addr_set,
+ 	.get_monitor_addr        = virtio_get_monitor_addr,
++	.flow_ops_get            = virtio_flow_ops_get,
+ };
+ 
+ /*
+diff --git a/drivers/net/virtio/virtio_flow.c b/drivers/net/virtio/virtio_flow.c
+new file mode 100644
+index 0000000000..b8f9292202
+--- /dev/null
++++ b/drivers/net/virtio/virtio_flow.c
+@@ -0,0 +1,1293 @@
++/* SPDX-LVIRTIOnse-Identifier: BSD-3-Clause
++ * Copyright(c) 2021 Intel Corporation.
++ */
++
++#include <rte_flow_driver.h>
++
++#include "virtio_flow.h"
++#include "virtio_logs.h"
++#include <stdio.h>
++#include <string.h>
++#include <stdbool.h>
++#include <stdlib.h>
++
++struct table
++{
++	char  name[32];
++	char tuple[256];
++	char action[256];
++	long int ids[10];
++	bool act;
++	int idptr;
++};
++struct table tables[5];
++static bool p4InfoParsed = 0;
++
++static int
++virtio_flow_validate(struct rte_eth_dev *dev,
++		   const struct rte_flow_attr *attr,
++		   const struct rte_flow_item pattern[],
++		   const struct rte_flow_action actions[],
++		   struct rte_flow_error *error);
++static struct rte_flow *
++virtio_flow_create(struct rte_eth_dev *dev,
++		const struct rte_flow_attr *attr,
++		const struct rte_flow_item pattern[],
++		const struct rte_flow_action actions[],
++		struct rte_flow_error *error);
++
++static int
++virtio_flow_destroy(struct rte_eth_dev *dev,
++		struct rte_flow *flow,
++		struct rte_flow_error *error);
++
++static int
++virtio_flow_flush(struct rte_eth_dev *dev,
++		struct rte_flow_error *error);
++
++static int
++virtio_flow_query(struct rte_eth_dev *dev,
++		struct rte_flow *flow,
++		const struct rte_flow_action actions[],
++		void *data,
++		struct rte_flow_error *error);
++
++/* L2 */
++static enum rte_flow_item_type pattern_eth[] = {
++	RTE_FLOW_ITEM_TYPE_ETH,
++	RTE_FLOW_ITEM_TYPE_END,
++};
++
++/* non-tunnel IPv4 */
++static enum rte_flow_item_type pattern_ipv4[] = {
++	RTE_FLOW_ITEM_TYPE_ETH,
++	RTE_FLOW_ITEM_TYPE_IPV4,
++	RTE_FLOW_ITEM_TYPE_END,
++};
++
++static enum rte_flow_item_type pattern_ipv4_udp[] = {
++	RTE_FLOW_ITEM_TYPE_ETH,
++	RTE_FLOW_ITEM_TYPE_IPV4,
++	RTE_FLOW_ITEM_TYPE_UDP,
++	RTE_FLOW_ITEM_TYPE_END,
++};
++
++static enum rte_flow_item_type pattern_ipv4_tcp[] = {
++	RTE_FLOW_ITEM_TYPE_ETH,
++	RTE_FLOW_ITEM_TYPE_IPV4,
++	RTE_FLOW_ITEM_TYPE_TCP,
++	RTE_FLOW_ITEM_TYPE_END,
++};
++static enum rte_flow_item_type pattern_ipv4_gtpu[] = {
++	RTE_FLOW_ITEM_TYPE_ETH,
++	RTE_FLOW_ITEM_TYPE_IPV4,
++	RTE_FLOW_ITEM_TYPE_UDP,
++	RTE_FLOW_ITEM_TYPE_GTPU,
++	RTE_FLOW_ITEM_TYPE_END,
++};
++
++static enum rte_flow_item_type pattern_ipv4_gtpu_ipv4[] = {
++	RTE_FLOW_ITEM_TYPE_ETH,
++	RTE_FLOW_ITEM_TYPE_IPV4,
++	RTE_FLOW_ITEM_TYPE_UDP,
++	RTE_FLOW_ITEM_TYPE_GTPU,
++	RTE_FLOW_ITEM_TYPE_IPV4,
++	RTE_FLOW_ITEM_TYPE_END,
++};
++
++
++/* pattern structure */
++struct virtio_flow_pattern {
++	enum rte_flow_item_type *items;
++	/* pattern_list must end with RTE_FLOW_ITEM_TYPE_END */
++	uint64_t input_set_mask_o; /* used for tunnel outer or non tunnel fields */
++	//uint64_t input_set_mask_i; /* only used for tunnel inner fields */
++	//void *meta;
++};
++static struct virtio_flow_pattern virtio_supported_patterns[] = {
++	{pattern_eth, INSET_MAC},
++	{pattern_ipv4, INSET_MAC_IPV4},
++	{pattern_ipv4_udp, INSET_MAC_IPV4_L4},
++	{pattern_ipv4_tcp, INSET_MAC_IPV4_L4},
++	{pattern_ipv4_gtpu, INSET_MAC_IPV4_L4_GTP},
++	{pattern_ipv4_gtpu_ipv4, INSET_MAC_IPV4_L4_GTP},
++};
++const struct rte_flow_ops virtio_flow_ops = {
++        .validate = virtio_flow_validate,
++	.create = virtio_flow_create,
++	.destroy = virtio_flow_destroy,
++	.flush = virtio_flow_flush,
++	.query = virtio_flow_query,
++};
++static int
++virtio_flow_valid_attr(const struct rte_flow_attr *attr,
++		     struct rte_flow_error *error)
++{
++	/* Must be input direction */
++	if (attr->ingress == 0 && attr->egress == 0) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_ATTR_INGRESS,
++				   attr, "not egress or ingress");
++		return -rte_errno;
++	}
++	if (attr->ingress == 1 && attr->egress == 1) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_ATTR_INGRESS,
++				   attr, "cannot be both egress and ingress");
++		return -rte_errno;
++	}
++
++	/* Not supported */
++	if (attr->priority) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_ATTR_PRIORITY,
++				   attr, "Not support priority.");
++		return -rte_errno;
++	}
++
++	return 0;
++}
++
++/* Find the first VOID or non-VOID item pointer */
++static const struct rte_flow_item *
++virtio_find_first_item(const struct rte_flow_item *item, bool is_void)
++{
++	bool is_find;
++
++	while (item->type != RTE_FLOW_ITEM_TYPE_END) {
++		if (is_void)
++			is_find = item->type == RTE_FLOW_ITEM_TYPE_VOID;
++		else
++			is_find = item->type != RTE_FLOW_ITEM_TYPE_VOID;
++		if (is_find)
++			break;
++		item++;
++	}
++	return item;
++}
++
++/* Skip all VOID items of the pattern */
++static void
++virtio_pattern_skip_void_item(struct rte_flow_item *items,
++			    const struct rte_flow_item *pattern)
++{
++	uint32_t cpy_count = 0;
++	const struct rte_flow_item *pb = pattern, *pe = pattern;
++
++	for (;;) {
++		/* Find a non-void item first */
++		pb = virtio_find_first_item(pb, false);
++		if (pb->type == RTE_FLOW_ITEM_TYPE_END) {
++			pe = pb;
++			break;
++		}
++
++		/* Find a void item */
++		pe = virtio_find_first_item(pb + 1, true);
++
++		cpy_count = pe - pb;
++		rte_memcpy(items, pb, sizeof(struct rte_flow_item) * cpy_count);
++
++		items += cpy_count;
++
++		if (pe->type == RTE_FLOW_ITEM_TYPE_END) {
++			pb = pe;
++			break;
++		}
++
++		pb = pe + 1;
++	}
++	/* Copy the END item. */
++	rte_memcpy(items, pe, sizeof(struct rte_flow_item));
++}
++
++/* Check if the pattern matches a supported item type array */
++static bool
++virtio_match_pattern(enum rte_flow_item_type *item_array,
++		const struct rte_flow_item *pattern)
++{
++	const struct rte_flow_item *item = pattern;
++
++	while ((*item_array == item->type) &&
++	       (*item_array != RTE_FLOW_ITEM_TYPE_END)) {
++		item_array++;
++		item++;
++	}
++
++	return (*item_array == RTE_FLOW_ITEM_TYPE_END &&
++		item->type == RTE_FLOW_ITEM_TYPE_END);
++}
++
++static uint64_t
++virtio_get_flow_field(const struct rte_flow_item pattern[],
++		struct rte_flow_error *error)
++{
++	const struct rte_flow_item *item = pattern;
++	const struct rte_flow_item_tcp *tcp_spec, *tcp_mask;
++	const struct rte_flow_item_udp *udp_spec, *udp_mask;
++	const struct rte_flow_item_gtp *gtp_spec, *gtp_mask;
++	enum rte_flow_item_type item_type;
++	uint64_t input_set = VIRTIO_INSET_NONE;
++
++	for (; item->type != RTE_FLOW_ITEM_TYPE_END; item++) {
++		if (item->last) {
++			rte_flow_error_set(error, EINVAL,
++					   RTE_FLOW_ERROR_TYPE_ITEM,
++					   item,
++					   "Not support range");
++			return 0;
++		}
++		item_type = item->type;
++		switch (item_type) {
++		case RTE_FLOW_ITEM_TYPE_ETH:
++			input_set |= INSET_MAC;
++			break;
++		case RTE_FLOW_ITEM_TYPE_IPV4:
++			input_set |= INSET_IPV4;
++			break;
++		case RTE_FLOW_ITEM_TYPE_UDP:
++			udp_spec = item->spec;
++			udp_mask = item->mask;
++
++			if (!(udp_spec && udp_mask))
++				break;
++
++			/* Check UDP mask and update input set */
++			if (udp_mask->hdr.dgram_len ||
++			    udp_mask->hdr.dgram_cksum) {
++				rte_flow_error_set(error, EINVAL,
++						   RTE_FLOW_ERROR_TYPE_ITEM,
++						   item,
++						   "Invalid UDP mask");
++				return 0;
++			}
++
++			if (udp_mask->hdr.src_port == UINT16_MAX)
++				input_set |= VIRTIO_INSET_SRC_PORT;
++			if (udp_mask->hdr.dst_port == UINT16_MAX)
++				input_set |= VIRTIO_INSET_DST_PORT;
++			break;
++		case RTE_FLOW_ITEM_TYPE_TCP:
++			tcp_spec = item->spec;
++			tcp_mask = item->mask;
++
++			if (!(tcp_spec && tcp_mask))
++				break;
++
++			/* Check TCP mask and update input set */
++			if (tcp_mask->hdr.sent_seq ||
++			    tcp_mask->hdr.recv_ack ||
++			    tcp_mask->hdr.data_off ||
++			    tcp_mask->hdr.tcp_flags ||
++			    tcp_mask->hdr.rx_win ||
++			    tcp_mask->hdr.cksum ||
++			    tcp_mask->hdr.tcp_urp) {
++				rte_flow_error_set(error, EINVAL,
++						   RTE_FLOW_ERROR_TYPE_ITEM,
++						   item,
++						   "Invalid TCP mask");
++				return 0;
++			}
++
++			if (tcp_mask->hdr.src_port == UINT16_MAX)
++				input_set |= VIRTIO_INSET_SRC_PORT;
++			if (tcp_mask->hdr.dst_port == UINT16_MAX)
++				input_set |= VIRTIO_INSET_DST_PORT;
++			break;
++		case RTE_FLOW_ITEM_TYPE_GTPU:
++			gtp_spec = item->spec;
++			gtp_mask = item->mask;
++
++			if (!(gtp_spec && gtp_mask))
++				break;
++
++			input_set |= VIRTIO_INSET_GTP_TEID;
++			break;
++		case RTE_FLOW_ITEM_TYPE_VXLAN:
++		case RTE_FLOW_ITEM_TYPE_VOID:
++			break;
++		default:
++			rte_flow_error_set(error, EINVAL,
++					   RTE_FLOW_ERROR_TYPE_ITEM,
++					   item,
++					   "Invalid pattern");
++			break;
++		}
++	}
++	return input_set;
++}
++static int virtio_flow_valid_action(struct rte_eth_dev *dev,
++				const struct rte_flow_attr *attr,
++				const struct rte_flow_action *actions,
++				uint64_t inset,
++				struct rte_flow_error *error)
++{
++	const struct rte_flow_action_queue *act_q;
++	const struct rte_flow_action *action;
++	uint16_t queue;
++	if(inset <= 0 || !attr) {
++		rte_flow_error_set(error, EINVAL,
++                	RTE_FLOW_ERROR_TYPE_ACTION, actions,
++                                           "Invalid inset or attr.");
++
++	}
++	for (action = actions; action->type !=
++			RTE_FLOW_ACTION_TYPE_END; action++) {
++		switch (action->type) {
++		case RTE_FLOW_ACTION_TYPE_QUEUE:
++/* TODO: we have to check against number of queues in destination port */
++			if (0) {
++				act_q = action->conf;
++				queue = act_q->index;
++				if (queue >= dev->data->nb_rx_queues) {
++					rte_flow_error_set(error, EINVAL,
++						RTE_FLOW_ERROR_TYPE_ACTION,
++						actions, "Invalid queue ID for"
++						" flow.");
++					return -rte_errno;
++				}
++			}
++			break;
++		case RTE_FLOW_ACTION_TYPE_RSS:
++		case RTE_FLOW_ACTION_TYPE_PORT_ID:
++		case RTE_FLOW_ACTION_TYPE_DROP:
++		case RTE_FLOW_ACTION_TYPE_VOID:
++		case RTE_FLOW_ACTION_TYPE_MARK:
++		case RTE_FLOW_ACTION_TYPE_COUNT:
++			break;
++		default:
++			rte_flow_error_set(error, EINVAL,
++					   RTE_FLOW_ERROR_TYPE_ACTION, actions,
++					   "Invalid action.");
++			return -rte_errno;
++		}
++	}
++
++	return 0;
++}
++static int virtio_flow_valid_inset(const struct rte_flow_item pattern[],
++			uint64_t inset, struct rte_flow_error *error)
++{
++	uint64_t fields;
++
++	/* get valid field */
++	fields = virtio_get_flow_field(pattern, error);
++	if (fields == 0 || (fields & ~inset)) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_ITEM_SPEC,
++				   pattern,
++				   "Invalid input set");
++		return -rte_errno;
++	}
++	return 0;
++}
++
++static uint64_t
++virtio_flow_valid_pattern(const struct rte_flow_item pattern[],
++		struct rte_flow_error *error)
++{
++	uint16_t i = 0;
++	uint64_t inset;
++	struct rte_flow_item *items; /* used for pattern without VOID items */
++	uint32_t item_num = 0; /* non-void item number */
++
++	/* Get the non-void item number of pattern */
++	while ((pattern + i)->type != RTE_FLOW_ITEM_TYPE_END) {
++		if ((pattern + i)->type != RTE_FLOW_ITEM_TYPE_VOID)
++			item_num++;
++		i++;
++	}
++	item_num++;
++
++	items = rte_zmalloc("virtio_pattern",
++			item_num * sizeof(struct rte_flow_item),
++			RTE_CACHE_LINE_SIZE);
++	if (items == NULL) {
++		rte_flow_error_set(error, ENOMEM, RTE_FLOW_ERROR_TYPE_ITEM_NUM,
++				   NULL, "No memory for PMD internal items.");
++		return -ENOMEM;
++	}
++
++	virtio_pattern_skip_void_item(items, pattern);
++
++	for (i = 0; i < RTE_DIM(virtio_supported_patterns); i++)
++		if (virtio_match_pattern(virtio_supported_patterns[i].items,
++				      items)) {
++			inset = virtio_supported_patterns[i].input_set_mask_o;
++			rte_free(items);
++			return inset;
++		}
++	rte_flow_error_set(error, EINVAL, RTE_FLOW_ERROR_TYPE_ITEM,
++			   pattern, "Unsupported pattern");
++
++	rte_free(items);
++	return 0;
++}
++
++static int
++virtio_flow_validate(struct rte_eth_dev *dev,
++		   const struct rte_flow_attr *attr,
++		   const struct rte_flow_item pattern[],
++		   const struct rte_flow_action actions[],
++		   struct rte_flow_error *error)
++                   {
++	uint64_t inset = 0;
++	int ret = RTE_FLOW_ERROR_TYPE_UNSPECIFIED;
++
++	if (pattern == NULL) {
++		rte_flow_error_set(error, EINVAL, RTE_FLOW_ERROR_TYPE_ITEM_NUM,
++				   NULL, "NULL pattern.");
++		return -rte_errno;
++	}
++
++	if (actions == NULL) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_ACTION_NUM,
++				   NULL, "NULL action.");
++		return -rte_errno;
++	}
++
++	if (attr == NULL) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_ATTR,
++				   NULL, "NULL attribute.");
++		return -rte_errno;
++	}
++
++	ret = virtio_flow_valid_attr(attr, error);
++	if (ret)
++		return ret;
++
++	inset = virtio_flow_valid_pattern(pattern, error);
++	if (inset == 0)
++		return -rte_errno;
++
++	ret = virtio_flow_valid_inset(pattern, inset, error);
++	if (ret)
++		return ret;
++
++	ret = virtio_flow_valid_action(dev, attr, actions, inset, error);
++	if (ret)
++		return ret;
++
++	return inset;
++}
++static void flow_dump(struct virtio_flow *vflow)
++{
++	struct virtio_flow_tuple *tuples = vflow->tuples, *t;
++	struct virtio_flow_action *actions = vflow->actions, *a;
++	char str[512];
++	uint32_t index = 0, n;
++
++	n = sprintf(str + index, "\nAttributes:\n");
++	index += n;
++	n = sprintf(str + index, "\tDirection: %s\n",
++			vflow->ingress ? "INGRESS" : "EGRESS");
++	index += n;
++	n = sprintf(str + index, "\nTuples:\n");
++	index += n;
++	for (t = tuples; t->type != VIRTIO_ALL_PROTOCOLS; t++) {
++		switch (t->type) {
++		case VIRTIO_MAC_OUTER_SRC:
++			n = sprintf(str + index, "\tVIRTIO_MAC_OUTER_SRC="
++					"%02X:%02X:%02X:%02X:%02X:%02X, ",
++				t->val.eth_hdr.src_addr[0],
++				t->val.eth_hdr.src_addr[1],
++				t->val.eth_hdr.src_addr[2],
++				t->val.eth_hdr.src_addr[3],
++				t->val.eth_hdr.src_addr[4],
++				t->val.eth_hdr.src_addr[5]);
++			index += n;
++			n = sprintf(str + index, "MASK="
++					"%02X:%02X:%02X:%02X:%02X:%02X\n",
++				t->msk.eth_hdr.src_addr[0],
++				t->msk.eth_hdr.src_addr[1],
++				t->msk.eth_hdr.src_addr[2],
++				t->msk.eth_hdr.src_addr[3],
++				t->msk.eth_hdr.src_addr[4],
++				t->msk.eth_hdr.src_addr[5]);
++			index += n;
++			break;
++		case VIRTIO_MAC_OUTER_DST:
++			n = sprintf(str + index, "\tVIRTIO_MAC_OUTER_DST="
++					"%02X:%02X:%02X:%02X:%02X:%02X, ",
++				t->val.eth_hdr.dst_addr[0],
++				t->val.eth_hdr.dst_addr[1],
++				t->val.eth_hdr.dst_addr[2],
++				t->val.eth_hdr.dst_addr[3],
++				t->val.eth_hdr.dst_addr[4],
++				t->val.eth_hdr.dst_addr[5]);
++			index += n;
++			n = sprintf(str + index, "MASK="
++					"%02X:%02X:%02X:%02X:%02X:%02X\n",
++				t->msk.eth_hdr.dst_addr[0],
++				t->msk.eth_hdr.dst_addr[1],
++				t->msk.eth_hdr.dst_addr[2],
++				t->msk.eth_hdr.dst_addr[3],
++				t->msk.eth_hdr.dst_addr[4],
++				t->msk.eth_hdr.dst_addr[5]);
++			index += n;
++			break;
++		case VIRTIO_IPV4_OUTER_SRC:
++			n = sprintf(str + index, "\tVIRTIO_IPV4_OUTER_SRC=0X%08X, "
++					"MASK=0X%08X\n",
++					t->val.ipv4_hdr.src_addr,
++					t->msk.ipv4_hdr.src_addr);
++			index += n;
++			break;
++		case VIRTIO_IPV4_OUTER_DST:
++			n = sprintf(str + index, "\tVIRTIO_IPV4_OUTER_DST=0X%08X, "
++					"MASK=0X%08X\n",
++					t->val.ipv4_hdr.dst_addr,
++					t->msk.ipv4_hdr.dst_addr);
++			index += n;
++			break;
++		case VIRTIO_TCP_OUTER_SRC:
++			n = sprintf(str + index, "\tVIRTIO_TCP_OUTER_SRC=0X%X, "
++					"MASK=0X%04X\n", t->val.l4_hdr.src_port,
++					t->msk.l4_hdr.src_port);
++			index += n;
++			break;
++		case VIRTIO_TCP_OUTER_DST:
++			n = sprintf(str + index, "\tVIRTIO_TCP_OUTER_DST=0X%04X, "
++					"MASK=0X%04X\n", t->val.l4_hdr.dst_port,
++					t->msk.l4_hdr.dst_port);
++			index += n;
++			break;
++		case VIRTIO_UDP_OUTER_SRC:
++			n = sprintf(str + index, "\tVIRTIO_UDP_OUTER_SRC=0X%04X, "
++					"MASK=0X%04X\n", t->val.l4_hdr.src_port,
++					t->msk.l4_hdr.src_port);
++			index += n;
++			break;
++		case VIRTIO_UDP_OUTER_DST:
++			n = sprintf(str + index, "\tVIRTIO_UDP_OUTER_DST=0X%04X, "
++					"MASK=0X%04X\n", t->val.l4_hdr.dst_port,
++					t->msk.l4_hdr.dst_port);
++			index += n;
++			break;
++		default:
++			break;
++		}
++	}
++	n = sprintf(str + index, "\nActions:\n");
++	index += n;
++	for (a = actions; a->type != VIRTIO_ALL_ACTIONS; a++) {
++		switch (a->type) {
++			case VIRTIO_FWD_TO_PORT:
++			n = sprintf(str + index, "\tVIRTIO_FWD_TO_PORT=%u\n",
++					a->port_id);
++			index += n;
++			break;
++		case VIRTIO_DROP_PACKET:
++			n = sprintf(str + index, "\tVIRTIO_DROP_PACKET\n");
++			index += n;
++			break;
++		case VIRTIO_FLOW_COUNT:
++			n = sprintf(str + index, "\tVIRTIO_FLOW_COUNT\n");
++			index += n;
++			break;
++		default:
++			break;
++		}
++	}
++	PMD_INIT_LOG(DEBUG, "rule definition %s",str);
++}
++
++static void parse_p4Info(void)
++{
++	char const* const fileName = "/root/p4Info.txt";
++	char line[256];
++	int tablePtr = 0, actPtr = 0, matchFieldPtr = 0, actRef = 0, preamblePtr = 0;
++	int structPtr = 0;
++
++	FILE* file = fopen(fileName, "r"); /* should check the result */
++	if(file == NULL) {
++		//handle the error
++		PMD_INIT_LOG(ERR, "%s", strerror(errno));
++		return;
++	}
++	while (fgets(line, sizeof(line), file)) {
++		if(strstr(line,"tables {\n") != NULL) tablePtr= 1;
++		if(strstr(line,"match_fields {") != NULL) matchFieldPtr = 1;
++		if(strstr(line,"action_refs") != NULL) actRef = 1;
++		if(strstr(line,"preamble") != NULL) preamblePtr = 1;
++		if(strstr(line,"actions") != NULL) actPtr = 1;
++
++		if(strstr(line, "size:") != NULL) {
++			tablePtr = 0; matchFieldPtr = 0; actRef = 0; actPtr = 0;
++			structPtr++;
++		}
++		if((tablePtr == 1 || matchFieldPtr == 1) && strstr(line, "name:") != NULL) {
++			if(tablePtr == 1 && matchFieldPtr == 1) {
++				char* match = strtok(line, "\"");
++				match = strtok(NULL, " \"");
++				strcat(tables[structPtr].tuple, match);
++				matchFieldPtr = 0;
++			}
++			else if(tablePtr == 1 && matchFieldPtr != 1 && preamblePtr == 1) {
++				char* res = strtok(line, "\"");
++				res = strtok(NULL, "\"");
++				sprintf(tables[structPtr].name,"%s", res);
++			}
++		}
++		if((tablePtr == 1 && actRef == 1) && strstr(line, "id:") != NULL) {
++			char* res = strtok(line, ":");
++			res = strtok(NULL, ":");
++			char* tmp;
++			long int x = strtol(res, &tmp, 10);
++			tables[structPtr].ids[tables[structPtr].idptr] = x;
++			tables[structPtr].idptr++;
++			tmp = NULL;
++			free(tmp);
++
++		}
++		if(actPtr == 1 && strstr(line, "id:") != NULL) {
++			char* id = strtok(line, ":");
++			id = strtok(NULL, ":");
++			char* tmp;
++			long int x = strtol(id, &tmp,10);
++			for(int i = 0; i < 5; i++) {
++				for(int j = 0; j < 10; j++) {
++					if(tables[i].ids[j] == x) {
++						tables[i].act = true;
++					}
++				}
++			}
++			tmp = NULL;
++			free(tmp);
++		}
++		if(actPtr == 1 && strstr(line, "name:") != NULL) {
++			char* act = strtok(line, "\"");
++			act = strtok(NULL, "\"");
++			for(int i = 0; i < 5; i++) {
++				if(tables[i].act) {
++					strcat(tables[i].action, act);
++					tables[i].act = 0;
++				}
++			}
++			actPtr = 0;
++		}
++	}
++	p4InfoParsed = true;
++	fclose(file);
++}
++
++static int
++add_rules(__rte_unused struct virtio_hw *hw, struct virtio_flow *vflow, int retInset)
++{
++	struct virtio_flow_tuple *flow_tuples = vflow->tuples;
++	struct virtio_flow_action *flow_actions = vflow->actions;
++	struct virtio_flow_tuple *tuple, *last_tuple;
++	struct virtio_flow_action *action, *last_action;
++	int ret = 0;
++	uint16_t n_act, n_tup;
++	char str[1024];
++	uint32_t index = 0, n;
++	char grpc_addr[64] = "10.0.0.1:9559";
++	uint16_t default_lpm_mask = 24;
++
++	n = sprintf(str + index, "ovs-p4ctl add-entry br0 ");
++	index += n;
++	if(false == p4InfoParsed) {
++		parse_p4Info();
++	}
++	if(INSET_MAC_IPV4 == retInset) {
++		n = sprintf(str + index, "%s", tables[0].name);
++		index += n;
++		for (tuple = flow_tuples, n_tup = 0, last_tuple = flow_tuples;
++				tuple->type != VIRTIO_ALL_PROTOCOLS;
++				tuple++, last_tuple = tuple, n_tup++) {
++			if(tuple->type == VIRTIO_IPV4_OUTER_DST) {
++				n = sprintf(str+index, " \"headers.ipv4.daddr=%d.%d.%d.%d/%u,",
++						(tuple->val.ipv4_hdr.dst_addr & 0xFF),
++						((tuple->val.ipv4_hdr.dst_addr >> 8) & 0xFF),
++						((tuple->val.ipv4_hdr.dst_addr >>  16) & 0xFF),
++						((tuple->val.ipv4_hdr.dst_addr >> 24) & 0xFF),
++						default_lpm_mask);
++				index += n;
++			}
++		}
++		if (n_tup == 0 || last_tuple == NULL)
++			return -EINVAL;
++		for (action = flow_actions, n_act = 0, last_action = flow_actions;
++				action->type != VIRTIO_ALL_ACTIONS;
++				action++, last_action = action, n_act++) {
++			if(action->type == VIRTIO_FWD_TO_PORT) {
++				n = sprintf(str+index, "action=ingress.set_direction(%d)\"",
++						action->port_id);
++				index += n;
++
++			}
++		}
++		if (n_act == 0 || last_action == NULL)
++			return -EINVAL;
++	}
++	else if (retInset ==INSET_MAC_IPV4_L4) {
++		n = sprintf(str + index, "%s", tables[2].name);
++		index += n;
++
++		for (tuple = flow_tuples, n_tup = 0, last_tuple = flow_tuples;
++				tuple->type != VIRTIO_ALL_PROTOCOLS;
++				tuple++, last_tuple = tuple, n_tup++) {
++			if(tuple->type == VIRTIO_IPV4_OUTER_DST) {
++				n = sprintf(str+index, "headers.ipv4.daddr=%d.%d.%d.%d,",
++						(tuple->val.ipv4_hdr.dst_addr & 0xFF),
++						((tuple->val.ipv4_hdr.dst_addr >> 8) & 0xFF),
++						((tuple->val.ipv4_hdr.dst_addr >>  16) & 0xFF),
++						((tuple->val.ipv4_hdr.dst_addr >> 24) & 0xFF));
++				index += n;
++			}
++			if(tuple->type == VIRTIO_IPV4_OUTER_SRC) {
++				n = sprintf(str+index, " \"headers.ipv4.saddr=%d.%d.%d.%d,",
++						(tuple->val.ipv4_hdr.src_addr & 0xFF),
++						((tuple->val.ipv4_hdr.src_addr >> 8) & 0xFF),
++						((tuple->val.ipv4_hdr.src_addr >>  16) & 0xFF),
++						((tuple->val.ipv4_hdr.src_addr >> 24) & 0xFF));
++				index += n;
++			}
++			if(tuple->type == VIRTIO_TCP_OUTER_SRC) {
++				n = sprintf(str+index, "headers.ipv4.proto=6,headers.tcp.sport=%d,",
++						tuple->val.l4_hdr.src_port);
++				index +=n;
++			}
++			if(tuple->type == VIRTIO_TCP_OUTER_DST) {
++				n = sprintf(str+index, "headers.tcp.dport=%d,",
++						tuple->val.l4_hdr.dst_port);
++				index +=n;
++			}
++		}
++		if (n_tup == 0)
++			return -EINVAL;
++		for (action = flow_actions, n_act = 0, last_action = flow_actions;
++				action->type != VIRTIO_ALL_ACTIONS;
++				action++, last_action = action, n_act++) {
++			if(action->type == VIRTIO_FWD_TO_PORT) {
++				n = sprintf(str+index, "action=ingress.ipv4_forward(%d)\"",
++						action->port_id);
++				index += n;
++			}
++		}
++
++		if (n_act == 0)
++			return -EINVAL;
++	}
++
++	n = sprintf(str+index," -g %s",grpc_addr);
++	PMD_INIT_LOG(ERR, "CMD Str : %s\n", str);
++	int status = system(str);
++
++	if (WIFEXITED(status)) {
++		PMD_INIT_LOG(DEBUG, "Cmd executed successfully and return value: %d\n",
++				WEXITSTATUS(status));
++	}
++	else if (WIFSIGNALED(status)) {
++		PMD_INIT_LOG(DEBUG, "cmd exited because of signal (signal no:%d)\n",
++				WTERMSIG(status));
++		ret = -1;
++	}
++	return ret;
++}
++
++static int
++parse_flow_action(struct virtio_hw *hw,
++		struct virtio_flow *vflow,
++		const struct rte_flow_action *actions,
++		struct rte_flow_error *error,
++		struct virtio_flow_action *flow_actions)
++{
++	(void)hw;
++	const struct rte_flow_action_queue *act_q;
++	const struct rte_flow_action_port_id *act_port;
++	const struct rte_flow_action *action;
++	enum rte_flow_action_type action_type;
++	uint16_t t = 0;
++
++	for (action = actions; action->type !=
++			RTE_FLOW_ACTION_TYPE_END; action++) {
++		action_type = action->type;
++		switch (action_type) {
++		case RTE_FLOW_ACTION_TYPE_QUEUE:
++			act_q = action->conf;
++			flow_actions[t].type = VIRTIO_FWD_TO_Q;
++			vflow->act_mask |= VIRTIO_ACT_MASK_FWD_TO_Q;
++			/* TODO: Need to verify the qid is a valid one */
++			flow_actions[t].queue_id = act_q->index;
++			t++;
++			break;
++
++		case RTE_FLOW_ACTION_TYPE_PORT_ID:
++			act_port = action->conf;
++			flow_actions[t].type = VIRTIO_FWD_TO_PORT;
++			flow_actions[t].port_id = act_port->id;
++			vflow->act_mask |= VIRTIO_ACT_MASK_FWD_TO_PORT;
++			t++;
++			break;
++
++		case RTE_FLOW_ACTION_TYPE_DROP:
++			flow_actions[t].type = VIRTIO_DROP_PACKET;
++			vflow->act_mask |= VIRTIO_ACT_MASK_DROP_PACKET;
++			t++;
++			break;
++
++		case RTE_FLOW_ACTION_TYPE_MARK:
++		case RTE_FLOW_ACTION_TYPE_VOID:
++			break;
++		case RTE_FLOW_ACTION_TYPE_COUNT:
++			flow_actions[t].type = VIRTIO_FLOW_COUNT;
++			vflow->act_mask |= VIRTIO_ACT_MASK_FLOW_COUNT;
++			t++;
++			break;
++		default:
++			rte_flow_error_set(error,
++				EINVAL,
++				RTE_FLOW_ERROR_TYPE_ITEM,
++				actions,
++				"Invalid action type");
++			return -rte_errno;
++		}
++	}
++	flow_actions[t++].type = VIRTIO_ALL_ACTIONS;
++	vflow->num_action = t;
++
++	return 0;
++}
++
++static int
++parse_flow_pattern(__rte_unused struct virtio_hw *hw,
++		__rte_unused struct virtio_flow *vflow,
++		const struct rte_flow_item pattern[],
++		struct rte_flow_error *error,
++		struct virtio_flow_tuple *flow_tuples)
++{
++	const struct rte_flow_item *item = pattern;
++	enum rte_flow_item_type item_type;
++	const struct rte_flow_item_eth *eth_spec, *eth_mask;
++	const struct rte_flow_item_ipv4 *ipv4_spec, *ipv4_mask;
++	const struct rte_flow_item_tcp *tcp_spec, *tcp_mask;
++	const struct rte_flow_item_udp *udp_spec, *udp_mask;
++	const struct rte_flow_item_gtp *gtp_spec, *gtp_mask;
++	uint16_t j, t = 0;
++
++	for (item = pattern; item->type !=
++			RTE_FLOW_ITEM_TYPE_END; item++) {
++		item_type = item->type;
++
++		switch (item_type) {
++		case RTE_FLOW_ITEM_TYPE_ETH:
++			eth_spec = item->spec;
++			eth_mask = item->mask;
++			struct virtio_ether_hdr *h;
++			struct virtio_ether_hdr *m;
++
++			h = &flow_tuples[t].val.eth_hdr;
++			m = &flow_tuples[t].msk.eth_hdr;
++			/* copy src mac */
++			for (j = 0; j < RTE_ETHER_ADDR_LEN; j++) {
++				if (eth_spec != NULL)
++					h->src_addr[j] =
++						eth_spec->src.addr_bytes[j];
++				else
++					h->src_addr[j] = 0;
++
++				if (eth_mask != NULL)
++					m->src_addr[j] =
++						eth_mask->src.addr_bytes[j];
++				else
++					m->src_addr[j] = 0;
++			}
++			flow_tuples[t++].type = VIRTIO_MAC_OUTER_SRC;
++			h = &flow_tuples[t].val.eth_hdr;
++			m = &flow_tuples[t].msk.eth_hdr;
++			/* copy dst mac */
++			for (j = 0; j < RTE_ETHER_ADDR_LEN; j++) {
++				if (eth_spec != NULL)
++					h->dst_addr[j] =
++						eth_spec->dst.addr_bytes[j];
++				else
++					h->dst_addr[j] = 0;
++
++				if (eth_mask != NULL)
++					m->dst_addr[j] =
++						eth_mask->dst.addr_bytes[j];
++				else
++					m->dst_addr[j] = 0;
++			}
++			flow_tuples[t++].type = VIRTIO_MAC_OUTER_DST;
++			vflow->pkt_type |= RTE_PTYPE_L2_ETHER;
++			break;
++
++		case RTE_FLOW_ITEM_TYPE_IPV4:
++			ipv4_spec = item->spec;
++			ipv4_mask = item->mask;
++			/* copy src ip */
++			if (ipv4_spec != NULL)
++				flow_tuples[t].val.ipv4_hdr.src_addr =
++					ipv4_spec->hdr.src_addr;
++			else
++				flow_tuples[t].val.ipv4_hdr.src_addr = 0;
++			if (ipv4_mask != NULL)
++				flow_tuples[t].msk.ipv4_hdr.src_addr =
++					ipv4_mask->hdr.src_addr;
++			else
++				flow_tuples[t].msk.ipv4_hdr.src_addr = 0;
++			flow_tuples[t++].type = VIRTIO_IPV4_OUTER_SRC;
++			/* copy dst ip */
++			if (ipv4_spec != NULL)
++				flow_tuples[t].val.ipv4_hdr.dst_addr =
++					ipv4_spec->hdr.dst_addr;
++			else
++				flow_tuples[t].val.ipv4_hdr.dst_addr = 0;
++			if (ipv4_mask != NULL)
++				flow_tuples[t].msk.ipv4_hdr.dst_addr =
++					ipv4_mask->hdr.dst_addr;
++			else
++				flow_tuples[t].msk.ipv4_hdr.dst_addr = 0;
++			flow_tuples[t++].type = VIRTIO_IPV4_OUTER_DST;
++
++			vflow->pkt_type |= RTE_PTYPE_L3_IPV4;
++			break;
++
++		case RTE_FLOW_ITEM_TYPE_UDP:
++			udp_spec = item->spec;
++			udp_mask = item->mask;
++			if (udp_spec && udp_mask) {
++				if (udp_mask->hdr.src_port == UINT16_MAX) {
++					flow_tuples[t].val.l4_hdr.src_port =
++						htons(udp_spec->hdr.src_port);
++					flow_tuples[t].msk.l4_hdr.src_port =
++						htons(udp_mask->hdr.src_port);
++					flow_tuples[t].type = VIRTIO_UDP_OUTER_SRC;
++					t++;
++				}
++				if (udp_mask->hdr.dst_port == UINT16_MAX) {
++					flow_tuples[t].val.l4_hdr.dst_port =
++						htons(udp_spec->hdr.dst_port);
++					flow_tuples[t].msk.l4_hdr.dst_port =
++						htons(udp_mask->hdr.dst_port);
++					flow_tuples[t].type = VIRTIO_UDP_OUTER_DST;
++					t++;
++				}
++				vflow->pkt_type |= RTE_PTYPE_L4_UDP;
++			}
++			break;
++
++		case RTE_FLOW_ITEM_TYPE_TCP:
++			tcp_spec = item->spec;
++			tcp_mask = item->mask;
++			if (tcp_spec && tcp_mask) {
++				if (tcp_mask->hdr.src_port == UINT16_MAX) {
++					flow_tuples[t].val.l4_hdr.src_port =
++						htons(tcp_spec->hdr.src_port);
++					flow_tuples[t].msk.l4_hdr.src_port =
++						htons(tcp_mask->hdr.src_port);
++					flow_tuples[t].type = VIRTIO_TCP_OUTER_SRC;
++					t++;
++				}
++				if (tcp_mask->hdr.dst_port == UINT16_MAX) {
++					flow_tuples[t].val.l4_hdr.dst_port =
++						htons(tcp_spec->hdr.dst_port);
++					flow_tuples[t].msk.l4_hdr.dst_port =
++						htons(tcp_mask->hdr.dst_port);
++					flow_tuples[t].type = VIRTIO_TCP_OUTER_DST;
++					t++;
++				}
++				vflow->pkt_type |= RTE_PTYPE_L4_TCP;
++			}
++			break;
++		case RTE_FLOW_ITEM_TYPE_GTPU:
++			gtp_spec = item->spec;
++			gtp_mask = item->mask;
++
++			if (gtp_spec && gtp_mask) {
++				if (gtp_mask->v_pt_rsv_flags ||
++				    gtp_mask->msg_type ||
++				    gtp_mask->msg_len ||
++				    gtp_mask->teid != UINT32_MAX) {
++					rte_flow_error_set(error, EINVAL,
++						   RTE_FLOW_ERROR_TYPE_ITEM,
++						   item,
++						   "Invalid GTP mask");
++					return -rte_errno;
++				}
++
++				flow_tuples[t].val.tnl_hdr.tunnel_id =
++					gtp_spec->teid;
++				flow_tuples[t].msk.tnl_hdr.tunnel_id =
++					gtp_mask->teid;
++
++			}
++			flow_tuples[t++].type = VIRTIO_GTP_NO_EXT;
++			break;
++		case RTE_FLOW_ITEM_TYPE_VOID:
++		case RTE_FLOW_ITEM_TYPE_END:
++			break;
++
++		default:
++			rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_ITEM, pattern,
++				   "Invalid pattern item.");
++			goto out;
++		}
++	}
++
++	flow_tuples[t++].type = VIRTIO_ALL_PROTOCOLS;
++	vflow->num_tuple = t;
++
++	return 0;
++out:
++	return -rte_errno;
++}
++static int
++flow_parse_and_add(struct virtio_hw *hw,
++		const struct rte_flow_attr *attr,
++		const struct rte_flow_item pattern[],
++		const struct rte_flow_action actions[],
++		struct rte_flow *flow,
++		struct rte_flow_error *error, int retInset)
++{
++	const struct rte_flow_item *new_pattern = pattern;
++	struct virtio_flow_tuple *flow_tuples = NULL;
++	struct virtio_flow_action *flow_actions = NULL;
++	const struct rte_flow_action *act = actions;
++	struct virtio_flow *vflow;
++	uint16_t act_num = 0;
++	uint16_t dir = attr->ingress;
++	int ret = 0;
++
++	flow_tuples = rte_zmalloc("flow_tuples",
++			MAX_ITEMS * sizeof(*flow_tuples), RTE_CACHE_LINE_SIZE);
++	if (flow_tuples == NULL) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_HANDLE, NULL,
++				   "No memory for flow tuples");
++		return -rte_errno;
++	}
++
++	for (; act->type != RTE_FLOW_ACTION_TYPE_END; act++)
++		act_num++;
++
++	flow_actions = rte_zmalloc("flow_actions",
++			(act_num + 3) * sizeof(*flow_actions),
++			RTE_CACHE_LINE_SIZE);
++	if (flow_actions == NULL) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_HANDLE, NULL,
++				   "No memory for flow actions");
++		rte_free(flow_tuples);
++		return -rte_errno;
++	}
++
++	vflow = rte_zmalloc("virtio_flow", sizeof(struct virtio_flow),
++			RTE_CACHE_LINE_SIZE);
++	if (vflow == NULL) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_HANDLE, NULL,
++				   "No memory for virtio_flow");
++		rte_free(flow_tuples);
++		rte_free(flow_actions);
++		return -rte_errno;
++	}
++	vflow->tuples = flow_tuples;
++	vflow->actions = flow_actions;
++	if (dir) {
++		vflow->ingress = 1;
++	} else {
++		vflow->ingress = 0;
++	}
++	ret = parse_flow_pattern(hw, vflow, new_pattern, error,
++			flow_tuples);
++	if (ret)
++		goto error;
++
++	ret = parse_flow_action(hw, vflow, actions, error,
++			flow_actions);
++	if (ret)
++		goto error;
++
++	flow_dump(vflow);
++	ret = add_rules(hw, vflow, retInset);
++	if (ret) {
++		rte_flow_error_set(error, EINVAL, RTE_FLOW_ERROR_TYPE_HANDLE,
++				   pattern, "Failed to create flow.");
++		goto error;
++	}
++
++	if (ret == 0)
++		flow->rule = vflow;
++
++	rte_free(flow_tuples);
++	vflow->tuples = NULL;
++
++	return 0;
++
++error:
++	rte_free(flow_tuples);
++	rte_free(flow_actions);
++	rte_free(vflow);
++
++	return -rte_errno;
++}
++
++static struct rte_flow *
++virtio_flow_create(struct rte_eth_dev *dev,
++		const struct rte_flow_attr *attr,
++		const struct rte_flow_item pattern[],
++		const struct rte_flow_action actions[],
++		struct rte_flow_error *error)
++{
++	struct rte_flow *flow = NULL;
++	struct virtio_pci_dev *pci_dev;
++	struct virtio_hw *hw;
++	const struct rte_flow_item *new_pattern = pattern;
++	int ret = 0, retInset = 0;
++
++	if (dev == NULL) {
++		rte_flow_error_set(error, EINVAL,
++			RTE_FLOW_ERROR_TYPE_HANDLE,
++			NULL, "Dev flow");
++		return NULL;
++	}
++
++	pci_dev = dev->data->dev_private;
++	hw = &pci_dev->hw;
++	if (hw == NULL) {
++		rte_flow_error_set(error, EINVAL,
++			RTE_FLOW_ERROR_TYPE_HANDLE,
++			NULL, "Dev flow");
++		return NULL;
++	}
++
++        PMD_DRV_LOG(INFO, "flow create function from virtio driver");
++        flow = rte_zmalloc(NULL, sizeof(*flow), RTE_CACHE_LINE_SIZE);
++	if (flow == NULL) {
++		rte_flow_error_set(error, EINVAL,
++				   RTE_FLOW_ERROR_TYPE_HANDLE, NULL,
++				   "No memory for PMD internal items");
++		return NULL;
++	}
++	retInset = virtio_flow_validate(dev, attr, new_pattern, actions, error);
++	if (retInset <= 0)
++		goto free_flow;
++
++	ret = flow_parse_and_add(hw, attr, pattern, actions,
++				flow, error, retInset);
++	if (ret)
++		goto free_flow;
++
++	flow->port_id = dev->data->port_id;
++	TAILQ_INSERT_HEAD(&hw->flows, flow, node);
++	return flow;
++
++free_flow:
++	rte_flow_error_set(error, -ret,
++			   RTE_FLOW_ERROR_TYPE_HANDLE, NULL,
++			   "Failed to create flow.");
++	rte_free(flow);
++	return NULL;
++
++}
++
++
++static int
++virtio_flow_destroy(struct rte_eth_dev *dev,
++		struct rte_flow *flow,
++		struct rte_flow_error *error)
++{
++	struct virtio_flow *vflow;
++	struct virtio_pci_dev *pci_dev;
++	struct virtio_hw *hw;
++	int ret = 0;
++
++	if (dev == NULL)
++		return rte_flow_error_set(error, EINVAL,
++			RTE_FLOW_ERROR_TYPE_HANDLE,
++			NULL, "Dev flow");
++
++	pci_dev = dev->data->dev_private;
++	vflow = (struct virtio_flow *)flow->rule;
++	hw = &pci_dev->hw;
++
++	if (vflow == NULL || hw == NULL) {
++		rte_flow_error_set(error, EINVAL,
++			RTE_FLOW_ERROR_TYPE_HANDLE, NULL,
++			"no such flow found");
++		return -rte_errno;
++	}
++	//TODO: add function call to p4ctl to delete flow
++	TAILQ_REMOVE(&hw->flows, flow, node);
++	rte_free(vflow->actions);
++	rte_free(vflow);
++	rte_free(flow);
++	PMD_DRV_LOG(INFO,"Flow successfully removed");
++	return ret;
++}
++
++static int
++virtio_flow_flush(struct rte_eth_dev *dev,
++		struct rte_flow_error *error)
++{
++	struct virtio_pci_dev *pci_dev;
++	struct virtio_hw *hw;
++
++	int ret = 0;
++	if (dev == NULL)
++		return rte_flow_error_set(error, EINVAL,
++			RTE_FLOW_ERROR_TYPE_HANDLE,
++			NULL, "Dev flow");
++
++	pci_dev = dev->data->dev_private;
++	hw = &pci_dev->hw;
++	if (hw == NULL)
++		return rte_flow_error_set(error, EINVAL,
++			RTE_FLOW_ERROR_TYPE_HANDLE,
++			NULL, "Dev flow");
++
++        PMD_DRV_LOG(INFO, "flow flushed");
++	return ret;
++}
++
++static int
++virtio_flow_query(struct rte_eth_dev *dev,
++		struct rte_flow *flow,
++		const struct rte_flow_action actions[],
++		void *data,
++		struct rte_flow_error *error)
++{
++
++	struct rte_flow_query_count *query_count;
++	query_count = (struct rte_flow_query_count *)data;
++
++        PMD_DRV_LOG(INFO, "flow query");
++	/* Check input parameters. */
++	if (dev == NULL)
++		return rte_flow_error_set(error, EINVAL,
++			RTE_FLOW_ERROR_TYPE_HANDLE,
++			NULL, "Dev flow");
++	if (flow == NULL)
++		return rte_flow_error_set(error, EINVAL,
++			RTE_FLOW_ERROR_TYPE_HANDLE,
++			NULL, "Null flow");
++
++	if (data == NULL)
++		return rte_flow_error_set(error,
++			EINVAL, RTE_FLOW_ERROR_TYPE_UNSPECIFIED,
++			NULL, "Null data");
++
++	for (; actions->type != RTE_FLOW_ACTION_TYPE_END; actions++) {
++		switch (actions->type) {
++		case RTE_FLOW_ACTION_TYPE_VOID:
++			break;
++		case RTE_FLOW_ACTION_TYPE_COUNT:
++			query_count->hits_set = 1;
++			query_count->bytes_set = 1;
++			break;
++		default:
++			return rte_flow_error_set(error, ENOTSUP,
++						  RTE_FLOW_ERROR_TYPE_ACTION,
++						  actions,
++						  "action not supported");
++		}
++	}
++	return 0;
++}
+diff --git a/drivers/net/virtio/virtio_flow.h b/drivers/net/virtio/virtio_flow.h
+new file mode 100644
+index 0000000000..b50a3c09d4
+--- /dev/null
++++ b/drivers/net/virtio/virtio_flow.h
+@@ -0,0 +1,154 @@
++/* SPDX-LVIRTIOnse-Identifier: BSD-3-Clause
++ * Copyright(c) 2021 Intel Corporation
++ */
++
++#ifndef _VIRTIO_FLOW_H_
++#define _VIRTIO_FLOW_H_
++#include <rte_bus_vdev.h>
++#include <rte_bus_pci.h>
++#include <rte_config.h>
++#include <rte_flow_driver.h>
++#include <rte_kvargs.h>
++#include <rte_malloc.h>
++#include <rte_pci.h>
++#include <rte_tm.h>
++#include "virtio_pci.h"
++#include "virtio.h"
++
++#define MAX_ITEMS       24
++#define VIRTIO_IPV6_ADDR_LENGTH 16
++#define VIRTIO_MAC_MAX_QUEUE		24
++
++/*inner rules will be done in next phase */
++enum virtio_protocol_type {
++	VIRTIO_MAC_OUTER_SRC = 0,
++	VIRTIO_MAC_OUTER_DST,
++	VIRTIO_MAC_OUTER_ETHTYPE,
++	VIRTIO_IPV4_OUTER_SRC,
++	VIRTIO_IPV4_OUTER_DST,
++	VIRTIO_IPV4_OUTER_PROT,
++	VIRTIO_TCP_OUTER_SRC,
++	VIRTIO_TCP_OUTER_DST,
++	VIRTIO_UDP_OUTER_SRC,
++	VIRTIO_UDP_OUTER_DST,
++	VIRTIO_SRC_PORT,
++	VIRTIO_GTP_NO_EXT,
++	VIRTIO_ALL_PROTOCOLS
++};
++enum virtio_act_type {
++	VIRTIO_VOID,
++	VIRTIO_FWD_TO_Q,
++	VIRTIO_FWD_TO_PORT,
++	VIRTIO_DROP_PACKET,
++	VIRTIO_FLOW_COUNT,
++	VIRTIO_ALL_ACTIONS
++};
++
++enum virtio_act_mask {
++	VIRTIO_ACT_MASK_FWD_TO_Q =      (1 << VIRTIO_FWD_TO_Q),
++	VIRTIO_ACT_MASK_FWD_TO_PORT =   (1 << VIRTIO_FWD_TO_PORT),
++	VIRTIO_ACT_MASK_DROP_PACKET =   (1 << VIRTIO_DROP_PACKET),
++	VIRTIO_ACT_MASK_FLOW_COUNT =    (1 << VIRTIO_FLOW_COUNT)
++};
++
++struct virtio_ether_hdr {
++	uint8_t dst_addr[RTE_ETHER_ADDR_LEN];
++	uint8_t src_addr[RTE_ETHER_ADDR_LEN];
++};
++
++struct virtio_ipv4_hdr {
++	uint32_t src_addr;
++	uint32_t dst_addr;
++};
++
++struct virtio_ipv6_hdr {
++	uint8_t src_addr[VIRTIO_IPV6_ADDR_LENGTH];
++	uint8_t dst_addr[VIRTIO_IPV6_ADDR_LENGTH];
++};
++
++struct virtio_l4_hdr {
++	uint16_t src_port;
++	uint16_t dst_port;
++};
++
++struct virtio_udp_tnl_hdr {
++	uint16_t field;
++	uint16_t msg_type;
++	uint16_t length;
++	uint64_t tunnel_id;
++};
++
++union virtio_prot_hdr {
++	struct virtio_ether_hdr eth_hdr;
++	struct virtio_ipv4_hdr ipv4_hdr;
++	struct virtio_l4_hdr l4_hdr;
++	struct virtio_udp_tnl_hdr tnl_hdr;
++	uint16_t src_port;
++};
++struct virtio_flow_action {
++	enum virtio_act_type type;
++	uint16_t port_id;
++	uint16_t queue_id;
++	uint16_t nb_queue;
++	uint32_t qid[VIRTIO_MAC_MAX_QUEUE];
++};
++
++struct virtio_flow_tuple {
++	enum virtio_protocol_type type;
++	union virtio_prot_hdr val;	/* Header values */
++	union virtio_prot_hdr msk;	/* Mask of header values to match */
++};
++
++struct virtio_flow {
++	/* Rule ID that was added or is supposed to be removed */
++	struct virtio_flow_tuple *tuples;
++	struct virtio_flow_action *actions;
++	uint64_t hits;
++	uint64_t bytes;
++	uint32_t pkt_type;
++	uint32_t act_mask;
++	uint8_t ingress; /* flag, ingress if true, otherwise egress */
++	uint8_t num_tuple;
++	uint8_t num_action;
++};
++
++#define VIRTIO_INSET_NONE		0x0000000000000000ULL
++
++/* bit0 ~ bit 7 MAC */
++#define VIRTIO_INSET_SMAC		0x0000000000000001ULL
++#define VIRTIO_INSET_DMAC		0x0000000000000002ULL
++#define VIRTIO_INSET_ETHERTYPE		0x0000000000000004ULL
++
++/* bit 8 ~ bit 15 IP */
++#define VIRTIO_INSET_IPV4_SRC		0x0000000000000100ULL
++#define VIRTIO_INSET_IPV4_DST		0x0000000000000200ULL
++#define VIRTIO_INSET_IPV6_SRC		0x0000000000000400ULL
++#define VIRTIO_INSET_IPV6_DST		0x0000000000000800ULL
++#define VIRTIO_INSET_SRC_PORT		0x0000000000001000ULL
++#define VIRTIO_INSET_DST_PORT		0x0000000000002000ULL
++#define VIRTIO_INSET_GTP_TEID		0x0000000000004000ULL
++
++/* basic header definition */
++#define INSET_MAC ( \
++	VIRTIO_INSET_DMAC | VIRTIO_INSET_SMAC | VIRTIO_INSET_ETHERTYPE)
++#define INSET_IPV4 ( \
++	VIRTIO_INSET_IPV4_DST | VIRTIO_INSET_IPV4_SRC)
++#define INSET_IPV6 ( \
++	VIRTIO_INSET_IPV6_DST | VIRTIO_INSET_IPV6_SRC)
++#define INSET_L4 ( \
++	VIRTIO_INSET_DST_PORT | VIRTIO_INSET_SRC_PORT)
++
++/* inset for basic flow */
++#define INSET_MAC_IPV4 ( \
++	INSET_MAC | INSET_IPV4)
++#define INSET_MAC_IPV6 ( \
++	INSET_MAC | INSET_IPV6)
++#define INSET_MAC_IPV4_L4 ( \
++	INSET_MAC | INSET_IPV4 | INSET_L4)
++#define INSET_MAC_IPV6_L4 ( \
++	INSET_MAC | INSET_IPV6 | INSET_L4)
++#define INSET_MAC_IPV4_L4_GTP ( \
++	INSET_MAC | INSET_IPV4 | INSET_L4 | VIRTIO_INSET_GTP_TEID)
++extern const struct rte_flow_ops virtio_flow_ops;
++
++#endif /* _VIRTIO_FLOW_H_ */
+-- 
+2.25.1
+

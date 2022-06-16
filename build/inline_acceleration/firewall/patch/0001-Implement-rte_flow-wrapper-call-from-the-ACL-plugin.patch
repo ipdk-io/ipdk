@@ -1,0 +1,239 @@
+From 6bfa4c17ce30ef75339aba52ac89d127caabf7c0 Mon Sep 17 00:00:00 2001
+From: Radu Nicolau <radu.nicolau@intel.com>
+Date: Thu, 27 Jan 2022 15:54:16 +0000
+Subject: [PATCH] Implement rte_flow wrapper call from the ACL plugin
+
+Use rte_flow_wrapper enable|disable.
+Note: enabling the wrapper after a ACL rule hit will not result in wrapper being called.
+
+Signed-off-by: Radu Nicolau <radu.nicolau@intel.com>
+---
+ src/plugins/acl/acl.c               |   3 +
+ src/plugins/acl/dataplane_node.c    |  18 ++++
+ src/plugins/dpdk/CMakeLists.txt     |   1 +
+ src/plugins/dpdk/rte_flow_wrapper.c | 151 ++++++++++++++++++++++++++++
+ 4 files changed, 173 insertions(+)
+ create mode 100644 src/plugins/dpdk/rte_flow_wrapper.c
+
+diff --git a/src/plugins/acl/acl.c b/src/plugins/acl/acl.c
+index 01a1e87a2..ce890672e 100644
+--- a/src/plugins/acl/acl.c
++++ b/src/plugins/acl/acl.c
+@@ -43,6 +43,9 @@
+
+ acl_main_t acl_main;
+
++__attribute__ ((
++  __visibility__ ("default"))) volatile int g_use_rte_flow_create_wrapper = 1;
++
+ #define REPLY_MSG_ID_BASE am->msg_id_base
+ #include <vlibapi/api_helper_macros.h>
+
+diff --git a/src/plugins/acl/dataplane_node.c b/src/plugins/acl/dataplane_node.c
+index 4bef8f077..1b1bb4129 100644
+--- a/src/plugins/acl/dataplane_node.c
++++ b/src/plugins/acl/dataplane_node.c
+@@ -318,6 +318,7 @@ acl_fa_node_common_prepare_fn (vlib_main_t * vm,
+     }
+ }
+
++extern int g_use_rte_flow_create_wrapper;
+
+ always_inline uword
+ acl_fa_inner_node_fn (vlib_main_t * vm,
+@@ -561,6 +562,23 @@ acl_fa_inner_node_fn (vlib_main_t * vm,
+ 	    next[0] = action ? next[0] : 0;
+ 	  }
+
++	  if (g_use_rte_flow_create_wrapper && action &&
++	      match_acl_in_index != ~0)
++	    {
++	      void *ptr = vlib_buffer_get_current (b[0]);
++	      int (*fp) (void *);
++	      fp = vlib_get_plugin_symbol ("dpdk_plugin.so",
++					   "rte_flow_create_wrapper");
++	      if (fp)
++		{
++		  int ret = fp (ptr);
++		  if (ret)
++		    printf ("rte_flow_create_wrapper call failed: %d\n", ret);
++		}
++	      else
++		printf ("rte_flow_create_wrapper symbol not found\n");
++	    }
++
+ 	  if (node_trace_on)	// PREDICT_FALSE (node->flags & VLIB_NODE_FLAG_TRACE))
+ 	    {
+ 	      maybe_trace_buffer (vm, node, b[0], sw_if_index[0], lc_index0,
+diff --git a/src/plugins/dpdk/CMakeLists.txt b/src/plugins/dpdk/CMakeLists.txt
+index 91cf236ea..fd49166a4 100644
+--- a/src/plugins/dpdk/CMakeLists.txt
++++ b/src/plugins/dpdk/CMakeLists.txt
+@@ -130,6 +130,7 @@ endif()
+ add_vpp_plugin(dpdk
+   SOURCES
+   buffer.c
++  rte_flow_wrapper.c
+   main.c
+   device/cli.c
+   device/common.c
+diff --git a/src/plugins/dpdk/rte_flow_wrapper.c b/src/plugins/dpdk/rte_flow_wrapper.c
+new file mode 100644
+index 000000000..5fb6a83e3
+--- /dev/null
++++ b/src/plugins/dpdk/rte_flow_wrapper.c
+@@ -0,0 +1,151 @@
++/*
++ * Copyright (c) 2022 Intel and/or its affiliates.
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at:
++ *
++ *     http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#include <rte_ethdev.h>
++#include <rte_net.h>
++#include <rte_flow.h>
++
++#include <vnet/vnet.h>
++#include <vnet/plugin/plugin.h>
++#include <vppinfra/vec.h>
++#include <vppinfra/format.h>
++
++#include <dpdk/buffer.h>
++
++unsigned int g_pmd_port_id;
++unsigned int g_fwd_port_id = 2;
++
++__attribute__ ((__visibility__ ("default"))) int
++rte_flow_create_wrapper (void *buf)
++{
++  struct rte_flow_action action[2] = { 0 };
++  struct rte_flow_item pattern[4] = { 0 };
++  struct rte_flow_item_eth eth_spec = { 0 };
++  struct rte_flow_item_eth eth_mask = { 0 };
++  struct rte_flow_item_ipv4 ipv4_spec = { 0 };
++  struct rte_flow_item_ipv4 ipv4_mask = { 0 };
++  struct rte_flow_item_tcp tcp_spec = { 0 };
++  struct rte_flow_attr attr = { 0 };
++  struct rte_flow_action_port_id port_id = { 0 };
++
++  struct rte_flow_error err;
++  struct rte_flow *flow_dir, *flow_fwd;
++
++  struct rte_ipv4_hdr *ipv4_hdr = (struct rte_ipv4_hdr *) (buf);
++  struct rte_ether_hdr *eth_hdr = ((struct rte_ether_hdr *) buf) - 1;
++
++  pattern[0].type = RTE_FLOW_ITEM_TYPE_ETH;
++  pattern[0].spec = &eth_spec;
++  pattern[0].mask = &eth_mask;
++  rte_memcpy (&eth_spec.hdr, eth_hdr, sizeof (eth_spec.hdr));
++  memset (eth_mask.hdr.dst_addr.addr_bytes, 0xFF, RTE_ETHER_ADDR_LEN);
++
++  pattern[1].type = RTE_FLOW_ITEM_TYPE_IPV4;
++  pattern[1].spec = &ipv4_spec;
++  pattern[1].mask = &ipv4_mask;
++  rte_memcpy (&ipv4_spec.hdr, ipv4_hdr, sizeof (ipv4_spec.hdr));
++  ipv4_mask.hdr.dst_addr = RTE_BE32 (0xffffffff);
++
++  pattern[2].type = RTE_FLOW_ITEM_TYPE_END;
++
++  action[0].type = RTE_FLOW_ACTION_TYPE_PORT_ID;
++  action[0].conf = &port_id;
++  port_id.id = 1;
++  action[1].type = RTE_FLOW_ACTION_TYPE_END;
++  action[1].conf = NULL;
++
++  attr.ingress = 1;
++
++  flow_dir = rte_flow_create (g_pmd_port_id, &attr, pattern, action, &err);
++  if (flow_dir == NULL)
++    {
++      clib_error_return (0, "rte_flow_create error: %s\n", err.message);
++      return -1;
++    }
++
++  ipv4_mask.hdr.src_addr = RTE_BE32 (0xffffffff);
++
++  if (ipv4_hdr->next_proto_id == IPPROTO_TCP)
++    {
++      struct rte_tcp_hdr *tcp_hdr = (struct rte_tcp_hdr *) (ipv4_hdr + 1);
++
++      pattern[2].type = RTE_FLOW_ITEM_TYPE_TCP;
++      pattern[2].spec = &tcp_spec;
++      pattern[2].mask = &rte_flow_item_tcp_mask;
++      tcp_spec.hdr.dst_port = tcp_hdr->dst_port;
++      tcp_spec.hdr.src_port = tcp_hdr->src_port;
++
++      pattern[3].type = RTE_FLOW_ITEM_TYPE_END;
++    }
++  else
++    {
++      pattern[2].type = RTE_FLOW_ITEM_TYPE_END;
++    }
++
++  action[0].type = RTE_FLOW_ACTION_TYPE_PORT_ID;
++  action[0].conf = &port_id;
++  port_id.id = g_fwd_port_id;
++
++  action[1].type = RTE_FLOW_ACTION_TYPE_END;
++  action[1].conf = NULL;
++
++  attr.ingress = 1;
++
++  flow_fwd = rte_flow_create (g_pmd_port_id, &attr, pattern, action, &err);
++  if (flow_fwd == NULL)
++    {
++      clib_error_return (0, "rte_flow_create error: %s\n", err.message);
++      return -1;
++    }
++
++  return 0;
++}
++
++static clib_error_t *
++rte_flow_wrapper_ports_set_fn (vlib_main_t *vm, unformat_input_t *input,
++			       vlib_cli_command_t *cmd)
++{
++  (void) vm;
++  (void) cmd;
++
++  int *enabled =
++    vlib_get_plugin_symbol ("acl_plugin.so", "g_use_rte_flow_create_wrapper");
++  if (enabled == NULL)
++    return clib_error_return (0, "vlib_get_plugin_symbol failed");
++
++  while (unformat_check_input (input) != UNFORMAT_END_OF_INPUT)
++    {
++      if (unformat (input, "%d %d", &g_pmd_port_id, &g_fwd_port_id))
++	;
++      else if (unformat (input, "disable"))
++	*enabled = 0;
++      else if (unformat (input, "enable"))
++	*enabled = 1;
++      else
++	return clib_error_return (0, "parse error");
++    }
++
++  if (*enabled)
++    return clib_error_return (0, "pmd %d fwd %d", g_pmd_port_id,
++			      g_fwd_port_id);
++  else
++    return clib_error_return (0, "disabled");
++}
++
++VLIB_CLI_COMMAND (rte_flow_wrapper_ports_set, static) = {
++  .path = "rte_flow_wrapper",
++  .short_help = "rte_flow_wrapper pmd_port_id fwd_port_id",
++  .function = rte_flow_wrapper_ports_set_fn,
++};
+-- 
+2.25.1
+
