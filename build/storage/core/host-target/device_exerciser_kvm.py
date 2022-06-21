@@ -119,5 +119,5 @@ class DeviceExerciserKvm(DeviceExerciserIf):
             sma_handle.get_pci_address()
         )
 
-        fio_args_with_device = fio_args + " --filename=" + device_path
-        return self._fio_runner(fio_args_with_device)
+        fio_args.add_argument("filename", device_path)
+        return self._fio_runner(fio_args)
