@@ -23,6 +23,12 @@ spdk_version=$(get_spdk_version)
 export SPDK_VERSION="${spdk_version}"
 export DOCKER_BUILDKIT=${DOCKER_BUILDKIT:-1}
 export COMPOSE_DOCKER_CLI_BUILD=${COMPOSE_DOCKER_CLI_BUILD:-1}
+host_target_image_tar="$current_script_dir/host-target.tar"
+
+cleanup() {
+    rm -f "$host_target_image_tar"
+}
+trap 'cleanup' EXIT
 
 export NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT=\
 "${NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT:-64}"
@@ -52,7 +58,14 @@ function provide_hugepages() {
     bash "${scripts_dir}"/allocate_hugepages.sh
 }
 
+function save_host_target_image_to_file() {
+    local host_target_image_tar="$1"
+    "${scripts_dir}"/build_container.sh "host-target"
+    docker save -o "$host_target_image_tar" host-target
+}
+
 provide_hugepages
+save_host_target_image_to_file "$host_target_image_tar"
 
 test_cases=(hot-plug fio)
 if [ "${BASE_TESTS_ONLY}" != "true" ]; then

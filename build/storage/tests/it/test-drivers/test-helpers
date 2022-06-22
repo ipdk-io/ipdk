@@ -50,6 +50,36 @@ function wait_until_vm_is_up() {
 	return 0
 }
 
+function wait_until_host_target_is_up() {
+	local console="${1}"
+	local wait_counter=0
+	local wait_period_sec=5
+	local max_wait_counter=10
+	local cmd='docker container ls'
+
+	while [ "${wait_counter}" -le "${max_wait_counter}" ] ; do
+		out=$(send_command_over_unix_socket "${console}" "$cmd" 1)
+		if echo "$out" | grep -c "host-target"; then
+			return 0
+		fi
+		sleep "${wait_period_sec}"
+		wait_counter=$(( wait_counter + 1 ))
+	done
+	return 1
+}
+
+function send_fio_cmd() {
+	local traffic_generator_ip="$1"
+	local host_target_service_port="$2"
+	local device_handle="$3"
+	local fio_args="$4"
+	out=$(no_grpc_proxy="" grpc_cli call \
+		"$traffic_generator_ip:$host_target_service_port" \
+		RunFio "pciAddress: '$device_handle' \
+		fioArgs: '$fio_args'")
+	echo "$out"
+}
+
 function log_in() {
 	out=$( send_command_over_unix_socket "${1}" "${2}" 3 )
 	[ "$DEBUG_VM" == 'true' ] && echo "${out}"
@@ -70,6 +100,8 @@ storage_target_ip=$(hostname_to_ip "storage-target")
 export storage_target_ip="${storage_target_ip}"
 proxy_ip=$(hostname_to_ip "proxy-container")
 export proxy_ip="${proxy_ip}"
+traffic_generator_ip=$(hostname_to_ip "traffic-generator")
+export traffic_generator_ip="${traffic_generator_ip}"
 export nqn="nqn.2016-06.io.spdk:cnode1"
 export shared_volume=/ipdk-shared
 export vm_serial=${shared_volume}/vm_socket

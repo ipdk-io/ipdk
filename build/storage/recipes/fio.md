@@ -17,7 +17,7 @@ the vm(step 5)
 
 3. Run fio. Execute the following command from `cmd-sender`
 ```
-$ echo -e $(no_grpc_proxy= grpc_cli call <vm_ip>:50051 \
+$ echo -e $(no_grpc_proxy= grpc_cli call <host_ip_where_vm_is_run>:50051 \
 RunFio "pciAddress: '0000:01:00.0' fioArgs: '--direct=1 --rw=randrw --bs=4k --ioengine=libaio --iodepth=256 --runtime=1 --numjobs=4 --time_based --group_reporting --name=iops-test-job'")
 ```
 

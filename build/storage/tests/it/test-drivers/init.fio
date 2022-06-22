@@ -14,9 +14,11 @@ declare storage_target_ip
 declare proxy_ip
 declare virtio_blk_virtual_id
 declare port_to_expose
+declare traffic_generator_ip
 # shellcheck disable=SC1091
 source "${current_script_dir}"/test-helpers
 
+wait_until_port_on_ip_addr_open "${storage_target_ip}" "${DEFAULT_SPDK_PORT}"
 create_and_expose_sybsystem_over_tcp \
 	"${storage_target_ip}" "${nqn}" "${port_to_expose}"
 
@@ -36,14 +38,15 @@ echo "check attachment"
 is_virtio_blk_attached "${vm_serial}"
 
 echo "Run fio"
-fio_cmd="fio --filename=/dev/vda --direct=1 --rw=randrw \
-	--bs=4k --ioengine=libaio --iodepth=256 --runtime=10 \
-	--numjobs=4 --time_based --group_reporting --name=iops-test-job"
+wait_until_host_target_is_up "${vm_serial}"
 
-out=$(send_command_over_unix_socket "${vm_serial}" "${fio_cmd}" 11)
-echo "${out}"
-
+device_handle="0000:01:00.0"
+fio_args="--direct=1 --rw=randrw --bs=4k --ioengine=libaio --iodepth=256 \
+	--runtime=1 --numjobs=4 --time_based --group_reporting \
+	--name=iops-test-job"
+out=$(send_fio_cmd "$traffic_generator_ip" "$HOST_TARGET_SERVICE_PORT" \
+					"$device_handle" "$fio_args")
+echo -e "$out"
 echo "${out}" | grep "Disk stats (read/write)"
 echo "fio has been executed successfully!"
-
 exit 0
