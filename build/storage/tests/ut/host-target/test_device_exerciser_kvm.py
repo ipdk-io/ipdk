@@ -5,91 +5,81 @@
 #
 
 import unittest
-from pyfakefs.fake_filesystem_unittest import TestCase
-from pci_devices import PciAddress
+
 from device_exerciser_kvm import *
 from device_exerciser_if import *
 
 
-class KvmSmaHandleTests(TestCase):
+class DeviceExerciserKvmTests(unittest.TestCase):
     def setUp(self):
-        pass
+        self.protocol_name = "virtio_blk"
+        self.stub_device_path = "/dev/some_device"
+        self.parsed_pci_addr = ""
 
-    def tearDown(self):
-        pass
+        def get_virtio_blk(pci_addr):
+            self.parsed_pci_addr = str(pci_addr)
+            return self.stub_device_path
 
-    def test_kvm_handle_to_protocol(self):
-        handle = DeviceExerciserKvm._KvmSmaHandle("my_custom_protocol:sma-0")
-        self.assertEqual(str(handle.get_protocol()), "my_custom_protocol")
-
-    def test_kvm_handle_to_pci_address(self):
-        handle = DeviceExerciserKvm._KvmSmaHandle("virtio_blk:sma-0")
-        self.assertEqual(str(handle.get_pci_address()), "0000:01:00.0")
-
-    def test_kvm_handle_to_pci_on_another_bus(self):
-        handle = DeviceExerciserKvm._KvmSmaHandle("virtio_blk:sma-32")
-        self.assertEqual(str(handle.get_pci_address()), "0000:02:00.0")
-
-    def test_kvm_handle_to_pci_address_in_hex_and_upper_case(self):
-        handle = DeviceExerciserKvm._KvmSmaHandle("virtio_blk:sma-60")
-        self.assertEqual(str(handle.get_pci_address()), "0000:02:1C.0")
-
-    def test_kvm_handle_some_irrelevant_suffix(self):
-        with self.assertRaises(SmaHandleError):
-            DeviceExerciserKvm._KvmSmaHandle("virtio_blk:sma-0:some-irrelevant-suffix")
-
-    def test_kvm_handle_pass_empty_string(self):
-        with self.assertRaises(SmaHandleError):
-            DeviceExerciserKvm._KvmSmaHandle("")
-
-    def test_kvm_handle_pass_none(self):
-        with self.assertRaises(SmaHandleError):
-            DeviceExerciserKvm._KvmSmaHandle(None)
-
-    def test_invalid_separator_for_protocol(self):
-        with self.assertRaises(SmaHandleError):
-            DeviceExerciserKvm._KvmSmaHandle("virtio_blk;sma-0")
-
-    def test_physical_id_is_not_integer(self):
-        with self.assertRaises(SmaHandleError):
-            DeviceExerciserKvm._KvmSmaHandle("virtio_blk:sma-a")
-
-    def test_invalid_separator_for_physical_id(self):
-        with self.assertRaises(SmaHandleError):
-            DeviceExerciserKvm._KvmSmaHandle("virtio_blk:sma_0")
-
-    def test_physical_id_is_exceed_number_of_buses(self):
-        with self.assertRaises(SmaHandleError):
-            DeviceExerciserKvm._KvmSmaHandle("virtio_blk:sma-4294967295")
-
-
-class DeviceExerciserKvmTests(TestCase):
-    def setUp(self):
-        pass
-
-    def tearDown(self):
-        pass
-
-    def test_successful_fio_run(self):
-        stub_device_path = "/dev/some_device"
-        stub_get_virtio_blk_path = unittest.mock.Mock(return_value=stub_device_path)
-        stub_fio_output = "output"
-        stub_run_fio = unittest.mock.Mock(return_value=stub_fio_output)
-        device_exerciser = DeviceExerciserKvm(
-            {"virtio_blk": stub_get_virtio_blk_path},
-            stub_run_fio,
+        stub_get_virtio_blk_path = unittest.mock.Mock(side_effect=get_virtio_blk)
+        self.stub_fio_output = "output"
+        self.stub_run_fio = unittest.mock.Mock(return_value=self.stub_fio_output)
+        self.device_exerciser = DeviceExerciserKvm(
+            {self.protocol_name: stub_get_virtio_blk_path},
+            self.stub_run_fio,
         )
-        fio_args = "unused args"
 
-        out = device_exerciser.run_fio("virtio_blk:sma-0", fio_args)
-        self.assertEqual(out, stub_fio_output)
-        self.assertTrue(stub_device_path in stub_run_fio.call_args.args[0])
-        self.assertTrue(fio_args in stub_run_fio.call_args.args[0])
+    def tearDown(self):
+        self.parsed_pci_addr = ""
+
+    def test_sma_handle_parsed_to_pci_address(self):
+        self.device_exerciser.run_fio("virtio_blk:sma-0", "unused args")
+        self.assertEqual(self.parsed_pci_addr, "0000:01:00.0")
+
+    def test_sma_handle_to_pci_on_another_bus(self):
+        self.device_exerciser.run_fio("virtio_blk:sma-32", "unused args")
+        self.assertEqual(self.parsed_pci_addr, "0000:02:00.0")
+
+    def test_sma_handle_to_pci_address_in_hex_and_upper_case(self):
+        self.device_exerciser.run_fio("virtio_blk:sma-60", "unused args")
+        self.assertEqual(self.parsed_pci_addr, "0000:02:1C.0")
+
+    def test_irrelevant_suffix_in_sma_handle(self):
+        with self.assertRaises(SmaHandleError):
+            self.device_exerciser.run_fio(
+                "virtio_blk:sma-0:some_irrelevant_suffix", "unused args"
+            )
+
+    def test_pass_empty_string_as_sma_handle(self):
+        with self.assertRaises(SmaHandleError):
+            self.device_exerciser.run_fio("", "unused args")
+
+    def test_pass_none_as_sma_handle(self):
+        with self.assertRaises(SmaHandleError):
+            self.device_exerciser.run_fio(None, "unused args")
+
+    def test_invalid_separator_for_protocol_in_sma_handle(self):
+        with self.assertRaises(SmaHandleError):
+            self.device_exerciser.run_fio("virtio_blk;sma-0", "unused args")
+
+    def test_physical_id_is_not_integer_in_sma_handle(self):
+        with self.assertRaises(SmaHandleError):
+            self.device_exerciser.run_fio("virtio_blk:sma-a", "unused args")
+
+    def test_invalid_separator_for_physical_id_in_sma_handle(self):
+        with self.assertRaises(SmaHandleError):
+            self.device_exerciser.run_fio("virtio_blk:sma_0", "unused args")
+
+    def test_physical_id_exceeds_number_of_buses_in_sma_handle(self):
+        with self.assertRaises(SmaHandleError):
+            self.device_exerciser.run_fio("virtio_blk:sma-4294967295", "unused args")
 
     def test_invalid_protocol(self):
-        device_exerciser = DeviceExerciserKvm(
-            {VIRTIO_BLK_PROTOCOL: unittest.mock.Mock()},
-            unittest.mock.Mock(),
-        )
         with self.assertRaises(DeviceExerciserError):
-            device_exerciser.run_fio("non-existing-protocol:sma-0", "unused")
+            self.device_exerciser.run_fio("non-existing-protocol:sma-0", "unused")
+
+    def test_successful_fio_run(self):
+        fio_args = "unused args"
+        out = self.device_exerciser.run_fio("virtio_blk:sma-0", fio_args)
+        self.assertEqual(out, self.stub_fio_output)
+        self.assertTrue(self.stub_device_path in self.stub_run_fio.call_args.args[0])
+        self.assertTrue(fio_args in self.stub_run_fio.call_args.args[0])

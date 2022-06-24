@@ -4,7 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from multiprocessing import context
 from host_target_grpc_server import HostTargetService
 from device_exerciser_kvm import *
 from device_exerciser_if import *
@@ -15,20 +14,12 @@ import unittest
 import unittest.mock
 
 
-def detect_virtio_blk_device(unused):
-    return "non_existing_device_name"
-
-
-def successfull_fio(unused):
-    return "output"
-
-
 class HostTargetServerTests(unittest.TestCase):
     def setUp(self):
-        pass
+        logging.disable(logging.CRITICAL)
 
     def tearDown(self):
-        pass
+        logging.disable(logging.NOTSET)
 
     def test_run_fio_success(self):
         exerciser_kvm = unittest.mock.Mock()

@@ -106,7 +106,7 @@ class DeviceExerciserKvm(DeviceExerciserIf):
             )
 
         device_path = self._device_detectors[kvm_sma_handle.get_protocol()](
-            kvm_sma_handle.get_pci_address().get_full_address()
+            kvm_sma_handle.get_pci_address()
         )
 
         fio_args_with_device = fio_args + " --filename=" + device_path

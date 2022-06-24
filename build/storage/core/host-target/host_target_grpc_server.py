@@ -4,10 +4,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from concurrent import futures
-
 import grpc
-from grpc_reflection.v1alpha import reflection
+import logging
 import host_target_pb2
 import host_target_pb2_grpc
 from concurrent import futures
@@ -25,12 +23,14 @@ class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
         self._device_exerciser = device_exerciser
 
     def RunFio(self, request, context):
+        logging.debug(f"RunFio: request:'{request}'")
         output = None
         try:
             output = self._device_exerciser.run_fio(
                 request.deviceHandle, request.fioArgs
             )
         except BaseException as ex:
+            logging.error("Service exception: '" + str(ex) + "'")
             context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
             context.set_details(str(ex))
         return host_target_pb2.RunFioReply(fioOutput=output)
@@ -58,5 +58,5 @@ def run_grpc_server(ip_address, port, server_creator=grpc.server):
     except KeyboardInterrupt as ex:
         return 0
     except BaseException as ex:
-        print("Couldn't run gRPC server. Error: " + str(ex))
+        logging.error("Couldn't run gRPC server. Error: " + str(ex))
         return 1
