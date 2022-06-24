@@ -2,4 +2,6 @@
 __pycache__
 
 *.swp
+core/host-target/customizations/*
+!core/host-target/customizations/README.md
 

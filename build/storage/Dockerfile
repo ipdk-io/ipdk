@@ -131,6 +131,9 @@ COPY core/host-target/host_target.proto /host_target.proto
 RUN python -m grpc_tools.protoc -I/ --python_out=. --grpc_python_out=/ \
     /host_target.proto
 
+ENV CUSTOMIZATION_DIR_IN_CONTAINER=/customizations
+COPY core/host-target/customizations $CUSTOMIZATION_DIR_IN_CONTAINER
+
 ENTRYPOINT [ "/init" ]
 
 ################################################################################
@@ -150,6 +153,7 @@ COPY --from=host-target fio_runner.py /host-target/src/
 COPY --from=host-target pci_devices.py /host-target/src/
 COPY --from=host-target device_exerciser_kvm.py /host-target/src/
 COPY --from=host-target device_exerciser_if.py /host-target/src/
+COPY --from=host-target device_exerciser_customization.py /host-target/src/
 COPY --from=host-target host_target_main.py /host-target/src/
 COPY --from=host-target host_target_grpc_server.py /host-target/src/
 COPY --from=host-target host_target_*pb2.py /host-target/generated/

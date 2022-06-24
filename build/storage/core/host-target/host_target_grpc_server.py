@@ -12,6 +12,7 @@ from concurrent import futures
 from grpc_reflection.v1alpha import reflection
 from device_exerciser_kvm import DeviceExerciserKvm
 from device_exerciser_if import *
+from device_exerciser_customization import find_make_custom_device_exerciser
 
 
 class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
@@ -36,15 +37,42 @@ class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
         return host_target_pb2.RunFioReply(fioOutput=output)
 
 
-def default_device_exerciser_factory() -> DeviceExerciserIf:
+def make_default_device_exerciser() -> DeviceExerciserIf:
     return DeviceExerciserKvm()
 
 
-def run_grpc_server(ip_address, port, server_creator=grpc.server):
+def get_device_exerciser(
+    customization_path,
+    find_make_custom_device_exerciser=find_make_custom_device_exerciser,
+) -> DeviceExerciserIf:
+    make_custom_device_exerciser = find_make_custom_device_exerciser(customization_path)
+    device_exerciser = None
+    if make_custom_device_exerciser:
+        logging.info(
+            "Function to create customized exerciser is provided. Creating one."
+        )
+        device_exerciser = make_custom_device_exerciser()
+    else:
+        logging.info("Use default device exerciser.")
+        device_exerciser = make_default_device_exerciser()
+    if not device_exerciser or not issubclass(
+        type(device_exerciser), DeviceExerciserIf
+    ):
+        raise RuntimeError("No device exerciser created.")
+
+    return device_exerciser
+
+
+def run_grpc_server(
+    ip_address,
+    port,
+    customization_dir,
+    server_creator=grpc.server,
+):
     try:
         server = server_creator(futures.ThreadPoolExecutor(max_workers=10))
         host_target_pb2_grpc.add_HostTargetServicer_to_server(
-            HostTargetService(default_device_exerciser_factory()), server
+            HostTargetService(get_device_exerciser(customization_dir)), server
         )
         service_names = (
             host_target_pb2.DESCRIPTOR.services_by_name["HostTarget"].full_name,
