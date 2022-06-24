@@ -44,6 +44,8 @@ class PciAddress:
     def get_full_address(self):
         return self.domain + ":" + self.get_bus_device_function_address()
 
+    def __str__(self) -> str:
+        return self.get_full_address()
 
 def get_directories(path):
     if os.path.exists(path):
