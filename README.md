@@ -1,6 +1,7 @@
+# IPDK
+
 [![Makefile CI](https://github.com/ipdk-io/ipdk/actions/workflows/makefile.yml/badge.svg)](https://github.com/ipdk-io/ipdk/actions/workflows/makefile.yml)
 
-# IPDK
 Infrastructure Programmer Development Kit (IPDK) is an open source, vendor
 agnostic framework of drivers and APIs for infrastructure offload and
 management that runs on a CPU, IPU, DPU or switch. IPDK runs in Linux and uses
@@ -17,4 +18,4 @@ infrastructure as an open source community.
 Instructions for how to build IPDK are found in two places:
 
 * [Networking Builds](build/networking/README.md)
-* [Storage Builds ](build/storage/README.md)
+* [Storage Builds](build/storage/README.md)
