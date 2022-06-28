@@ -7,7 +7,6 @@ description: 'Greet new IPDK contributors when they create their first issue or 
 author: 'GitHub'
 inputs:
   repo-token: ${{ secrets.GITHUB_TOKEN }}
-    required: true
   issue-message: |
     # Thank You For Opening Your First Issue With the IPDK Project
 
