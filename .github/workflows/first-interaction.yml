@@ -1,34 +1,33 @@
-#
-# First Interaction action
-# See: https://github.com/actions/first-interaction
-#
-name: 'First IPDK interaction'
+name: 'First Interaction'
+
 on:
-  pull_request:
-    branches: [ main ]
   issues:
     types: [ opened ]
-steps:
-- uses: actions/first-interaction@v1
-  with:
-  repo-token: ${{ secrets.GITHUB_TOKEN }}
-  issue-message: |
-    # Thank You For Opening Your First Issue With the IPDK Project
+  pull_request:
+    branches: [ main ]
 
-    Just a note to point you at some helpful information:
+  workflow_dispatch:
 
-    * Please make sure to read our [contributing guidelines](https://github.com/ipdk-io/ipdk/blob/main/CONTRIBUTING.md).
-    * Feel free to review the list of [IPDK maintainers](https://github.com/ipdk-io/ipdk/blob/main/MAINTAINERS.md) if you need specific help from a maintainer.
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/first-interaction@v1
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-message: |
+            # Thank You For Opening Your First Issue With the IPDK Project
 
-  pr-message: |
-    # Thank You For Opening Your First Pull Request With the IPDK Project
+            Some notes to point you at some helpful information:
 
-    Just a note to point you at some helpful information:
+            * Please make sure to read our [contributing guidelines](https://github.com/ipdk-io/ipdk/blob/main/CONTRIBUTING.md).
+            * Feel free to review the list of [IPDK maintainers](https://github.com/ipdk-io/ipdk/blob/main/MAINTAINERS.md) if you need specific help from a maintainer.
 
-    * Please make sure to read our [contributing guidelines](https://github.com/ipdk-io/ipdk/blob/main/CONTRIBUTING.md).
-    * Feel free to review the list of [IPDK maintainers](https://github.com/ipdk-io/ipdk/blob/main/MAINTAINERS.md) if you need specific help from a maintainer.
-    * You can find the yaml for our CI jobs [here](https://github.com/ipdk-io/ipdk/tree/main/.github/workflows).
+          pr-message: |
+            # Thank You For Opening Your First Pull Request With the IPDK Project
 
-runs:
-  using: 'docker'
-  image: 'Dockerfile'
+            Some notes to point you at some helpful information:
+
+            * Please make sure to read our [contributing guidelines](https://github.com/ipdk-io/ipdk/blob/main/CONTRIBUTING.md).
+            * Feel free to review the list of [IPDK maintainers](https://github.com/ipdk-io/ipdk/blob/main/MAINTAINERS.md) if you need specific help from a maintainer.
+            * You can find the yaml for our CI jobs [here](https://github.com/ipdk-io/ipdk/tree/main/.github/workflows).
