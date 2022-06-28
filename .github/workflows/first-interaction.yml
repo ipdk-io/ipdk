@@ -3,6 +3,11 @@
 # See: https://github.com/actions/first-interaction
 #
 name: 'First IPDK interaction'
+on:
+  pull_request:
+    branches: [ main ]
+  issues:
+    types: [opened ]
 steps:
 - uses: actions/first-interaction@v1
   with:
