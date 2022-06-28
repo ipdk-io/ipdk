@@ -1,0 +1,29 @@
+#
+# First Interaction action
+# See: https://github.com/actions/first-interaction
+#
+name: 'First IPDK interaction'
+steps:
+- uses: actions/first-interaction@v1
+  with:
+  repo-token: ${{ secrets.GITHUB_TOKEN }}
+  issue-message: |
+    # Thank You For Opening Your First Issue With the IPDK Project
+
+    Just a note to point you at some helpful information:
+
+    * Please make sure to read our [contributing guidelines](https://github.com/ipdk-io/ipdk/blob/main/CONTRIBUTING.md).
+    * Feel free to review the list of [IPDK maintainers](https://github.com/ipdk-io/ipdk/blob/main/MAINTAINERS.md) if you need specific help from a maintainer.
+
+  pr-message: |
+    # Thank You For Opening Your First Pull Request With the IPDK Project
+
+    Just a note to point you at some helpful information:
+
+    * Please make sure to read our [contributing guidelines](https://github.com/ipdk-io/ipdk/blob/main/CONTRIBUTING.md).
+    * Feel free to review the list of [IPDK maintainers](https://github.com/ipdk-io/ipdk/blob/main/MAINTAINERS.md) if you need specific help from a maintainer.
+    * You can find the yaml for our CI jobs [here](https://github.com/ipdk-io/ipdk/tree/main/.github/workflows).
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
