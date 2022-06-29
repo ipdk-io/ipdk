@@ -3,8 +3,18 @@ name: Makefile CI
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'build/networking/**'
+      - 'build/networking_ebpf/**'
+      - 'build/scripts/**'
+      - 'build/storage/**'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'build/networking/**'
+      - 'build/networking_ebpf/**'
+      - 'build/scripts/**'
+      - 'build/storage/**'
 
 concurrency:
   # if workflow for PR or push is already running stop it, and start new one
@@ -109,3 +119,25 @@ jobs:
         name: ${{ matrix.os }}-${{ steps.system.outputs.arch }}
         path: /tmp/${{ matrix.os }}-${{ steps.system.outputs.arch }}.tar
         retention-days: 1
+
+name: Makefile CI
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '!build/networking/**'
+      - '!build/networking_ebpf/**'
+      - '!build/scripts/**'
+      - '!build/storage/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '!build/networking/**'
+      - '!build/networking_ebpf/**'
+      - '!build/scripts/**'
+      - '!build/storage/**'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No build required"'
