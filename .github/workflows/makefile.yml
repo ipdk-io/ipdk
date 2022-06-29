@@ -121,6 +121,7 @@ jobs:
         retention-days: 1
 
 name: Makefile CI
+
 on:
   push:
     branches: [ main ]
