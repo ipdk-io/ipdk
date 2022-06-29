@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  linux:
+  markdown-lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
