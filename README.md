@@ -1,6 +1,7 @@
 # IPDK
 
 [![Makefile CI](https://github.com/ipdk-io/ipdk/actions/workflows/makefile.yml/badge.svg)](https://github.com/ipdk-io/ipdk/actions/workflows/makefile.yml)
+[![MarkdownLint](https://github.com/ipdk-io/ipdk/actions/workflows/markdown.yml/badge.svg)](https://github.com/ipdk-io/ipdk/actions/workflows/markdown.yml)
 
 Infrastructure Programmer Development Kit (IPDK) is an open source, vendor
 agnostic framework of drivers and APIs for infrastructure offload and
