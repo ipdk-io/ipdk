@@ -1,0 +1,37 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - '!build/networking/**'
+      - '!build/networking_ebpf/**'
+      - '!build/scripts/**'
+      - '!build/storage/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '!build/networking/**'
+      - '!build/networking_ebpf/**'
+      - '!build/scripts/**'
+      - '!build/storage/**'
+jobs:
+  shellcheck:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: shellcheck
+      run: make -C build shellcheck
+
+  build_containers:
+    needs: shellcheck
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        # for OCI runner change to: runner: [ubuntu-latest, self-hosted]
+        runner: [ubuntu-latest]
+        os: [ubuntu2004, fedora33, ebpf-ubuntu2004]
+
+    steps:
+      - run: 'echo "No build required"'
