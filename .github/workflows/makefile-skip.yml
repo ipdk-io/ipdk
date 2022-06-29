@@ -1,4 +1,4 @@
-name: Makefile CI
+name: 'CI'
 
 on:
   push:
@@ -15,6 +15,12 @@ on:
       - '!build/networking_ebpf/**'
       - '!build/scripts/**'
       - '!build/storage/**'
+
+concurrency:
+  # if workflow for PR or push is already running stop it, and start new one
+  group: makefile-ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   shellcheck:
     runs-on: ubuntu-latest
