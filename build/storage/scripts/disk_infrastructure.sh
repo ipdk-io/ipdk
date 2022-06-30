@@ -85,7 +85,7 @@ function create_ramdrive_and_attach_as_ns_to_subsystem() {
 }
 
 function uuid2base64() {
-	python <<- EOF
+	python3 <<- EOF
 		import base64, uuid
 		print(base64.b64encode(uuid.UUID("$1").bytes).decode())
 	EOF
