@@ -6,12 +6,12 @@ and platforms.
 
 # Main components
 The storage solution is represented by the following containers:
-- _proxy-container_ which plays the role of an IPU and exposes the block
+- _ipu-storage-container_ which plays the role of an IPU and exposes the block
 devices to a host platform.
 - _storage-target_ which is deployed on a remote storage node exposing
 ideal targets(ramdrives).
 - _host-target_ which is responsible for running of fio traffic through
-`proxy-container` to an ideal target within `storage-target`.
+`ipu-storage-container` to an ideal target within `storage-target`.
 
 # Recipes
 IPDK storage scenarios are described by recipes located in a dedicated

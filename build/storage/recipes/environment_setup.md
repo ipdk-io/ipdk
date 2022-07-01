@@ -1,10 +1,10 @@
 # Environment preparation
 Currently the recipe environment should be represented by 2 separate machines,
-referred  as `storage-target-platform` and `proxy-container-platform`,
+referred  as `storage-target-platform` and `ipu-storage-container-platform`,
 located in the same network. For each of them the steps from
 [System setup](#system-setup) section have to be performed.
 The containers running on those platforms are named `storage-target` and
-`proxy-container` respectively.
+`ipu-storage-container` respectively.
 
 # System setup
 The basic requirement for running the recipes is a modern Linux distribution
@@ -86,7 +86,7 @@ $ sudo systemctl stop apparmor
 
 # Deploy containers on the machines
 
-1. Download repositories on both platforms: `proxy-container-platform` and
+1. Download repositories on both platforms: `ipu-storage-container-platform` and
 `storage-target-platform`
 
 2. Run docker containers providing configuration scripts:
@@ -96,10 +96,10 @@ On `storage-target-platform`
 $ scripts/run_storage_target_container.sh
 ```
 
-On `proxy-container-platform`
+On `ipu-storage-container-platform`
 ```
 $ SHARED_VOLUME=<dir_to_expose_vhost> \
-scripts/run_proxy_container.sh
+scripts/run_ipu_storage_container.sh
 ```
 
 `SHARED_VOLUME` points to a directory where vhost storage devices
@@ -114,14 +114,14 @@ SPDK_IP_ADDR="127.0.0.1" SPDK_PORT=5261 scripts/run_storage_target_container.sh
 ```
 By default, `SPDK_IP_ADDR` is set to `0.0.0.0` and `SPDK_PORT` is set to `5260`
 
-3. Run the vm instance on `proxy-container-platform` platform.
+3. Run the vm instance on `ipu-storage-container-platform`.
 ```
 $ SHARED_VOLUME=<dir_to_expose_vhost> scripts/vm/run_vm.sh
 ```
 
 `SHARED_VOLUME` points to a directory where vhost storage devices
 will be exposed(exactly one specified in `SHARED_VOLUME` to run
-`proxy-container`).
+`ipu-storage-container`).
 
 <a name="vm-console">
 Finally vm console will be opened.
@@ -139,13 +139,13 @@ increase comprehension of the text. However, we should keep in mind that
 `cmd-sender` is a running instance of `test-driver` image.
 
 To use test-driver [install docker-compose](../tests/it/README.md#docker-compose-setup)
-and run the integration tests to build that container on `proxy-container-platform`
+and run the integration tests to build that container on `ipu-storage-container-platform`
 machine.
 ```
 $ tests/it/run.sh
 ```
 
-Run `test-driver` on `proxy-container-platform` machine
+Run `test-driver` on `ipu-storage-container-platform` machine
 ```
 $ docker run -it --privileged --network host --entrypoint /bin/bash test-driver
 ```

@@ -87,13 +87,13 @@ ARG HTTPS_PROXY
 ARG NO_PROXY
 
 ################################################################################
-# proxy-container
+# ipu-storage-container
 #
 # This image is placed on IPU and exposing storage-target NVMe/TCP devices
 # It is responsible for creation of vhost virtio-blk devices and exposing them
 # to hosts(KVM or physical ones)
 ################################################################################
-FROM spdk as proxy-container
+FROM spdk as ipu-storage-container
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
@@ -102,7 +102,7 @@ ARG NO_PROXY
 RUN dnf install -y socat
 RUN pip install pyyaml
 
-COPY core/proxy-container/init /init
+COPY core/ipu-storage-container/init /init
 COPY --from=spdk-app /init /init_spdk
 
 ENTRYPOINT [ "/init" ]

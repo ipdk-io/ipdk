@@ -11,7 +11,7 @@ current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && p
 declare vm_serial
 declare nqn
 declare storage_target_ip
-declare proxy_ip
+declare ipu_storage_container_ip
 declare virtio_blk_virtual_id
 declare port_to_expose
 # shellcheck disable=SC1091
@@ -40,7 +40,7 @@ echo "Create $NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT virtio-blk disks backed b
 virtio_blk_devices=()
 for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
-    virtio_blk_devices+=("$(create_virtio_blk_without_disk_check "${proxy_ip}" \
+    virtio_blk_devices+=("$(create_virtio_blk_without_disk_check "${ipu_storage_container_ip}" \
         "${ramdrives[$i]}" "${i}" "${virtio_blk_virtual_id}" \
         "${nqn}" "${storage_target_ip}" "${port_to_expose}")")
 done
@@ -54,6 +54,6 @@ check_number_of_virtio_blk_devices "${vm_serial}" \
 echo "Delete all created virtio-blk disks"
 for dev in "${virtio_blk_devices[@]}"
 do
-    delete_virtio_blk "${proxy_ip}" "${dev}"
+    delete_virtio_blk "${ipu_storage_container_ip}" "${dev}"
 done
 check_number_of_virtio_blk_devices "${vm_serial}" 0

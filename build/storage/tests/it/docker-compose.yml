@@ -32,17 +32,17 @@ services:
       - SPDK_ARGS=-m 0x2
       - *debug-env-var
     privileged: true
-  proxy-container:
-    image: proxy-container
+  ipu-storage-container:
+    image: ipu-storage-container
     build:
       context: ../..
-      target: proxy-container
+      target: ipu-storage-container
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
         - NO_PROXY=${NO_PROXY}
         - SPDK_VERSION=${SPDK_VERSION}
-    container_name: proxy-container
+    container_name: ipu-storage-container
     networks:
       ipdk:
         ipv4_address: 192.168.42.3
@@ -70,7 +70,7 @@ services:
       ipdk:
         ipv4_address: 192.168.42.5
     depends_on:
-      - proxy-container
+      - ipu-storage-container
     volumes:
       - /dev/hugepages:/dev/hugepages
       - *shared-volume

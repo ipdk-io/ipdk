@@ -102,7 +102,7 @@ function wait_for_virtio_blk_in_os() {
 }
 
 function _create_virtio_blk() {
-	proxy_ip="${1}"
+	ipu_storage_container_ip="${1}"
 	sma_port="${2}"
 	volume_id="${3}"
 	physical_id="${4}"
@@ -111,7 +111,7 @@ function _create_virtio_blk() {
 	traddr="${7}"
 	trsvcid="${8}"
 
-	sma-client.py --address="$proxy_ip" --port="$sma_port" <<- EOF
+	sma-client.py --address="$ipu_storage_container_ip" --port="$sma_port" <<- EOF
 	{
 		"method": "CreateDevice",
 		"params": {
@@ -149,7 +149,7 @@ function create_virtio_blk() {
 }
 
 function create_virtio_blk_without_disk_check() {
-	proxy_ip="${1}"
+	ipu_storage_container_ip="${1}"
 	volume_id="${2}"
 	physical_id="${3}"
 	virtual_id="${4}"
@@ -158,18 +158,18 @@ function create_virtio_blk_without_disk_check() {
 	trsvcid="${7:-"$DEFAULT_NVME_PORT"}"
 	sma_port="${8:-"$DEFAULT_SMA_PORT"}"
 
-	device_handle=$(_create_virtio_blk "$proxy_ip" "$sma_port" \
+	device_handle=$(_create_virtio_blk "$ipu_storage_container_ip" "$sma_port" \
 					"$volume_id" "$physical_id" "$virtual_id" "$hostnqn" \
 					"$traddr" "$trsvcid" | jq -r '.handle')
 	echo "$device_handle"
 }
 
 function delete_virtio_blk() {
-	proxy_ip="${1}"
+	ipu_storage_container_ip="${1}"
 	device_handle="${2}"
 	sma_port="${3:-"$DEFAULT_SMA_PORT"}"
 
-	sma-client.py --address="$proxy_ip" --port="$sma_port" <<- EOF
+	sma-client.py --address="$ipu_storage_container_ip" --port="$sma_port" <<- EOF
 	{
 		"method": "DeleteDevice",
 		"params": {
