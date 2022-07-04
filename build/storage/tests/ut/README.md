@@ -1,9 +1,9 @@
 # Description
-Unit tests covers services written written for IPDK.
+Unit tests covering services written for IPDK.
 
 # Run unit tests
-The command below build all required dependencies and run the unit tests within
-the dedicated container.
+The command below builds all required dependencies and runs the unit tests
+within the dedicated container.
 ```
 $ ./run.sh
 ```
@@ -15,7 +15,7 @@ files attached as volumes.
 $ ./run.sh dev
 ```
 
-In order to run the unit tests during a development session run
+In order to run the unit tests during a development session, run
 `run_all_unit_tests.sh` within the started container.
 ```
 $ /run_all_unit_tests.sh

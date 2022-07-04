@@ -29,7 +29,7 @@ join_by() {
 
 container_to_build="${1}"
 
-possible_containers=("storage-target" "proxy-container" "ipdk-unit-tests" "host-target")
+possible_containers=("storage-target" "ipu-storage-container" "ipdk-unit-tests" "host-target")
 if [[ " ${possible_containers[*]} " =~ ${container_to_build} ]]; then
     export DOCKER_BUILDKIT="${DOCKER_BUILDKIT}"
 

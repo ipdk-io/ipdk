@@ -4,9 +4,9 @@ This recipe describes how to run fio from Host to an ideal target
 with IPDK containers.
 
 For this recipe 2 machines required.
-They are referred as `storage-target-platform` and `proxy-container-platform`.
+They are referred as `storage-target-platform` and `ipu-storage-container-platform`.
 The containers running on those platforms are named `storage-target` and
-`proxy-container` respectively.
+`ipu-storage-container` respectively.
 
 To apply this scenario the following steps need to be applied:
 

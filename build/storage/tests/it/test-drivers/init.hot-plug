@@ -11,7 +11,7 @@ current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && p
 declare vm_serial
 declare nqn
 declare storage_target_ip
-declare proxy_ip
+declare ipu_storage_container_ip
 declare virtio_blk_virtual_id
 declare port_to_expose
 # shellcheck disable=SC1091
@@ -38,31 +38,31 @@ echo ""
 echo "### Attach 3 virtio-blk devices ###"
 
 virtio_blk0_physical_id=0
-virtio_blk0=$(create_virtio_blk "${proxy_ip}" "${malloc0}" \
+virtio_blk0=$(create_virtio_blk "${ipu_storage_container_ip}" "${malloc0}" \
 	"${virtio_blk0_physical_id}" "${virtio_blk_virtual_id}" \
 	"${nqn}" "${storage_target_ip}" "${port_to_expose}")
 check_number_of_virtio_blk_devices "${vm_serial}" 1
 
 virtio_blk1_physical_id=1
-create_virtio_blk "${proxy_ip}" "${malloc1}" \
+create_virtio_blk "${ipu_storage_container_ip}" "${malloc1}" \
 	"${virtio_blk1_physical_id}" "${virtio_blk_virtual_id}" \
 	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
 check_number_of_virtio_blk_devices "${vm_serial}" 2
 
 virtio_blk2_physical_id=2
-create_virtio_blk "${proxy_ip}" "${malloc2}" \
+create_virtio_blk "${ipu_storage_container_ip}" "${malloc2}" \
 	"${virtio_blk2_physical_id}" "${virtio_blk_virtual_id}" \
 	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
 check_number_of_virtio_blk_devices "${vm_serial}" 3
 
 echo ""
 echo "### Dettach 1st virtio-blk ###"
-delete_virtio_blk "${proxy_ip}" "${virtio_blk0}"
+delete_virtio_blk "${ipu_storage_container_ip}" "${virtio_blk0}"
 check_number_of_virtio_blk_devices "${vm_serial}" 2
 
 echo ""
 echo "### Attach 1st virtio-blk back ###"
-create_virtio_blk "${proxy_ip}" "${malloc0}" \
+create_virtio_blk "${ipu_storage_container_ip}" "${malloc0}" \
 	"${virtio_blk0_physical_id}" "${virtio_blk_virtual_id}" \
 	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
 check_number_of_virtio_blk_devices "${vm_serial}" 3

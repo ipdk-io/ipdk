@@ -59,7 +59,7 @@ trap 'cleanup' EXIT
 
 ALLOCATE_HUGEPAGES="true"
 BUILD_IMAGE="true"
-IMAGE_NAME="proxy-container"
+IMAGE_NAME="ipu-storage-container"
 ARGS=()
 ARGS+=("-v" "${SHARED_VOLUME}:/${SHARED_VOLUME}")
 ARGS+=("-v" "${tmp_sma_config_file}:/sma_config.yml")

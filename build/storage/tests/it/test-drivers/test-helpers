@@ -98,8 +98,8 @@ function hostname_to_ip() {
 
 storage_target_ip=$(hostname_to_ip "storage-target")
 export storage_target_ip="${storage_target_ip}"
-proxy_ip=$(hostname_to_ip "proxy-container")
-export proxy_ip="${proxy_ip}"
+ipu_storage_container_ip=$(hostname_to_ip "ipu-storage-container")
+export ipu_storage_container_ip="${ipu_storage_container_ip}"
 traffic_generator_ip=$(hostname_to_ip "traffic-generator")
 export traffic_generator_ip="${traffic_generator_ip}"
 export nqn="nqn.2016-06.io.spdk:cnode1"
