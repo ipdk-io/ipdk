@@ -21,14 +21,14 @@ wait_until_port_on_ip_addr_open "${storage_target_ip}" "${DEFAULT_SPDK_PORT}"
 create_and_expose_sybsystem_over_tcp \
 	"${storage_target_ip}" "${nqn}" "${port_to_expose}"
 
-number_of_512b_blocks=4
+ramdrive_size_in_mb=4
 
 echo "Create $NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT on storage-target"
 ramdrives=()
 for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
     ramdrives+=("$(create_ramdrive_and_attach_as_ns_to_subsystem \
-        "${storage_target_ip}" "Malloc${i}" "${number_of_512b_blocks}" \
+        "${storage_target_ip}" "Malloc${i}" "${ramdrive_size_in_mb}" \
         "${nqn}")")
 done
 
