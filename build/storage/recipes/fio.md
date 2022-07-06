@@ -1,9 +1,9 @@
 # Fio recipe
 
-This recipe describes how to run fio from Host to an ideal target
+This recipe describes how to run fio from a host to an ideal target
 with IPDK containers.
 
-For this recipe 2 machines required.
+For this recipe, two physical machines are required.
 They are referred as `storage-target-platform` and `ipu-storage-container-platform`.
 The containers running on those platforms are named `storage-target` and
 `ipu-storage-container` respectively.
