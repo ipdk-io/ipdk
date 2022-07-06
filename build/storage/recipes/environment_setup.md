@@ -73,7 +73,7 @@ $ sudo chmod +r /boot/vmlinuz-*
 ```
 
 ## Setting security policies
-Make sure that required security permissions are configured to enable VM network
+Make sure that required security permissions are configured to enable vm network
 connectivity or disable them temporarily.
 On Fedora SELinux can be disabled by means of the following command
 ```
