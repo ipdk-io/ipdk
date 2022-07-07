@@ -70,13 +70,13 @@ function create_and_expose_sybsystem_over_tcp() {
 function create_ramdrive_and_attach_as_ns_to_subsystem() {
 	ip_addr="${1}"
 	ramdrive_name="${2}"
-	number_of_512b_blocks="${3}"
+	ramdrive_size_in_mb="${3}"
 	nqn="${4}"
 	storage_target_port="${5:-"$DEFAULT_SPDK_PORT"}"
 
 	rpc.py -s "${ip_addr}" -p "${storage_target_port}" \
 		bdev_malloc_create -b "${ramdrive_name}" \
-		"${number_of_512b_blocks}" 512 &> /dev/null
+		"${ramdrive_size_in_mb}" 512 &> /dev/null
 	rpc.py -s "${ip_addr}" -p "${storage_target_port}" \
 		nvmf_subsystem_add_ns "${nqn}" "${ramdrive_name}"
 	device_uuid=$(rpc.py -s "${ip_addr}" bdev_get_bdevs | \

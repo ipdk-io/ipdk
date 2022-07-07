@@ -24,9 +24,9 @@ create_and_expose_sybsystem_over_tcp \
 
 wait_until_vm_is_up "${vm_serial}"
 
-number_of_512b_blocks=16
+ramdrive_size_in_mb=16
 malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
-	"${storage_target_ip}" Malloc0 "${number_of_512b_blocks}" "${nqn}")
+	"${storage_target_ip}" Malloc0 "${ramdrive_size_in_mb}" "${nqn}")
 virtio_blk0_physical_id=0
 create_virtio_blk "${ipu_storage_container_ip}" "${malloc0}" \
 	"${virtio_blk0_physical_id}" "${virtio_blk_virtual_id}" \
