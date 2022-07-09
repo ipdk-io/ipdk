@@ -31,7 +31,7 @@ echo "Creating Ubuntu focal image"
 echo ""
 
 pushd /root || exit
-/git/ipdk/build/scripts/get-image.sh focal
+/git/ipdk/build/networking/scripts/get-image.sh focal
 rm -f vm1.qcow2 vm2.qcow2
 cp focal-server-cloudimg-amd64.img vm1.qcow2
 cp focal-server-cloudimg-amd64.img vm2.qcow2
