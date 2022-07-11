@@ -6,11 +6,8 @@
 
 if [ "$DEBUG" == 'true' ]; then
     set -x
-    export GRPC_VERBOSITY=ERROR
-else
-    export GRPC_VERBOSITY=NONE
 fi
-ls -l /host-target/tests
+export GRPC_VERBOSITY=NONE
 
 result=0
 python -m unittest discover -v -s /host-target/tests

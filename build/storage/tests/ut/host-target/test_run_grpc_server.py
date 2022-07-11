@@ -4,10 +4,10 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+import logging
 import unittest
 import os
 import unittest.mock
-import grpc
 from unittest.mock import patch
 from host_target_grpc_server import run_grpc_server
 from host_target_grpc_server import HostTargetService
@@ -19,10 +19,12 @@ class HiddenPrints:
     def __enter__(self):
         self._original_stdout = sys.stdout
         sys.stdout = open(os.devnull, "w")
+        logging.disable(logging.CRITICAL)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         sys.stdout.close()
         sys.stdout = self._original_stdout
+        logging.disable(logging.NOTSET)
 
 
 class RunGrpcServer(unittest.TestCase):

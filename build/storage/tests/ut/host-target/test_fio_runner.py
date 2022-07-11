@@ -21,11 +21,7 @@ class FioRunner(unittest.TestCase):
             os.remove(self.fio_file)
 
     def test_successful_fio_run(self):
-        try:
-            run_fio(self.fio_args)
-        except FioExecutionError as ex:
-            self.fail(str(ex))
-
+        run_fio(self.fio_args)
         self.assertTrue(os.path.exists(self.fio_file))
 
     def test_successful_fio_run_output(self):
@@ -35,6 +31,14 @@ class FioRunner(unittest.TestCase):
     def test_invalid_fio_arg(self):
         with self.assertRaises(FioExecutionError) as ex:
             run_fio("some-non-existing-arg")
+
+    def test_empty_fio_arg(self):
+        with self.assertRaises(FioExecutionError) as ex:
+            run_fio("")
+
+    def test_none_fio_arg(self):
+        with self.assertRaises(FioExecutionError) as ex:
+            run_fio(None)
 
     def test_pass_invalid_arg_type(self):
         with self.assertRaises(FioExecutionError) as ex:

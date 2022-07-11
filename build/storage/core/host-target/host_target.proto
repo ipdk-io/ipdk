@@ -11,7 +11,7 @@ service HostTarget {
 }
 
 message RunFioRequest {
-  string pciAddress = 1;
+  string deviceHandle = 1;
   string fioArgs = 2;
 }
 

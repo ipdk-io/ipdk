@@ -8,11 +8,11 @@ class FioExecutionError(RuntimeError):
     pass
 
 
-def run_fio(fio_args, subprocess_run=subprocess.run):
+def run_fio(fio_args: str) -> str:
     fio_cmd = []
     try:
         fio_cmd = ["fio"] + fio_args.split()
-        result = subprocess_run(fio_cmd, capture_output=True, text=True)
+        result = subprocess.run(fio_cmd, capture_output=True, text=True)
         if result.returncode != 0:
             raise FioExecutionError(
                 "fio execution error: '"
@@ -22,7 +22,5 @@ def run_fio(fio_args, subprocess_run=subprocess.run):
                 + "' "
             )
         return result.stdout
-    except BaseException as ex:
-        raise FioExecutionError(
-            "Cannot execute cmd '" + " ".join(fio_cmd) + "' Error: " + str(ex)
-        )
+    except AttributeError as ex:
+        raise FioExecutionError("Invalid input argument '" + str(fio_args) + "'")

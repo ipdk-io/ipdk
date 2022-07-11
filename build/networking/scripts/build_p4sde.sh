@@ -58,18 +58,20 @@ cd "$SDE" || exit
 echo "Removing p4-driver repository if it already exists"
 if [ -d "p4-driver" ]; then rm -Rf p4-driver; fi
 echo "Compiling p4-driver"
-#Note: Below SHA needs to be updated when TDI code is open-sourced
 git clone https://github.com/p4lang/p4-dpdk-target.git p4-driver
-pushd p4-driver || exit
+pushd "$SDE/p4-driver"
+#Note: Below SHA needs to be updated when TDI code is open-sourced
 git checkout 780b3dfa205815e87f4580383cc37bfa30187f7c
 git submodule update --init --recursive
-popd || exit
+popd
+
 pip3 install distro
-cd $SDE/p4-driver/tools/setup
+pushd "$SDE/p4-driver/tools/setup"
 if [ "${OS}" = "Ubuntu" ]; then
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 fi
 python3 install_dep.py
+popd
 
 cd "$SDE/p4-driver" || exit
 ./autogen.sh
