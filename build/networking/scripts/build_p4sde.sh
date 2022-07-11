@@ -29,6 +29,7 @@ mkdir "$1/p4-sde" && cd "$1/p4-sde" || exit
 echo "Exporting Environment Variables....."
 export SDE="${PWD}"
 export SDE_INSTALL="$SDE/install"
+mkdir $SDE_INSTALL || exit
 
 #...Package Config Path...#
 if [ "${OS}" = "Ubuntu" ]  || [ "${VER}" = "20.04" ] ; then
@@ -57,13 +58,14 @@ cd "$SDE" || exit
 echo "Removing p4-driver repository if it already exists"
 if [ -d "p4-driver" ]; then rm -Rf p4-driver; fi
 echo "Compiling p4-driver"
-#TODO: Below link needs to be updated when code is open-sourced
-git clone https://github.com/p4lang/p4-dpdk-target.git --recursive p4-driver
-cd p4-driver
+#Note: Below SHA needs to be updated when TDI code is open-sourced
+git clone https://github.com/p4lang/p4-dpdk-target.git p4-driver
+pushd p4-driver || exit
 git checkout 780b3dfa205815e87f4580383cc37bfa30187f7c
-
+git submodule update --init --recursive
+popd || exit
 pip3 install distro
-cd p4-driver/tools/setup
+cd $SDE/p4-driver/tools/setup
 if [ "${OS}" = "Ubuntu" ]; then
     echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 fi
