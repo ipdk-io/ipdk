@@ -10,3 +10,4 @@ An alphabetical list of maintainers for IPDK by last name:
 * [Sandeep Nagapattinam](https://github.com/n-sandeep)
 * [Filip Szufnarowski](https://github.com/intelfisz)
 * [Venkata Suresh Kumar P](https://github.com/vsureshkumarp)
+* [Nupur Uttarwar](https://github.com/nupuruttarwar)
