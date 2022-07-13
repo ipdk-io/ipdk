@@ -9,6 +9,7 @@ from os import listdir
 from os.path import isfile, join
 from types import ModuleType
 from typing import Callable
+from typing import Optional
 from device_exerciser_if import DeviceExerciserIf
 from importlib.machinery import SourceFileLoader
 
@@ -33,7 +34,7 @@ def _load_module(module_path: str) -> ModuleType:
     return SourceFileLoader(module_name, module_path).load_module()
 
 
-def _find_make_device_exerciser_in_module(module: ModuleType) -> Callable:
+def _find_make_device_exerciser_in_module(module: ModuleType) -> Optional[Callable]:
     exerciser = getattr(module, MAKE_DEVICE_EXERCISER_FUNCTION_NAME, None)
     if callable(exerciser):
         logging.warning(f"Found non-callable {MAKE_DEVICE_EXERCISER_FUNCTION_NAME}")
@@ -53,7 +54,9 @@ def _find_all_make_device_exercisers_in_dir(dir: str) -> list[Callable]:
     return make_device_exercisers
 
 
-def find_make_custom_device_exerciser(customization_dir: str) -> DeviceExerciserIf:
+def find_make_custom_device_exerciser(
+    customization_dir: str,
+) -> Optional[Callable]:
     if not customization_dir:
         logging.info("Customization dir is not set")
         return None

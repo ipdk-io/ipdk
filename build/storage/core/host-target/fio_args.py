@@ -4,6 +4,7 @@
 
 import json
 import tempfile
+import typing
 
 
 class FioArgsError(ValueError):
@@ -30,7 +31,7 @@ class FioArgs:
         def __exit__(self, exc_type, exc_val, exc_tb) -> None:
             self._file.__exit__(exc_type, exc_val, exc_tb)
 
-        def _dump_owner_to_file(self, file: TextIOWrapper) -> None:
+        def _dump_owner_to_file(self, file: typing.TextIO) -> None:
             file.write("[job0]\n")
             for arg_key in self._owner._fio_args:
                 file.write(arg_key + "=" + str(self._owner._fio_args[arg_key]) + "\n")

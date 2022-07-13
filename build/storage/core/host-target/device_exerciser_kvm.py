@@ -31,10 +31,10 @@ class DeviceExerciserKvm(DeviceExerciserIf):
 
     class _SmaHandle:
         def get_protocol(self) -> str:
-            raise NotImplemented()
+            raise NotImplementedError()
 
         def get_pci_address(self) -> PciAddress:
-            raise NotImplemented
+            raise NotImplementedError()
 
     class _KvmSmaHandle(_SmaHandle):
         def __init__(
@@ -107,7 +107,7 @@ class DeviceExerciserKvm(DeviceExerciserIf):
     def _create_sma_handle_from_str(self, device_handle: str) -> _SmaHandle:
         return self._KvmSmaHandle(device_handle)
 
-    def run_fio(self, device_handle: str, fio_args: str) -> str:
+    def run_fio(self, device_handle: str, fio_args: FioArgs) -> str:
         sma_handle = self._create_sma_handle_from_str(device_handle)
 
         if sma_handle.get_protocol() not in self._device_detectors:
