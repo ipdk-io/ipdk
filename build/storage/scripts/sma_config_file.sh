@@ -7,7 +7,7 @@
 [ "$DEBUG" == 'true' ] && set -x
 
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC1090
 source "$scripts_dir/vm/vm_default_variables.sh"
 
 function create_sma_config_file() {

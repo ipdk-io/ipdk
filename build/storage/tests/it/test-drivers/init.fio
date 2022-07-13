@@ -15,7 +15,7 @@ declare ipu_storage_container_ip
 declare virtio_blk_virtual_id
 declare port_to_expose
 declare traffic_generator_ip
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC1090
 source "${current_script_dir}"/test-helpers
 
 wait_until_port_on_ip_addr_open "${storage_target_ip}" "${DEFAULT_SPDK_PORT}"

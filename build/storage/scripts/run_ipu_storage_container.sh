@@ -8,9 +8,9 @@
 [ "$DEBUG" == 'true' ] && set -x
 
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC1090
 source "$scripts_dir/vm/vm_default_variables.sh"
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC1090
 source "$scripts_dir/sma_config_file.sh"
 
 SHARED_VOLUME=${SHARED_VOLUME:-$(realpath .)}
@@ -57,12 +57,13 @@ function cleanup() {
 }
 trap 'cleanup' EXIT
 
-ALLOCATE_HUGEPAGES="true"
-BUILD_IMAGE="true"
-IMAGE_NAME="ipu-storage-container"
+#ALLOCATE_HUGEPAGES="true"
+#BUILD_IMAGE="true"
+#IMAGE_NAME="ipu-storage-container"
 ARGS=()
 ARGS+=("-v" "${SHARED_VOLUME}:/${SHARED_VOLUME}")
 ARGS+=("-v" "${tmp_sma_config_file}:/sma_config.yml")
 
 # shellcheck source=./scripts/run_container.sh
+# shellcheck disable=SC1091,SC1090
 source "${scripts_dir}/run_container.sh"

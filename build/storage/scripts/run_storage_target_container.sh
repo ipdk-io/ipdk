@@ -34,12 +34,13 @@ function check_all_variables_are_set() {
 
 check_all_variables_are_set
 
-ALLOCATE_HUGEPAGES="true"
-BUILD_IMAGE="true"
-IMAGE_NAME="storage-target"
+#ALLOCATE_HUGEPAGES="true"
+#BUILD_IMAGE="true"
+#IMAGE_NAME="storage-target"
 ARGS=()
 ARGS+=("-e" "SPDK_IP_ADDR=${SPDK_IP_ADDR}")
 ARGS+=("-e" "SPDK_PORT=${SPDK_PORT}")
 
 # shellcheck source=./scripts/run_container.sh
+# shellcheck disable=SC1091,SC1090
 source "${scripts_dir}/run_container.sh"

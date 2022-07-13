@@ -29,7 +29,7 @@ mkdir "$1/p4-sde" && cd "$1/p4-sde" || exit
 echo "Exporting Environment Variables....."
 export SDE="${PWD}"
 export SDE_INSTALL="$SDE/install"
-mkdir $SDE_INSTALL || exit
+mkdir "$SDE_INSTALL" || exit
 
 #...Package Config Path...#
 if [ "${OS}" = "Ubuntu" ]  || [ "${VER}" = "20.04" ] ; then
