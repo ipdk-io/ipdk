@@ -34,7 +34,7 @@ class PciAddress:
             self.bus,
             self.device,
             self.function,
-        ) = PciAddress._parse_pci_address(pci_address)
+        ) = PciAddress._parse_pci_address(pci_address.lower())
 
     def get_bus_device_function_address(self) -> str:
         return self.bus + ":" + self.device + "." + self.function
@@ -65,7 +65,7 @@ class FailedPciDeviceDetection(RuntimeError):
 
 def get_virtio_blk_path_by_pci_address(addr: PciAddress) -> str:
     block_directory_pattern = os.path.join(
-        os.path.join("/sys/bus/pci/devices", str(addr)), "virtio*/block"
+        os.path.join("/sys/bus/pci/devices", str(addr).lower()), "virtio*/block"
     )
     block_device_matches = get_all_files_by_pattern(block_directory_pattern)
     if len(block_device_matches) == 0:

@@ -39,9 +39,9 @@ class DeviceExerciserKvmTests(unittest.TestCase):
         self.device_exerciser.run_fio("virtio_blk:sma-32", "unused args")
         self.assertEqual(self.parsed_pci_addr, "0000:02:00.0")
 
-    def test_sma_handle_to_pci_address_in_hex_and_upper_case(self):
+    def test_sma_handle_to_pci_address_in_hex(self):
         self.device_exerciser.run_fio("virtio_blk:sma-60", "unused args")
-        self.assertEqual(self.parsed_pci_addr, "0000:02:1C.0")
+        self.assertEqual(self.parsed_pci_addr, "0000:02:1c.0")
 
     def test_irrelevant_suffix_in_sma_handle(self):
         with self.assertRaises(SmaHandleError):

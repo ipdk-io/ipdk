@@ -46,14 +46,14 @@ class PciDeviceTests(TestCase):
             PciAddress(None)
 
     def test_corner_bus_value(self):
-        path = "/sys/bus/pci/devices/0000:FF:04.0/virtio0/block/vda"
+        path = "/sys/bus/pci/devices/0000:ff:04.0/virtio0/block/vda"
         self.fs.create_dir(path)
         self.fs.create_file("/dev/vda")
         dev_path = get_virtio_blk_path_by_pci_address(PciAddress("0000:FF:04.0"))
         self.assertEqual(dev_path, "/dev/vda")
 
     def test_corner_device_value(self):
-        path = "/sys/bus/pci/devices/0000:00:1F.0/virtio0/block/vda"
+        path = "/sys/bus/pci/devices/0000:00:1f.0/virtio0/block/vda"
         self.fs.create_dir(path)
         self.fs.create_file("/dev/vda")
         dev_path = get_virtio_blk_path_by_pci_address(PciAddress("0000:00:1F.0"))

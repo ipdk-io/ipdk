@@ -30,11 +30,11 @@ class HiddenPrints:
 class RunGrpcServer(unittest.TestCase):
     def test_fail_on_invalid_address_to_listen_to(self):
         with HiddenPrints():
-            self.assertNotEqual(run_grpc_server("Invalid ip addr", 1010), 0)
+            self.assertNotEqual(run_grpc_server("Invalid ip addr", 1010, None), 0)
 
     def test_fail_on_invalid_port_to_listen_to(self):
         with HiddenPrints():
-            self.assertNotEqual(run_grpc_server("0.0.0.0", "Invalid port"), 0)
+            self.assertNotEqual(run_grpc_server("0.0.0.0", "Invalid port", None), 0)
 
     def test_success_on_keyboard_interrupt_exception(self):
         server_mock = unittest.mock.Mock()
@@ -43,7 +43,7 @@ class RunGrpcServer(unittest.TestCase):
         def server_creator(unused):
             return server_mock
 
-        self.assertEqual(run_grpc_server("Unused", "Unused", server_creator), 0)
+        self.assertEqual(run_grpc_server("Unused", "Unused", None, server_creator), 0)
         self.assertTrue(server_mock.add_insecure_port.was_called)
 
     @patch.object(host_target_pb2_grpc, "add_HostTargetServicer_to_server")
@@ -56,7 +56,7 @@ class RunGrpcServer(unittest.TestCase):
         ip_addr = "ip_addr"
         port = "port"
 
-        self.assertEqual(run_grpc_server(ip_addr, port, server_creator), 0)
+        self.assertEqual(run_grpc_server(ip_addr, port, None, server_creator), 0)
 
         self.assertTrue(server_mock.add_insecure_port.was_called)
         call_args = server_mock.add_insecure_port.call_args.args

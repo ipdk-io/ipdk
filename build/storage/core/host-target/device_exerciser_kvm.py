@@ -29,7 +29,14 @@ class DeviceExerciserKvm(DeviceExerciserIf):
         self._device_detectors = device_detectors
         self._fio_runner = fio_runner
 
-    class _KvmSmaHandle:
+    class _SmaHandle:
+        def get_protocol(self) -> str:
+            raise NotImplemented()
+
+        def get_pci_address(self) -> PciAddress:
+            raise NotImplemented
+
+    class _KvmSmaHandle(_SmaHandle):
         def __init__(
             self,
             sma_handle: str,
@@ -97,16 +104,19 @@ class DeviceExerciserKvm(DeviceExerciserIf):
             device = physical_id % MAX_NUMBER_OF_DEVICES_ON_BUS
             return f"0000:{bus:02x}:{device:02x}.0".upper()
 
-    def run_fio(self, device_handle: str, fio_args: str) -> str:
-        kvm_sma_handle = self._KvmSmaHandle(device_handle)
+    def _create_sma_handle_from_str(self, device_handle: str) -> _SmaHandle:
+        return self._KvmSmaHandle(device_handle)
 
-        if kvm_sma_handle.get_protocol() not in self._device_detectors:
+    def run_fio(self, device_handle: str, fio_args: str) -> str:
+        sma_handle = self._create_sma_handle_from_str(device_handle)
+
+        if sma_handle.get_protocol() not in self._device_detectors:
             raise DeviceExerciserError(
-                "Unsupported protocol '" + kvm_sma_handle.get_protocol() + "'"
+                "Unsupported protocol '" + sma_handle.get_protocol() + "'"
             )
 
-        device_path = self._device_detectors[kvm_sma_handle.get_protocol()](
-            kvm_sma_handle.get_pci_address()
+        device_path = self._device_detectors[sma_handle.get_protocol()](
+            sma_handle.get_pci_address()
         )
 
         fio_args_with_device = fio_args + " --filename=" + device_path

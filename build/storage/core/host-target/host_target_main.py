@@ -20,6 +20,12 @@ def parse_arguments():
     parser.add_argument(
         "--port", type=int, default=50051, help="port number the server listens to"
     )
+    parser.add_argument(
+        "--customization-dir",
+        type=str,
+        default=None,
+        help="directory with customized device exerciser",
+    )
 
     args = parser.parse_args()
     return args
@@ -30,4 +36,6 @@ if __name__ == "__main__":
 
     args = parse_arguments()
 
-    sys.exit(run_grpc_server(args.ip, args.port))
+    sys.exit(
+        run_grpc_server(args.ip, args.port, customization_dir=args.customization_dir)
+    )

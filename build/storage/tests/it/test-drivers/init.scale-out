@@ -23,7 +23,7 @@ create_and_expose_sybsystem_over_tcp \
 
 ramdrive_size_in_mb=4
 
-echo "Create $NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT on storage-target"
+echo "Create $NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT disks on storage-target"
 ramdrives=()
 for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
