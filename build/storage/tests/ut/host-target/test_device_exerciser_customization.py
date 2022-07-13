@@ -9,6 +9,8 @@ import unittest
 import tempfile
 import os
 import sys
+import logging
+import warnings
 
 from device_exerciser_customization import (
     find_make_custom_device_exerciser,
@@ -30,6 +32,8 @@ def make_device_exerciser() -> DeviceExerciserIf:
 
 class DeviceExerciserCustomizationTests(unittest.TestCase):
     def setUp(self):
+        logging.disable(logging.CRITICAL)
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         self.tempdir = tempfile.mkdtemp()
         self.file_with_exerciser = os.path.join(
             self.tempdir, "make_device_exerciser.py"
@@ -38,6 +42,8 @@ class DeviceExerciserCustomizationTests(unittest.TestCase):
         sys.path.append(self.tempdir)
 
     def tearDown(self):
+        warnings.filterwarnings("default", category=DeprecationWarning)
+        logging.disable(logging.NOTSET)
         shutil.rmtree(self.tempdir)
 
     def test_use_customization_if_there_is_appropriate_file(self):
@@ -84,6 +90,8 @@ class DeviceExerciserCustomizationTests(unittest.TestCase):
 
 class DeviceExerciserCustomizationIsCallableTests(unittest.TestCase):
     def setUp(self):
+        logging.disable(logging.CRITICAL)
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         self.tempdir = tempfile.mkdtemp()
         self.file_with_not_callable_make_exerciser = os.path.join(
             self.tempdir, "file_with_not_callable_make_exerciser.py"
@@ -93,6 +101,8 @@ class DeviceExerciserCustomizationIsCallableTests(unittest.TestCase):
         sys.path.append(self.tempdir)
 
     def tearDown(self):
+        warnings.filterwarnings("default", category=DeprecationWarning)
+        logging.disable(logging.NOTSET)
         shutil.rmtree(self.tempdir)
 
     def test_device_exerciser_should_be_callable(self):
