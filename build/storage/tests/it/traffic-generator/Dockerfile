@@ -20,8 +20,7 @@ ENV no_proxy=$NO_PROXY
 
 FROM base as traffic-generator-base
 
-RUN dnf install -y wget
-RUN dnf install -y libguestfs-tools-c
+RUN dnf install -y wget && dnf install -y libguestfs-tools-c && dnf clean all
 
 COPY scripts/vm/prepare_vm.sh /scripts/vm/prepare_vm.sh
 COPY scripts/run_host_target_container.sh /scripts/run_host_target_container.sh
@@ -31,7 +30,7 @@ RUN /scripts/vm/prepare_vm.sh
 
 FROM base AS traffic-generator
 
-RUN dnf install -y qemu-kvm
+RUN dnf install -y qemu-kvm && dnf clean all
 COPY tests/it/traffic-generator/init /init
 COPY --from=traffic-generator-base $DRIVE_TO_BOOT $DRIVE_TO_BOOT
 COPY /scripts /scripts
