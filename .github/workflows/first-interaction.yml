@@ -3,7 +3,7 @@ name: 'First Interaction'
 on:
   issues:
     types: [ opened ]
-  pull_request:
+  pull_request_target:
     branches: [ main ]
 
   workflow_dispatch:
