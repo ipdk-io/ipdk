@@ -10,7 +10,7 @@ set -e
 current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 root_dir="${current_script_dir}"/../..
 scripts_dir="${root_dir}"/scripts
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC1090
 source "${scripts_dir}"/spdk_version.sh
 bash "${scripts_dir}"/prepare_to_build.sh
 declare https_proxy

@@ -49,7 +49,7 @@ function check_buildx() {
 		return 1
 	fi
 
-	distro=$(cat /etc/os-release | grep "^ID=" | cut -d= -f2)
+	distro=$(grep "^ID=" < /etc/os-release | cut -d= -f2)
 	if [[ "$distro" = "fedora" ]]; then
 		if ! systemctl is-active --quiet systemd-binfmt ; then
 			echo "Service systemd-binfmt is not started"
