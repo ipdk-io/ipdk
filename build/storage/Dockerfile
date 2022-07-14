@@ -150,6 +150,7 @@ RUN python -m pip install grpcio-reflection pyfakefs
 
 COPY tests/ut/host-target /host-target/tests
 COPY --from=host-target fio_runner.py /host-target/src/
+COPY --from=host-target fio_args.py /host-target/src/
 COPY --from=host-target pci_devices.py /host-target/src/
 COPY --from=host-target device_exerciser_kvm.py /host-target/src/
 COPY --from=host-target device_exerciser_if.py /host-target/src/

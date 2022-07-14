@@ -33,9 +33,9 @@ function create_virtio_blk_and_test_run_fio() {
 	local ramdrive_size_in_mb=16
 	local malloc=""
 	local virtio_blk=""
-	local fio_args="--direct=1 --rw=randrw --bs=4k --ioengine=libaio \
-	--iodepth=256 --runtime=1 --numjobs=4 --time_based --group_reporting \
-	--name=iops-test-job"
+	local fio_args="{\"rw\":\"randrw\", \"direct\":1, \"bs\":\"4k\", \
+		\"iodepth\":256, \"ioengine\":\"libaio\", \"runtime\":10, \
+		\"name\":\"iops_test-job\", \"time_based\": 1, \"numjobs\": 4}"
 	malloc=$(create_ramdrive_and_attach_as_ns_to_subsystem \
 		"${storage_target_ip}" "Malloc${virtio_blk_physical_id}" \
 		"${ramdrive_size_in_mb}" "${nqn}")

@@ -8,15 +8,21 @@ import unittest
 import tempfile
 import shutil
 import os
+import logging
+import warnings
 
 from device_exerciser_customization import find_make_custom_device_exerciser
 
 
 class DeviceExerciserCustomizationItTests(unittest.TestCase):
     def setUp(self):
+        logging.disable(logging.CRITICAL)
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
         self.tempdir = tempfile.mkdtemp()
 
     def tearDown(self):
+        warnings.filterwarnings("default", category=DeprecationWarning)
+        logging.disable(logging.NOTSET)
         shutil.rmtree(self.tempdir)
 
     def _create_make_device_exerciser_file(self, path):

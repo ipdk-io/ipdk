@@ -13,6 +13,7 @@ from grpc_reflection.v1alpha import reflection
 from device_exerciser_kvm import DeviceExerciserKvm
 from device_exerciser_if import *
 from device_exerciser_customization import find_make_custom_device_exerciser
+from fio_args import FioArgs, FioArgsError
 
 
 class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
@@ -28,7 +29,7 @@ class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
         output = None
         try:
             output = self._device_exerciser.run_fio(
-                request.deviceHandle, request.fioArgs
+                request.deviceHandle, FioArgs(request.fioArgs)
             )
         except BaseException as ex:
             logging.error("Service exception: '" + str(ex) + "'")
