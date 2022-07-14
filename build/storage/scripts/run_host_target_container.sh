@@ -40,7 +40,7 @@ if [[ $(docker images --filter=reference='host-target' -q) == "" ]]; then
     bash "${scripts_dir}"/build_container.sh host-target
 fi
 
-#IMAGE_NAME="host-target"
+export IMAGE_NAME="host-target"
 ARGS=()
 ARGS+=("-v" "/dev:/dev")
 ARGS+=("-e" "IP_ADDR=${IP_ADDR}")
