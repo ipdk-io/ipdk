@@ -10,9 +10,9 @@ export DEFAULT_NVME_PORT=4420
 export MAX_NUMBER_OF_NAMESPACES_ON_COTROLLER=1024
 
 function get_number_of_virtio_blk() {
-	cmd="lsblk --output \"NAME,VENDOR,SUBSYSTEMS\""
+	cmd="lsblk --output \"NAME\""
 	out=$( send_command_over_unix_socket "${1}" "${cmd}" 1 )
-	number_of_virio_blk_devices=$(echo "${out}" | grep -c "block:virtio:pci")
+	number_of_virio_blk_devices=$(echo "${out}" | grep -c "vd")
 	echo "${number_of_virio_blk_devices}"
 }
 
