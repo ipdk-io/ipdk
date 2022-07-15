@@ -97,11 +97,11 @@ function hostname_to_ip() {
 	getent hosts "${1}" | awk '{ print $1 }'
 }
 
-storage_target_ip=$(hostname_to_ip "storage-target")
+storage_target_ip=${STORAGE_TARGET_IP:-"$(hostname_to_ip storage-target)"}
 export storage_target_ip="${storage_target_ip}"
-ipu_storage_container_ip=$(hostname_to_ip "ipu-storage-container")
+ipu_storage_container_ip=${IPU_STORAGE_CONTAINER_IP:-"$(hostname_to_ip ipu-storage-container)"}
 export ipu_storage_container_ip="${ipu_storage_container_ip}"
-traffic_generator_ip=$(hostname_to_ip "traffic-generator")
+traffic_generator_ip=${TRAFFIC_GENERATOR_IP:-"$(hostname_to_ip traffic-generator)"}
 export traffic_generator_ip="${traffic_generator_ip}"
 export nqn="nqn.2016-06.io.spdk:cnode1"
 export shared_volume=/ipdk-shared
