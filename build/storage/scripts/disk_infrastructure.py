@@ -7,18 +7,16 @@ import subprocess
 import time
 import uuid
 
+from scripts import socket_functions
+
 logging.root.setLevel(logging.CRITICAL)
 
 
 def get_number_of_virtio_blk(socket: str) -> int:
     cmd = 'lsblk --output "NAME,VENDOR,SUBSYSTEMS"'
-    out = subprocess.run(
-        f'source scripts/socket.sh; send_command_over_unix_socket "{socket}" "{cmd}" 1',
-        capture_output=True,
-        check=True,
-        shell=True,
-        text=True,
-    ).stdout
+    out = socket_functions.send_command_over_unix_socket(
+        sock=socket, cmd=cmd, wait_for_secs=1
+    )
     number_of_virtio_blk_devices = len(re.findall("block:virtio:pci", out))
     return number_of_virtio_blk_devices
 
