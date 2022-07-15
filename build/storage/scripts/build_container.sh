@@ -9,7 +9,7 @@ set -e
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 root_dir="${script_dir}/.."
-# shellcheck disable=SC1091
+# shellcheck disable=SC1091,SC1090
 source "${script_dir}"/spdk_version.sh
 "${script_dir}"/prepare_to_build.sh
 

@@ -17,12 +17,11 @@ ARG HTTPS_PROXY
 ARG NO_PROXY
 ARG SPDK_VERSION
 
-RUN dnf install -y git
+RUN dnf install -y git && dnf clean all
 COPY spdk/ /spdk
 RUN mkdir /spdk-rpm
 COPY core/build_base/pre-install /install
-RUN chmod +x /install
-RUN /install
+RUN chmod +x /install && /install
 
 ################################################################################
 # spdk
@@ -45,13 +44,12 @@ RUN mkdir /spdk-rpm
 COPY --from=base /spdk-rpm/*.rpm /spdk-rpm/
 COPY --from=base /spdk-rpm/fio /spdk-rpm/
 
-RUN dnf install -y python python3-pip
-RUN python -m pip install grpcio grpcio-tools
+# hadolint ignore=DL3013
+RUN dnf install -y python python3-pip && dnf clean all && python -m pip install --no-cache-dir grpcio grpcio-tools
 
 # Wrap up the image
 COPY core/build_base/post-install /install
-RUN chmod +x /install
-RUN /install
+RUN chmod +x /install && /install
 
 
 ################################################################################
@@ -67,7 +65,7 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y socat
+RUN dnf install -y socat && dnf clean all
 COPY core/spdk-app/init /init
 
 ENTRYPOINT ["/init"]
@@ -99,8 +97,8 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y socat
-RUN pip install pyyaml
+# hadolint ignore=DL3013
+RUN dnf install -y socat && dnf clean all && pip install --no-cache-dir pyyaml
 
 COPY core/ipu-storage-container/init /init
 COPY --from=spdk-app /init /init_spdk
@@ -121,8 +119,8 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y python fio python3-pip
-RUN python -m pip install grpcio grpcio-tools grpcio-reflection
+# hadolint ignore=DL3013
+RUN dnf install -y python fio python3-pip && dnf clean all && python -m pip install --no-cache-dir grpcio grpcio-tools grpcio-reflection
 
 COPY core/host-target/init /init
 COPY core/host-target/*.py /
@@ -145,8 +143,8 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y python fio python3-pip
-RUN python -m pip install grpcio-reflection pyfakefs
+# hadolint ignore=DL3013
+RUN dnf install -y python fio python3-pip && dnf clean all && python -m pip install --no-cache-dir grpcio-reflection pyfakefs
 
 COPY tests/ut/host-target /host-target/tests
 COPY --from=host-target fio_runner.py /host-target/src/

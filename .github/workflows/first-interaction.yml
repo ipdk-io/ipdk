@@ -3,7 +3,7 @@ name: 'First Interaction'
 on:
   issues:
     types: [ opened ]
-  pull_request:
+  pull_request_target:
     branches: [ main ]
 
   workflow_dispatch:
@@ -11,6 +11,10 @@ on:
 jobs:
   linux:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
     steps:
       - uses: actions/first-interaction@v1
         with:
