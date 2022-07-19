@@ -18,7 +18,10 @@ the vm(step 5)
 3. Run fio. Execute the following command from `cmd-sender`
 ```
 $ echo -e $(no_grpc_proxy= grpc_cli call <host_ip_where_vm_is_run>:50051 \
-RunFio "deviceHandle: 'virtio_blk:sma-0' fioArgs: '--direct=1 --rw=randrw --bs=4k --ioengine=libaio --iodepth=256 --runtime=1 --numjobs=4 --time_based --group_reporting --name=iops-test-job'")
+RunFio "deviceHandle: '$virtio_blk0' fioArgs: '\
+    {\"rw\":\"randrw\", \"direct\":1, \"bs\":\"4k\", \
+	\"iodepth\":256, \"ioengine\":\"libaio\", \"runtime\":1, \
+	\"name\":\"iops_test-job\", \"time_based\": 1, \"numjobs\": 4}'")
 ```
 
 Expected output
