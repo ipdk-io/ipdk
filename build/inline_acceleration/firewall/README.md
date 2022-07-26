@@ -49,7 +49,7 @@ The recipe has been validated for the below version of the used software.
 	source /root/ipdk_build/P4-OVS/p4ovs_env_setup.sh /root/ipdk_build/p4-sde/install
 	```
 
-2. Setup hugepages using /root/ipdk/build/networking/scripts/set_hugepages.sh
+2. Setup hugepages using /root/ipdk/build/scripts/set_hugepages.sh
 
 3. Cleanup any previously used vhost ports, already running OvS, and QEMU instances.
 	```
