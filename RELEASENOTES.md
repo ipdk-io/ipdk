@@ -18,3 +18,23 @@ hot-(un)plug mechanism.
 docker-compose including running exemplary fio traffic and dynamic provisioning.
 * Customization possibility for enablement of virtio-blk HW-acceleration
 through dedicated HW over HW-agnostic interfaces.
+
+### Networking Recipe (P4-OVS)
+
+#### Feature support
+
+* Linux Networking support(L2 Forwarding,VXLAN,ECMP,Routing,Connection tracking)
+* Hotplug support for vhost-user ports
+* OpenConfig GNMI CLI support for TAP ports and physical link ports
+* Port Configuration dump
+* Indirect Counter support
+* TDI integration
+* PTF support (Python based packet test framework)
+* GTEST based Unit test framework
+* Action Profile and Action Selector
+
+#### Limitations
+
+* Partial implementation of TCP state machine for connection tracking
+* Hotplug feature works with specific configuration and user cannot del/re-add
+the hotplug port again <https://github.com/ipdk-io/ovs/issues/38>
