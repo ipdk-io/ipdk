@@ -49,6 +49,7 @@ RUN dnf -y update && \
     curl \
     connect-proxy \
     coreutils \
+    numactl-devel \
     which && \
     dnf -y clean all && \
     rm -rf /var/cache/yum
@@ -57,7 +58,7 @@ RUN dnf -y update && \
 RUN python -m pip install --upgrade pip && \
     python -m pip install grpcio && \
     python -m pip install ovspy && \
-    python -m pip install protobuf && \
+    python -m pip install protobuf==3.20.1 && \
     python -m pip install p4runtime && \
     pip3 install pyelftools && \
     pip3 install scapy && \

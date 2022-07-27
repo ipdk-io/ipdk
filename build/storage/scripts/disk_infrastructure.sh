@@ -13,7 +13,7 @@ function get_number_of_virtio_blk() {
     python3 <<- EOF
 from scripts import disk_infrastructure
 
-print(disk_infrastructure.get_number_of_virtio_blk(socket="${1}"))
+print(disk_infrastructure.get_number_of_virtio_blk(sock="${1}"))
 EOF
 }
 
@@ -21,7 +21,7 @@ function is_virtio_blk_attached() {
     return $(python3 <<- EOF
 from scripts import disk_infrastructure
 
-print(disk_infrastructure.is_virtio_blk_attached(socket="${1}"))
+print(disk_infrastructure.is_virtio_blk_attached(sock="${1}"))
 EOF
 )
 }
@@ -30,7 +30,7 @@ function is_virtio_blk_not_attached() {
     return $(python3 <<- EOF
 from scripts import disk_infrastructure
 
-print(disk_infrastructure.is_virtio_blk_not_attached(socket="${1}"))
+print(disk_infrastructure.is_virtio_blk_not_attached(sock="${1}"))
 EOF
 )
 }

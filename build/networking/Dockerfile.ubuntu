@@ -56,6 +56,7 @@ RUN apt-get install -y apt-utils \
     connect-proxy \
     coreutils \
     vim \
+    numactl \
     sudo && \
     if [ "$BASE_IMG" = "ubuntu:18.04" ] ; then \
        apt-get -y install python-pip; \
@@ -68,7 +69,7 @@ RUN apt-get install -y apt-utils \
 RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     python3 -m pip install --no-cache-dir grpcio && \
     python3 -m pip install --no-cache-dir ovspy \
-    protobuf \
+    protobuf==3.20.1 \
     p4runtime \
     pyelftools \
     scapy \

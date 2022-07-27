@@ -18,7 +18,9 @@ logging.root.setLevel(logging.CRITICAL)
 
 def get_number_of_virtio_blk(sock: str) -> int:
     cmd = 'lsblk --output "NAME,VENDOR,SUBSYSTEMS"'
-    out = socket_functions.send_command_over_unix_socket(sock=sock, cmd=cmd)
+    out = socket_functions.send_command_over_unix_socket(
+        sock=sock, cmd=cmd, wait_for_secs=1
+    )
     number_of_virtio_blk_devices = len(re.findall("block:virtio:pci", out))
     return number_of_virtio_blk_devices
 
