@@ -39,7 +39,7 @@ through dedicated HW over HW-agnostic interfaces.
 * Hotplug feature works with specific configuration and user cannot del/re-add
 the hotplug port again <https://github.com/ipdk-io/ovs/issues/38>
 
-## CI/CD
+### CI/CD
 
 CI has been enabled for the ipdk, ipdk-io.github.io, and ovs repos in this initial release:
 
