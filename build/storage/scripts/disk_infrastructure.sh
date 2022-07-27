@@ -56,7 +56,7 @@ from scripts import disk_infrastructure
 disk_infrastructure.create_and_expose_subsystem_over_tcp(
     ip_addr="${1}",
     nqn="${2}",
-    port_to_expose=int("${3:-"$DEFAULT_NVME_PORT"}"),
+    port_to_expose="${3:-"$DEFAULT_NVME_PORT"}",
     storage_target_port=int("${4:-"$DEFAULT_SPDK_PORT"}")
 )
 EOF
