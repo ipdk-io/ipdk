@@ -38,3 +38,13 @@ through dedicated HW over HW-agnostic interfaces.
 * Partial implementation of TCP state machine for connection tracking
 * Hotplug feature works with specific configuration and user cannot del/re-add
 the hotplug port again <https://github.com/ipdk-io/ovs/issues/38>
+
+## CI/CD
+
+CI has been enabled for the ipdk, ipdk-io.github.io, and ovs repos in this initial release:
+
+* ipdk - GitHub PR, GitHub Actions ala .github/workflows/* to generate the
+  container images and Jenkins CI for the storage recipe
+* ipdk-io.github.io - GitHub PR, GitHub Actions ala .github/workflows/* to
+  run Jekyll to generate the website
+* ovs - GitHub PR, Jenkins CI to do builds/testing
