@@ -90,12 +90,13 @@ then
         connect-proxy \
         coreutils \
         sudo \
+        numactl \
         make
 
         pip install --upgrade pip && \
         pip install grpcio \
             ovspy \
-            protobuf \
+            protobuf==3.20.1 \
             p4runtime \
             pyelftools \
             scapy \
@@ -140,13 +141,14 @@ else
     curl \
     connect-proxy \
     coreutils \
+    numactl-devel \
     which
 
     # Installing all PYTHON packages
     python -m pip install --upgrade pip && \
     python -m pip install grpcio && \
     python -m pip install ovspy && \
-    python -m pip install protobuf && \
+    python -m pip install protobuf==3.20.1 && \
     python -m pip install p4runtime && \
     pip3 install pyelftools && \
     pip3 install scapy && \
@@ -156,6 +158,7 @@ fi
 pushd /root || exit
 cp -r /git/ipdk/build/networking/scripts .
 cp -r /git/ipdk/build/networking/examples .
+cp -r /git/ipdk/build/networking/patches .
 cp /git/ipdk/build/networking/start_p4ovs.sh start_p4ovs.sh
 cp /git/ipdk/build/networking/run_ovs_cmds run_ovs_cmds
 popd

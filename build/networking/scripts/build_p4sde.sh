@@ -60,8 +60,7 @@ if [ -d "p4-driver" ]; then rm -Rf p4-driver; fi
 echo "Compiling p4-driver"
 git clone https://github.com/p4lang/p4-dpdk-target.git p4-driver
 pushd "$SDE/p4-driver"
-#Note: Below SHA needs to be updated when TDI code is open-sourced
-git checkout 780b3dfa205815e87f4580383cc37bfa30187f7c
+git checkout v22.07
 git submodule update --init --recursive
 popd
 
@@ -75,7 +74,7 @@ popd
 
 cd "$SDE/p4-driver" || exit
 ./autogen.sh
-./configure --prefix="$SDE_INSTALL"
+./configure --prefix="$SDE_INSTALL" --with-generic-flags=yes
 make clean
 make "$NUM_THREADS"
 make "$NUM_THREADS" install
