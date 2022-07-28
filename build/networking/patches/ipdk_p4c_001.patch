@@ -1,0 +1,53 @@
+diff --git a/backends/dpdk/dpdkAsmOpt.cpp b/backends/dpdk/dpdkAsmOpt.cpp
+index 16eeb7b86..b91014767 100644
+--- a/backends/dpdk/dpdkAsmOpt.cpp
++++ b/backends/dpdk/dpdkAsmOpt.cpp
+@@ -364,14 +364,17 @@ CopyPropagationAndElimination::copyPropAndDeadCodeElim(
+         } else if (auto jne = stmt->to<IR::DpdkJmpNotEqualStatement>()) {
+             instr.push_back(new IR::DpdkJmpNotEqualStatement(jne->label,
+                         replaceIfCopy(jne->src1, false), replaceIfCopy(jne->src2)));
+-       } else if (auto l = stmt->to<IR::DpdkLearnStatement>()) {
++        } else if (auto l = stmt->to<IR::DpdkLearnStatement>()) {
+             instr.push_back(new IR::DpdkLearnStatement(l->action,
+                         replaceIfCopy(l->timeout, false), replaceIfCopy(l->argument, false)));
+-       } else if (auto m = stmt->to<IR::DpdkMeterExecuteStatement>()) {
++        } else if (auto m = stmt->to<IR::DpdkMeterExecuteStatement>()) {
+             instr.push_back(new IR::DpdkMeterExecuteStatement(m->meter,
+                     replaceIfCopy(m->index), replaceIfCopy(m->length),
+                     replaceIfCopy(m->color_in), replaceIfCopy(m->color_out)));
+-       } else {
++        } else if (auto c = stmt->to<IR::DpdkCounterCountStatement>()) {
++            instr.push_back(new IR::DpdkCounterCountStatement(c->counter,
++                            replaceIfCopy(c->index), replaceIfCopy(c->incr)));
++        } else {
+             instr.push_back(stmt);
+         }
+     }
+diff --git a/p4include/pna.p4 b/p4include/pna.p4
+index afc08ece2..15659e248 100644
+--- a/p4include/pna.p4
++++ b/p4include/pna.p4
+@@ -373,7 +373,7 @@ enum PNA_CounterType_t {
+ @noWarn("unused")
+ extern Counter<W, S> {
+   Counter(bit<32> n_counters, PNA_CounterType_t type);
+-  void count(in S index);
++  void count(in S index, @optional in bit<32> increment);
+ }
+ // END:Counter_extern
+ 
+@@ -405,12 +405,12 @@ extern Meter<S> {
+   // Use this method call to perform a color aware meter update (see
+   // RFC 2698). The color of the packet before the method call was
+   // made is specified by the color parameter.
+-  PNA_MeterColor_t execute(in S index, in PNA_MeterColor_t color);
++  PNA_MeterColor_t execute(in S index, in PNA_MeterColor_t color, @optional in bit<32> pkt_len);
+ 
+   // Use this method call to perform a color blind meter update (see
+   // RFC 2698).  It may be implemented via a call to execute(index,
+   // MeterColor_t.GREEN), which has the same behavior.
+-  PNA_MeterColor_t execute(in S index);
++  PNA_MeterColor_t execute(in S index, @optional in bit<32> pkt_len);
+ }
+ // END:Meter_extern
+ 

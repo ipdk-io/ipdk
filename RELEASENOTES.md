@@ -31,7 +31,7 @@ through dedicated HW over HW-agnostic interfaces.
 
 ##### Feature support
 
-* Linux Networking support(L2 Forwarding,VXLAN,ECMP,Routing,Connection tracking)
+* Linux Networking support(L2 Forwarding,VXLAN,ECMP, and Routing)
 * Hotplug support for vhost-user ports
 * OpenConfig GNMI CLI support for TAP ports and physical link ports
 * Port Configuration dump
