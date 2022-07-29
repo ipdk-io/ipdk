@@ -119,8 +119,10 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
+COPY core/host-target/requirements.txt /
 # hadolint ignore=DL3013
-RUN dnf install -y python fio python3-pip && dnf clean all && python -m pip install --no-cache-dir grpcio grpcio-tools grpcio-reflection
+RUN dnf install -y python fio python3-pip && dnf clean all && \
+    python -m pip install --no-cache-dir -r /requirements.txt
 
 COPY core/host-target/init /init
 COPY core/host-target/*.py /
