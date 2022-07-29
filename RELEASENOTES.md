@@ -46,6 +46,7 @@ through dedicated HW over HW-agnostic interfaces.
 * Partial implementation of TCP state machine for connection tracking
 * Hotplug feature works with specific configuration and user cannot del/re-add
 the hotplug port again <https://github.com/ipdk-io/ovs/issues/38>
+* Ubuntu 20.04 and Fedora 33 are supported for container.
 
 ### CI/CD
 
