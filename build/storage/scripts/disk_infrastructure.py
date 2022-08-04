@@ -17,11 +17,11 @@ logging.root.setLevel(logging.CRITICAL)
 
 
 def get_number_of_virtio_blk(sock: str) -> int:
-    cmd = 'lsblk --output "NAME,VENDOR,SUBSYSTEMS"'
+    cmd = 'lsblk --output "NAME"'
     out = socket_functions.send_command_over_unix_socket(
         sock=sock, cmd=cmd, wait_for_secs=1
     )
-    number_of_virtio_blk_devices = len(re.findall("block:virtio:pci", out))
+    number_of_virtio_blk_devices = len(re.findall("vd", out))
     return number_of_virtio_blk_devices
 
 
@@ -95,7 +95,7 @@ def create_and_expose_subsystem_over_tcp(
 def create_ramdrive_and_attach_as_ns_to_subsystem(
     ip_addr: str,
     ramdrive_name: str,
-    number_of_512b_blocks: int,
+    ramdrive_size_in_mb: int,
     nqn: str,
     storage_target_port: int,
 ) -> str:
@@ -104,7 +104,7 @@ def create_ramdrive_and_attach_as_ns_to_subsystem(
             "method": "bdev_malloc_create",
             "params": {
                 "name": ramdrive_name,
-                "num_blocks": number_of_512b_blocks * 1024 * 1024 // 512,
+                "num_blocks": ramdrive_size_in_mb * 1024 * 1024 // 512,
                 "block_size": 512,
             },
         },

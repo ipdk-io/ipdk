@@ -2,7 +2,15 @@
 
 ## v22.07
 
-### Storage
+This is the initial release of the Infrastructure Programming Development Kit
+(IPDK).  It includes recipes for P4 networking and storage.  As well, it has
+support for continuous integration to gate changes to the IPDK repos.
+
+### Recipes
+
+Additions and changes to recipes are detailed here.
+
+#### Storage
 
 In this release initial recipes for storage were added. In particular,
 the solution enables:
@@ -19,11 +27,11 @@ docker-compose including running exemplary fio traffic and dynamic provisioning.
 * Customization possibility for enablement of virtio-blk HW-acceleration
 through dedicated HW over HW-agnostic interfaces.
 
-### Networking Recipe (P4-OVS)
+#### Networking Recipe (P4-OVS)
 
-#### Feature support
+##### Feature support
 
-* Linux Networking support(L2 Forwarding,VXLAN,ECMP,Routing,Connection tracking)
+* Linux Networking support(L2 Forwarding,VXLAN,ECMP, and Routing)
 * Hotplug support for vhost-user ports
 * OpenConfig GNMI CLI support for TAP ports and physical link ports
 * Port Configuration dump
@@ -33,8 +41,20 @@ through dedicated HW over HW-agnostic interfaces.
 * GTEST based Unit test framework
 * Action Profile and Action Selector
 
-#### Limitations
+##### Limitations
 
 * Partial implementation of TCP state machine for connection tracking
 * Hotplug feature works with specific configuration and user cannot del/re-add
 the hotplug port again <https://github.com/ipdk-io/ovs/issues/38>
+* Ubuntu 20.04 and Fedora 33 are supported for container.
+
+### CI/CD
+
+CI has been enabled for the ipdk, ipdk-io.github.io, and ovs repos in this
+initial release:
+
+* ipdk - GitHub PR, GitHub Actions ala .github/workflows/* to generate the
+  container images and Jenkins CI for the storage recipe
+* ipdk-io.github.io - GitHub PR, GitHub Actions ala .github/workflows/* to
+  run Jekyll to generate the website
+* ovs - GitHub PR, Jenkins CI to do builds/testing

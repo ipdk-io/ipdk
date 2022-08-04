@@ -70,7 +70,7 @@ print(
     disk_infrastructure.create_ramdrive_and_attach_as_ns_to_subsystem(
         ip_addr="${1}",
         ramdrive_name="${2}",
-	    number_of_512b_blocks=int("${3}"),
+	    ramdrive_size_in_mb=int("${3}"),
         nqn="${4}",
 	    storage_target_port=int("${5:-"$DEFAULT_SPDK_PORT"}")
     )
