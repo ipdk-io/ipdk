@@ -17,8 +17,7 @@ def send_command_over_unix_socket(sock: str, cmd: str, wait_for_secs: float) -> 
                 out.append(data)
         except socket.timeout:
             logging.error("Timeout exceeded")
-        finally:
-            return b"".join(out).decode()
+        return b"".join(out).decode()
 
 
 def send_command_over_unix_socket_and_no_word_found(
@@ -38,5 +37,4 @@ def get_output_from_unix_socket(sock: str, wait_for_secs: float) -> str:
                 out.append(data)
         except socket.timeout:
             logging.error("Timeout exceeded")
-        finally:
-            return b"".join(out).decode()
+        return b"".join(out).decode()

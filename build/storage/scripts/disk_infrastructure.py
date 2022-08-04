@@ -85,8 +85,7 @@ def create_and_expose_subsystem_over_tcp(
         },
     ]
     for request in requests:
-        client_call(
-            client_class=rpc.rpc.client.JSONRPCClient,
+        send_rpc_request(
             request=request,
             addr=ip_addr,
             port=storage_target_port,
@@ -116,8 +115,7 @@ def create_ramdrive_and_attach_as_ns_to_subsystem(
         {"method": "bdev_get_bdevs", "params": {"name": ramdrive_name}},
     ]
     for request in requests:
-        response = client_call(
-            client_class=rpc.rpc.client.JSONRPCClient,
+        response = send_rpc_request(
             request=request,
             addr=ip_addr,
             port=storage_target_port,
@@ -157,8 +155,7 @@ def create_virtio_blk_without_disk_check(
             "virtio_blk": {"physical_id": physical_id, "virtual_id": virtual_id},
         },
     }
-    response = client_call(
-        client_class=sma_client.Client,
+    response = send_sma_request(
         request=request,
         addr=ipu_storage_container_ip,
         port=sma_port,
@@ -172,7 +169,7 @@ def delete_virtio_blk(
 ) -> int:
     request = {"method": "DeleteDevice", "params": {"handle": device_handle}}
     try:
-        client_call(sma_client.Client, request, ipu_storage_container_ip, sma_port)
+        send_sma_request(request, ipu_storage_container_ip, sma_port)
     except Exception as ex:
         logging.error(ex)
         return 1
@@ -195,7 +192,16 @@ def is_port_open(ip_addr: str, port: int, timeout: float) -> int:
         return s.connect_ex((ip_addr, port))
 
 
-def client_call(client_class, request, addr, port):
-    client = client_class(addr, port)
+def send_request(client, request):
     response = client.call(request["method"], request.get("params", {}))
     return response
+
+
+def send_rpc_request(request, addr: str, port: int, timeout: float = 60.0):
+    client = rpc.rpc.client.JSONRPCClient(addr, port, timeout)
+    return send_request(client, request)
+
+
+def send_sma_request(request, addr: str, port: int):
+    client = sma_client.Client(addr, port)
+    return send_request(client, request)
