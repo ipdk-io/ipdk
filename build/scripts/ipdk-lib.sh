@@ -29,7 +29,7 @@ function check_buildx() {
 
 	docker_version="$(docker version --format '{{.Server.Version}}')"
 	if [[ "$(version "$docker_version")" < "$(version '19.03')" ]]; then
-		error "docker $docker_version too old. Need >= 19.03"
+		echo "docker $docker_version too old. Need >= 19.03"
 		return 1
 	fi
 
