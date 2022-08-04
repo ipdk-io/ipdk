@@ -9,7 +9,7 @@ To fully use all the features of the IPDK containers and if you want to follow
 the examples, then install the IPDK CLI with the following command executed
 from the directory this README is found in:
 
- ```
+ ```bash
  ./ipdk install
  ```
 
@@ -52,7 +52,7 @@ the vagrant-container virtual machine.
   `docker login`
 * Start docker service using following commands:
 
-  ```
+  ```command
   systemctl daemon-reload
   systemctl restart docker
   ```
@@ -98,7 +98,7 @@ configuration file settings and inner workings!
 If above commands are successful, at this point you should have your IPDK
 container up and running, and should see the container prompt like below:
 
-```
+```text
     root@c5efb1a949ad ~]#
 ```
 
