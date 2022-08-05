@@ -25,33 +25,27 @@ def get_number_of_virtio_blk(sock: str) -> int:
     return number_of_virtio_blk_devices
 
 
-def is_virtio_blk_attached(sock: str) -> int:
+def is_virtio_blk_attached(sock: str) -> bool:
     if get_number_of_virtio_blk(sock) == 0:
         logging.error("virtio-blk is not found")
-        return 1
+        return False
     logging.info("virtio-blk is found")
-    return 0
+    return True
 
 
-def is_virtio_blk_not_attached(sock: str) -> int:
-    if is_virtio_blk_attached(sock):
-        return 0
-    return 1
-
-
-def check_number_of_virtio_blk_devices(
+def verify_expected_number_of_virtio_blk_devices(
     vm_serial: str, expected_number_of_devices: int
-) -> int:
+) -> bool:
     number_of_devices = get_number_of_virtio_blk(vm_serial)
     if number_of_devices != expected_number_of_devices:
         logging.error(
             f"Required number of devices '{expected_number_of_devices}' does "
             f"not equal to actual number of devices '{number_of_devices}'"
         )
-        return 1
+        return False
     else:
         logging.info(f"Number of attached virtio-blk devices is '{number_of_devices}'")
-        return 0
+        return True
 
 
 def create_and_expose_subsystem_over_tcp(
@@ -166,27 +160,27 @@ def create_virtio_blk_without_disk_check(
 
 def delete_virtio_blk(
     ipu_storage_container_ip: str, device_handle: str, sma_port: int
-) -> int:
+) -> bool:
     request = {"method": "DeleteDevice", "params": {"handle": device_handle}}
     try:
         send_sma_request(request, ipu_storage_container_ip, sma_port)
     except Exception as ex:
         logging.error(ex)
-        return 1
-    return 0
+        return False
+    return True
 
 
-def wait_for_virtio_blk_in_os(timeout: float) -> None:
+def wait_for_virtio_blk_in_os(timeout: float = 2.0) -> None:
     time.sleep(timeout)
 
 
 def create_virtio_blk(*args, **kwargs) -> str:
     disk_handle = create_virtio_blk_without_disk_check(*args, **kwargs)
-    wait_for_virtio_blk_in_os(2)
+    wait_for_virtio_blk_in_os()
     return disk_handle
 
 
-def is_port_open(ip_addr: str, port: int, timeout: float) -> int:
+def is_port_open(ip_addr: str, port: int, timeout: float = 1.0) -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(timeout)
         return s.connect_ex((ip_addr, port))

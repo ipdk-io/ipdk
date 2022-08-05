@@ -48,7 +48,7 @@ done
 wait_for_virtio_blk_sec=5
 wait_for_virtio_blk_in_os "${virtio_blk_devices[-1]}" "$wait_for_virtio_blk_sec"
 
-check_number_of_virtio_blk_devices "${vm_serial}" \
+verify_expected_number_of_virtio_blk_devices "${vm_serial}" \
     "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"
 
 echo "Delete all created virtio-blk disks"
@@ -56,4 +56,4 @@ for dev in "${virtio_blk_devices[@]}"
 do
     delete_virtio_blk "${ipu_storage_container_ip}" "${dev}"
 done
-check_number_of_virtio_blk_devices "${vm_serial}" 0
+verify_expected_number_of_virtio_blk_devices "${vm_serial}" 0
