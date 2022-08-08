@@ -82,6 +82,7 @@ FROM base AS p4-ovs-container
 ARG KEEP_SOURCE_CODE
 WORKDIR /root
 COPY ./scripts scripts
+COPY ../scripts/set_hugepages.sh scripts
 COPY ./examples /root/examples
 COPY ./start_p4ovs.sh /root/start_p4ovs.sh
 COPY ./run_ovs_cmds /root/run_ovs_cmds
