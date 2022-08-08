@@ -74,7 +74,7 @@ function send_fio_cmd() {
 	local device_handle="$3"
 	local fio_args="$4"
 	local out=""
-	out=$(no_grpc_proxy="" grpc_cli call \
+	out=$(env -i no_grpc_proxy="" grpc_cli call \
 		"$traffic_generator_ip:$host_target_service_port" \
 		RunFio "deviceHandle: '$device_handle' \
 		fioArgs: '$fio_args'")

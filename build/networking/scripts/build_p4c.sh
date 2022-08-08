@@ -14,7 +14,7 @@ then
 fi
 
 #SHA on top which P4C is validated
-P4C_SHA=45e5d70245ef8ec691d0d758e1c91a087ecdeb45
+P4C_SHA=bad00d940a7913d6df671dc4947409982d5f7a84
 
 WORKDIR=$1
 cd "$WORKDIR"
@@ -29,9 +29,15 @@ get_num_cores
 echo "Number of Parallel threads used: $NUM_THREADS ..."
 echo ""
 
-git clone https://github.com/p4lang/p4c.git --recursive P4C
+git clone https://github.com/p4lang/p4c.git P4C
 cd P4C
 git checkout $P4C_SHA
+git submodule update --init --recursive
+# Patch for supporting PNA indirect counters
+# Currently changes are under PNA architecture review
+# Patch will be removed once changes are official and
+# available in open source p4lang/p4c
+git apply "$WORKDIR/patches/ipdk_p4c_001.patch"
 mkdir build && cd build
 cmake  ..
 make $NUM_THREADS

@@ -59,6 +59,13 @@ vagrant@ubuntu2004:~$ sudo su -
 root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build/networking/scripts/host_install.sh -p [proxy name]
 ```
 
+If your source directory is in a different location, such as `/opt/src/ipdk`:
+
+```
+vagrant@ubuntu2004:~$ sudo su -
+root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build/networking/scripts/host_install.sh -d /opt/src/ipdk
+```
+
 Note: To skip installing and building dependencies in the future, add a `-s`
 flag to the host_install.sh script.
 
@@ -66,6 +73,12 @@ flag to the host_install.sh script.
 
 ```
 root@ubuntu2004:~$ /git/ipdk/build/networking/scripts/rundemo.sh
+```
+
+Or, if your source is checked out somewhere else, such as `/opt/src/ipdk`:
+
+```
+root@ubuntu2004:~$ /git/ipdk/build/networking/scripts/rundemo.sh -d /opt/src/ipdk
 ```
 
 5. Verify OVS is running:

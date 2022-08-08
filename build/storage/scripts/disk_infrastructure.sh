@@ -111,7 +111,7 @@ function _create_virtio_blk() {
 	traddr="${7}"
 	trsvcid="${8}"
 
-	sma-client.py --address="$ipu_storage_container_ip" --port="$sma_port" <<- EOF
+	env -i sma-client.py --address="$ipu_storage_container_ip" --port="$sma_port" <<- EOF
 	{
 		"method": "CreateDevice",
 		"params": {
@@ -169,7 +169,7 @@ function delete_virtio_blk() {
 	device_handle="${2}"
 	sma_port="${3:-"$DEFAULT_SMA_PORT"}"
 
-	sma-client.py --address="$ipu_storage_container_ip" --port="$sma_port" <<- EOF
+	env -i sma-client.py --address="$ipu_storage_container_ip" --port="$sma_port" <<- EOF
 	{
 		"method": "DeleteDevice",
 		"params": {

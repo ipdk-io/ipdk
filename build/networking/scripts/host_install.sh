@@ -11,19 +11,24 @@ get_os_ver_details
 usage() {
     echo ""
     echo "Usage:"
-    echo "host_install.sh: -s -p"
+    echo "host_install.sh: -s -p <proxy> -d <base directory of source>"
     echo ""
+    echo "  -d: Base directory of source"
     echo "  -p: Proxy to use"
     echo "  -s: Skip installing and building dependencies"
     echo ""
 }
 
 INSTALL_DEPENDENCIES=y
+IPDK_BASE=/git
 
 # Process commandline arguments
-while getopts sp: flag
+while getopts d:p:s flag
 do
     case "${flag}" in
+        d)
+            IPDK_BASE="${OPTARG}"
+            ;;
         p) 
             http_proxy="${OPTARG}"
             https_proxy="${OPTARG}"
@@ -90,12 +95,13 @@ then
         connect-proxy \
         coreutils \
         sudo \
+        numactl \
         make
 
         pip install --upgrade pip && \
         pip install grpcio \
             ovspy \
-            protobuf \
+            protobuf==3.20.1 \
             p4runtime \
             pyelftools \
             scapy \
@@ -140,13 +146,14 @@ else
     curl \
     connect-proxy \
     coreutils \
+    numactl-devel \
     which
 
     # Installing all PYTHON packages
     python -m pip install --upgrade pip && \
     python -m pip install grpcio && \
     python -m pip install ovspy && \
-    python -m pip install protobuf && \
+    python -m pip install protobuf==3.20.1 && \
     python -m pip install p4runtime && \
     pip3 install pyelftools && \
     pip3 install scapy && \
@@ -154,15 +161,16 @@ else
 fi
 
 pushd /root || exit
-cp -r /git/ipdk/build/networking/scripts .
-cp -r /git/ipdk/build/networking/examples .
-cp /git/ipdk/build/networking/start_p4ovs.sh start_p4ovs.sh
-cp /git/ipdk/build/networking/run_ovs_cmds run_ovs_cmds
+cp -r "${IPDK_BASE}"/ipdk/build/networking/scripts .
+cp -r "${IPDK_BASE}"/ipdk/build/networking/examples .
+cp -r "${IPDK_BASE}"/ipdk/build/networking/patches .
+cp "${IPDK_BASE}"/ipdk/build/networking/start_p4ovs.sh start_p4ovs.sh
+cp "${IPDK_BASE}"/ipdk/build/networking/run_ovs_cmds run_ovs_cmds
 popd
 
 export OS_VERSION=20.04
 export IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04
-export REPO=/git/ipdk
+export REPO="${IPDK_BASE}"/ipdk
 TAG="$(cd "${REPO}" && git rev-parse --short HEAD)"
 export TAG
 

@@ -4,6 +4,31 @@
 
 stty -echoctl # hide ctrl-c
 
+usage() {
+    echo ""
+    echo "Usage:"
+    echo "rundemo.sh: -d <base directory of source>"
+    echo ""
+    echo "  -d: Base directory of source"
+    echo ""
+}
+
+IPDK_BASE=/git
+
+# Process commandline arguments
+while getopts d: flag
+do
+    case "${flag}" in
+        d)
+            IPDK_BASE="${OPTARG}"
+            ;;
+        *)
+            usage
+            exit
+            ;;
+    esac
+done
+
 # Exit function
 exit_function()
 {
@@ -31,7 +56,7 @@ echo "Creating Ubuntu focal image"
 echo ""
 
 pushd /root || exit
-/git/ipdk/build/networking/scripts/get-image.sh focal
+"${IPDK_BASE}"/ipdk/build/networking/scripts/get-image.sh focal
 rm -f vm1.qcow2 vm2.qcow2
 cp focal-server-cloudimg-amd64.img vm1.qcow2
 cp focal-server-cloudimg-amd64.img vm2.qcow2

@@ -18,6 +18,6 @@ echo "Cloning P4-OVS repo"
 cd "$WORKDIR" || exit
 git clone https://github.com/ipdk-io/ovs.git -b ovs-with-p4 P4-OVS
 pushd "$WORKDIR/P4-OVS" || exit
-git checkout abfbcb94bd899580fdf96950939c0910d489894d
+git checkout v22.07
 git submodule update --init --recursive
 popd || exit
