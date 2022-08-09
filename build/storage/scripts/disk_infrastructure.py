@@ -78,12 +78,12 @@ def create_and_expose_subsystem_over_tcp(
             },
         },
     ]
-    for request in requests:
-        send_rpc_request(
-            request=request,
-            addr=ip_addr,
-            port=storage_target_port,
-        )
+    send_requests(
+        requests=requests,
+        function=send_rpc_request,
+        addr=ip_addr,
+        port=storage_target_port,
+    )
 
 
 def create_ramdrive_and_attach_as_ns_to_subsystem(
@@ -108,13 +108,13 @@ def create_ramdrive_and_attach_as_ns_to_subsystem(
         },
         {"method": "bdev_get_bdevs", "params": {"name": ramdrive_name}},
     ]
-    for request in requests:
-        response = send_rpc_request(
-            request=request,
-            addr=ip_addr,
-            port=storage_target_port,
-        )
-    device_uuid = response[0]["uuid"]
+    response = send_requests(
+        requests=requests,
+        function=send_rpc_request,
+        addr=ip_addr,
+        port=storage_target_port,
+    )
+    device_uuid = response[2][0]["uuid"]
     return device_uuid
 
 
@@ -199,3 +199,7 @@ def send_rpc_request(request, addr: str, port: int, timeout: float = 60.0):
 def send_sma_request(request, addr: str, port: int):
     client = sma_client.Client(addr, port)
     return send_request(client, request)
+
+
+def send_requests(requests, function, *args, **kwargs):
+    return [function(request, *args, **kwargs) for request in requests]
