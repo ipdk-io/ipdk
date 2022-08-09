@@ -18,35 +18,36 @@ EOF
 }
 
 function is_virtio_blk_attached() {
-    return $(python3 <<- EOF
-from scripts.disk_infrastructure import is_virtio_blk_attached
+    python3 <<- EOF
+import sys
+from scripts import disk_infrastructure
 
-print(0 if is_virtio_blk_attached(sock="${1}") else 1)
+if not disk_infrastructure.is_virtio_blk_attached(sock="${1}"):
+    sys.exit(1)
 EOF
-)
 }
 
 function is_virtio_blk_not_attached() {
-    return $(python3 <<- EOF
-from scripts.disk_infrastructure import is_virtio_blk_attached
+    python3 <<- EOF
+import sys
+from scripts import disk_infrastructure
 
-print(1 if is_virtio_blk_attached(sock="${1}") else 0)
+if disk_infrastructure.is_virtio_blk_attached(sock="${1}"):
+    sys.exit(1)
 EOF
-)
 }
 
 function verify_expected_number_of_virtio_blk_devices() {
-    return $(python3 <<- EOF
+    python3 <<- EOF
+import sys
 from scripts import disk_infrastructure
 
-print(
-    disk_infrastructure.verify_expected_number_of_virtio_blk_devices(
-        vm_serial="${1}",
-	    expected_number_of_devices=int("${2}"),
-    )
-)
+if not disk_infrastructure.verify_expected_number_of_virtio_blk_devices(
+    vm_serial="${1}",
+    expected_number_of_devices=int("${2}"),
+):
+    sys.exit(1)
 EOF
-)
 }
 
 function create_and_expose_sybsystem_over_tcp() {
@@ -70,9 +71,9 @@ print(
     disk_infrastructure.create_ramdrive_and_attach_as_ns_to_subsystem(
         ip_addr="${1}",
         ramdrive_name="${2}",
-	    ramdrive_size_in_mb=int("${3}"),
+        ramdrive_size_in_mb=int("${3}"),
         nqn="${4}",
-	    storage_target_port=int("${5:-"$DEFAULT_SPDK_PORT"}"),
+        storage_target_port=int("${5:-"$DEFAULT_SPDK_PORT"}"),
     )
 )
 EOF
@@ -109,9 +110,9 @@ print(
         hostnqn="${5}",
         traddr="${6}",
         trsvcid="${7:-"$DEFAULT_NVME_PORT"}",
-	    sma_port=int("${8:-"$DEFAULT_SMA_PORT"}"),
+        sma_port=int("${8:-"$DEFAULT_SMA_PORT"}"),
     )
-)       
+)
 EOF
 }
 
@@ -128,38 +129,37 @@ print(
         hostnqn="${5}",
         traddr="${6}",
         trsvcid="${7:-"$DEFAULT_NVME_PORT"}",
-	    sma_port=int("${8:-"$DEFAULT_SMA_PORT"}"),
+        sma_port=int("${8:-"$DEFAULT_SMA_PORT"}"),
     )
 )
 EOF
 }
 
 function delete_virtio_blk() {
-    return $(python3 <<- EOF
+    python3 <<- EOF
+import sys
 from scripts.disk_infrastructure import delete_virtio_blk
 
-print(
-    0 if delete_virtio_blk(
-        ipu_storage_container_ip="${1}",
-        device_handle="${2}",
-	    sma_port=int("${3:-"$DEFAULT_SMA_PORT"}"),
-    ) else 1
-)
+if not delete_virtio_blk(
+    ipu_storage_container_ip="${1}",
+    device_handle="${2}",
+    sma_port=int("${3:-"$DEFAULT_SMA_PORT"}"),
+):
+    sys.exit(1)
 EOF
-)
 }
 
 function wait_until_port_on_ip_addr_open() {
-    return $(python3 <<- EOF
+    python3 <<- EOF
+import sys
 from scripts import disk_infrastructure
 
-print(
-    disk_infrastructure.is_port_open(
-        ip_addr="$1",
-	    port=int("$2"),
-	    timeout=float("${3:-5}"),
-    )
+
+status = disk_infrastructure.is_port_open(
+    ip_addr="$1",
+    port=int("$2"),
+    timeout=float("${3:-5}"),
 )
+sys.exit(status)
 EOF
-)
 }
