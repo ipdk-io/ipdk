@@ -1,0 +1,22 @@
+name: Storage Unit Tests Integration
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'build/storage/**'
+jobs:
+  docker:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Run Storage Unit Tests
+        working-directory: ./build/storage/tests/ut
+        run: |
+          chmod -R 777 run.sh
+          ./run.sh
