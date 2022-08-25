@@ -1,0 +1,10 @@
+{
+    "user": "",
+    "password": "",
+    "cmd_address": "",
+    "cmd_docker_name": "test-driver",
+    "storage_address": "",
+    "storage_docker_image": "storage-target",
+    "proxy_address": "",
+    "proxy_docker_image": "ipu-storage-container"
+}
