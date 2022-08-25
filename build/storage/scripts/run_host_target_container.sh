@@ -36,11 +36,12 @@ function check_all_variables_are_set() {
 
 check_all_variables_are_set
 
-if [[ $(docker images --filter=reference='host-target' -q) == "" ]]; then
-    bash "${scripts_dir}"/build_container.sh host-target
+export IMAGE_NAME="host-target"
+if [[ "$FORCE_BUILD" == "true" || \
+     $(docker images --filter=reference='host-target' -q) == "" ]]; then
+    export BUILD_IMAGE="true"
 fi
 
-export IMAGE_NAME="host-target"
 ARGS=()
 ARGS+=("-v" "/dev:/dev")
 ARGS+=("-e" "IP_ADDR=${IP_ADDR}")
