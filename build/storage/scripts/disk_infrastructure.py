@@ -1,6 +1,7 @@
 import base64
 import importlib
 import logging
+import os
 import re
 import socket
 import sys
@@ -198,8 +199,34 @@ def send_rpc_request(request, addr: str, port: int, timeout: float = 60.0):
 
 def send_sma_request(request, addr: str, port: int):
     client = sma_client.Client(addr, port)
-    return send_request(client, request)
+    with SuppressProxyEnvVariables():
+        return send_request(client, request)
 
 
 def send_requests(requests, function, *args, **kwargs):
     return [function(request, *args, **kwargs) for request in requests]
+
+
+class SuppressProxyEnvVariables:
+    no_proxy = ''
+    https_proxy = ''
+    http_proxy = ''
+    NO_PROXY = ''
+    HTTPS_PROXY = ''
+    HTTP_PROXY = ''
+
+    def __enter__(self):
+        self.no_proxy = os.environ.pop('no_proxy', '')
+        self.https_proxy = os.environ.pop('https_proxy', '')
+        self.http_proxy = os.environ.pop('http_proxy', '')
+        self.NO_PROXY = os.environ.pop('NO_PROXY', '')
+        self.HTTPS_PROXY = os.environ.pop('HTTPS_PROXY', '')
+        self.HTTP_PROXY = os.environ.pop('HTTP_PROXY', '')
+
+    def __exit__(self, *args, **kwargs):
+        os.environ['no_proxy'] = self.no_proxy
+        os.environ['https_proxy'] = self.https_proxy
+        os.environ['http_proxy'] = self.http_proxy
+        os.environ['NO_PROXY'] = self.NO_PROXY
+        os.environ['HTTPS_PROXY'] = self.HTTPS_PROXY
+        os.environ['HTTP_PROXY'] = self.HTTP_PROXY
