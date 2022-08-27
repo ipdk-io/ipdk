@@ -5,25 +5,18 @@ on:
   pull_request:
     branches:
       - main
-    paths:
+    paths-ignore:
       - 'build/storage/**'
       - '.github/workflows/storage-ci.yml'
 
 concurrency:
   # if workflow for PR or push is already running stop it, and start new one
-  group: storage-ci-${{ github.ref }}
+  group: storage-ci-skip-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   run_storage_ut:
     timeout-minutes: 15
     runs-on: ubuntu-latest
-
     steps:
-      - name: 'Checkout'
-        uses: actions/checkout@v3
-      - name: 'Run Storage Unit Tests'
-        working-directory: ./build/storage/tests/ut
-        run: |
-          chmod -R 777 run.sh
-          ./run.sh
+      - run: 'echo "No Storage Unit Test Integration Required"'
