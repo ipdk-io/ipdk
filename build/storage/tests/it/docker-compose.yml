@@ -59,7 +59,6 @@ services:
     build:
       context: ../..
       target: traffic-generator
-      dockerfile: tests/it/traffic-generator/Dockerfile
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}
@@ -87,7 +86,6 @@ services:
     build:
       context: ../..
       target: test-driver
-      dockerfile: tests/it/test-drivers/Dockerfile
       args:
         - HTTP_PROXY=${HTTP_PROXY}
         - HTTPS_PROXY=${HTTPS_PROXY}

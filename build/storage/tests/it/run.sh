@@ -23,7 +23,7 @@ spdk_version=$(get_spdk_version)
 export SPDK_VERSION="${spdk_version}"
 export DOCKER_BUILDKIT=${DOCKER_BUILDKIT:-1}
 export COMPOSE_DOCKER_CLI_BUILD=${COMPOSE_DOCKER_CLI_BUILD:-1}
-host_target_image_tar="$current_script_dir/host-target.tar"
+host_target_image_tar="$current_script_dir/../../scripts/host-target.tar"
 
 cleanup() {
     rm -f "$host_target_image_tar"
