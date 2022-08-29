@@ -137,6 +137,65 @@ COPY core/host-target/customizations $CUSTOMIZATION_DIR_IN_CONTAINER
 ENTRYPOINT [ "/init" ]
 
 ################################################################################
+# traffic-generator
+#
+# Runs qemu instance with host-target on board.
+# Represents a virtualized host.
+################################################################################
+FROM fedora:36 as traffic-generator-env-vars
+ARG DRIVE_TO_BOOT=/vm.qcow2
+ARG HOST_TARGET_TAR=/host-target.tar
+ARG HOST_TARGET_SERVICE_PORT_IN_VM=50051
+ARG HOST_TARGET_SERVICE_PORT=50051
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+ENV DRIVE_TO_BOOT=$DRIVE_TO_BOOT
+ENV HOST_TARGET_SERVICE_PORT=$HOST_TARGET_SERVICE_PORT
+ENV http_proxy=$HTTP_PROXY
+ENV https_proxy=$HTTPS_PROXY
+ENV no_proxy=$NO_PROXY
+
+FROM traffic-generator-env-vars as traffic-generator-base
+
+RUN dnf install -y wget && dnf install -y libguestfs-tools-c && dnf clean all
+
+COPY scripts/vm/prepare_vm.sh /scripts/vm/prepare_vm.sh
+COPY scripts/run_host_target_container.sh /scripts/run_host_target_container.sh
+COPY scripts/run_container.sh /scripts/run_container.sh
+COPY scripts/host-target.tar $HOST_TARGET_TAR
+RUN /scripts/vm/prepare_vm.sh
+
+FROM traffic-generator-env-vars AS traffic-generator
+
+RUN dnf install -y qemu-kvm && dnf clean all
+COPY tests/it/traffic-generator/init /init
+COPY --from=traffic-generator-base $DRIVE_TO_BOOT $DRIVE_TO_BOOT
+COPY /scripts /scripts
+ENV SHARED_VOLUME=/ipdk-shared
+ENV UNIX_SERIAL=vm_socket
+ENTRYPOINT ["/init"]
+
+
+################################################################################
+# test-driver
+#
+# Used as a control point to issue commands to other containers
+################################################################################
+FROM spdk-app AS test-driver
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ARG NO_PROXY
+
+RUN dnf install -y socat grpc-cli jq && dnf clean all
+
+COPY tests/it/test-drivers/test-helpers /test-helpers
+COPY scripts/ /scripts
+
+ENTRYPOINT ["/init"]
+
+
+################################################################################
 # ipdk-unit-tests
 ################################################################################
 FROM fedora:36 AS ipdk-unit-tests
