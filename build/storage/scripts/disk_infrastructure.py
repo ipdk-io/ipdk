@@ -1,6 +1,7 @@
 import base64
 import importlib
 import logging
+import os
 import re
 import socket
 import sys
@@ -198,8 +199,31 @@ def send_rpc_request(request, addr: str, port: int, timeout: float = 60.0):
 
 def send_sma_request(request, addr: str, port: int):
     client = sma_client.Client(addr, port)
-    return send_request(client, request)
+    with SuppressProxyEnvVariables():
+        return send_request(client, request)
 
 
 def send_requests(requests, function, *args, **kwargs):
     return [function(request, *args, **kwargs) for request in requests]
+
+
+class SuppressProxyEnvVariables:
+    def __init__(self) -> None:
+        self._proxy_env_var_names = {
+            "NO_PROXY",
+            "no_proxy",
+            "HTTP_PROXY",
+            "http_proxy",
+            "HTTPS_PROXY",
+            "https_proxy",
+        }
+        self._saved_env_vars = dict()
+
+    def __enter__(self):
+        for proxy_env_var_name in self._proxy_env_var_names:
+            value_to_save = os.environ.pop(proxy_env_var_name, None)
+            if value_to_save is not None:
+                self._saved_env_vars[proxy_env_var_name] = value_to_save
+
+    def __exit__(self, *args, **kwargs):
+        os.environ.update(self._saved_env_vars)
