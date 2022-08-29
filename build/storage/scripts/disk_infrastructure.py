@@ -208,25 +208,22 @@ def send_requests(requests, function, *args, **kwargs):
 
 
 class SuppressProxyEnvVariables:
-    no_proxy = ''
-    https_proxy = ''
-    http_proxy = ''
-    NO_PROXY = ''
-    HTTPS_PROXY = ''
-    HTTP_PROXY = ''
+    def __init__(self) -> None:
+        self._proxy_env_var_names = {
+            "NO_PROXY",
+            "no_proxy",
+            "HTTP_PROXY",
+            "http_proxy",
+            "HTTPS_PROXY",
+            "https_proxy",
+        }
+        self._saved_env_vars = dict()
 
     def __enter__(self):
-        self.no_proxy = os.environ.pop('no_proxy', '')
-        self.https_proxy = os.environ.pop('https_proxy', '')
-        self.http_proxy = os.environ.pop('http_proxy', '')
-        self.NO_PROXY = os.environ.pop('NO_PROXY', '')
-        self.HTTPS_PROXY = os.environ.pop('HTTPS_PROXY', '')
-        self.HTTP_PROXY = os.environ.pop('HTTP_PROXY', '')
+        for proxy_env_var_name in self._proxy_env_var_names:
+            value_to_save = os.environ.pop(proxy_env_var_name, None)
+            if value_to_save is not None:
+                self._saved_env_vars[proxy_env_var_name] = value_to_save
 
     def __exit__(self, *args, **kwargs):
-        os.environ['no_proxy'] = self.no_proxy
-        os.environ['https_proxy'] = self.https_proxy
-        os.environ['http_proxy'] = self.http_proxy
-        os.environ['NO_PROXY'] = self.NO_PROXY
-        os.environ['HTTPS_PROXY'] = self.HTTPS_PROXY
-        os.environ['HTTP_PROXY'] = self.HTTP_PROXY
+        os.environ.update(self._saved_env_vars)
