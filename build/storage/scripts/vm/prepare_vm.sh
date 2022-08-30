@@ -41,7 +41,6 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     run_customize=(virt-customize -a "${vm_tmp_file}")
     run_customize+=(--memsize 1260)
     run_customize+=(--root-password password:root)
-    run_customize+=(--install fio)
     run_customize+=(--run-command 'dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo')
     run_customize+=(--run-command 'grubby --update-kernel ALL --args selinux=0')
     run_customize+=(--install "dnf-plugins-core,docker-ce,docker-ce-cli,containerd.io")
