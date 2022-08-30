@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-[ "$DEBUG" == 'true' ] && set -x
+[ "$DEBUG" == 'true' ] && set -x && export BUILDKIT_PROGRESS=plain
 set -e
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
