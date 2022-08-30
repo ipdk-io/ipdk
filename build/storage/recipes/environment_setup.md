@@ -131,18 +131,17 @@ login:password pair for the vm is `root:root`.
 
 4. Prepare environment to send commands to the storage containers.
 For that purpose we need to have spdk rpc.py and grpc-cli tools available.
-`test-driver` image from the [integration tests](../tests/it/README.md#introduction)
+`test-driver` image
 fits for this purpose well since it contains all required tools.
 Let's use `test-driver` image instance to send all required commands.
 In the recipes this `test-driver` will be referred as `cmd-sender` to
 increase comprehension of the text. However, we should keep in mind that
 `cmd-sender` is a running instance of `test-driver` image.
 
-To use test-driver [install docker-compose](../tests/it/README.md#docker-compose-setup)
-and run the integration tests to build that container on `ipu-storage-container-platform`
+To use `test-driver` run the following command on `ipu-storage-container-platform`
 machine.
 ```
-$ tests/it/run.sh
+$ scripts/build_container.sh test-driver
 ```
 
 Run `test-driver` on `ipu-storage-container-platform` machine
