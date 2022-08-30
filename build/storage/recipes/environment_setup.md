@@ -129,27 +129,8 @@ Finally vm console will be opened.
 
 login:password pair for the vm is `root:root`.
 
-4. Prepare environment to send commands to the storage containers.
-For that purpose we need to have spdk rpc.py and grpc-cli tools available.
-`test-driver` image
-fits for this purpose well since it contains all required tools.
-Let's use `test-driver` image instance to send all required commands.
-In the recipes this `test-driver` will be referred as `cmd-sender` to
-increase comprehension of the text. However, we should keep in mind that
-`cmd-sender` is a running instance of `test-driver` image.
-
-To use `test-driver` run the following command on `ipu-storage-container-platform`
-machine.
+4. Prepare environment to send commands to the containers.
+Use `cmd-sender` on `ipu-storage-container-platform` machine.
 ```
-$ scripts/build_container.sh test-driver
-```
-
-Run `test-driver` on `ipu-storage-container-platform` machine
-```
-$ docker run -it --privileged --network host --entrypoint /bin/bash test-driver
-```
-
-Source supplementary scripts in running `test-driver` container
-```
-$ source /scripts/disk_infrastructure.sh
+$ scripts/run_cmd_sender.sh
 ```
