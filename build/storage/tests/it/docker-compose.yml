@@ -13,15 +13,7 @@ x-debug-env-var: &debug-env-var DEBUG=${DEBUG}
 
 services:
   storage-target:
-    image: spdk-app
-    build:
-      context: ../..
-      target: spdk-app
-      args:
-        - HTTP_PROXY=${HTTP_PROXY}
-        - HTTPS_PROXY=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
-        - SPDK_VERSION=${SPDK_VERSION}
+    image: storage-target
     container_name: storage-target
     networks:
       ipdk:
@@ -34,14 +26,6 @@ services:
     privileged: true
   ipu-storage-container:
     image: ipu-storage-container
-    build:
-      context: ../..
-      target: ipu-storage-container
-      args:
-        - HTTP_PROXY=${HTTP_PROXY}
-        - HTTPS_PROXY=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
-        - SPDK_VERSION=${SPDK_VERSION}
     container_name: ipu-storage-container
     networks:
       ipdk:
@@ -56,15 +40,6 @@ services:
     privileged: true
   traffic-generator:
     image: traffic-generator
-    build:
-      context: ../..
-      target: traffic-generator
-      dockerfile: tests/it/traffic-generator/Dockerfile
-      args:
-        - HTTP_PROXY=${HTTP_PROXY}
-        - HTTPS_PROXY=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
-        - SPDK_VERSION=${SPDK_VERSION}
     container_name: traffic-generator
     networks:
       ipdk:
@@ -84,15 +59,6 @@ services:
     privileged: true
   test-driver:
     image: test-driver
-    build:
-      context: ../..
-      target: test-driver
-      dockerfile: tests/it/test-drivers/Dockerfile
-      args:
-        - HTTP_PROXY=${HTTP_PROXY}
-        - HTTPS_PROXY=${HTTPS_PROXY}
-        - NO_PROXY=${NO_PROXY}
-        - SPDK_VERSION=${SPDK_VERSION}
     container_name: test-driver
     depends_on:
       - traffic-generator

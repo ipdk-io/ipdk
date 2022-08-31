@@ -4,7 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-[ "$DEBUG" == 'true' ] && set -x
+[ "$DEBUG" == 'true' ] && set -x && export BUILDKIT_PROGRESS=plain
 set -e
 
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
@@ -20,18 +20,35 @@ build_proxies="--build-arg HTTP_PROXY=${HTTP_PROXY} \
     --build-arg NO_PROXY=${NO_PROXY}"
 spdk_version_build_arg="--build-arg SPDK_VERSION=$(get_spdk_version)"
 
-join_by() {
+function join_by() {
   local d=${1-} f=${2-}
   if shift 2; then
     printf %s "$f" "${@/#/$d}"
   fi
 }
 
+host_target_image_tar="$script_dir/host-target.tar"
+
+function save_host_target_image_to_file() {
+    local host_target_image_tar="$1"
+    "${script_dir}"/build_container.sh "host-target"
+    docker save -o "$host_target_image_tar" host-target
+}
+
+function traffic_generator_build_cleanup() {
+    rm -f "$host_target_image_tar"
+}
+
 container_to_build="${1}"
 
-possible_containers=("storage-target" "ipu-storage-container" "ipdk-unit-tests" "host-target")
+possible_containers=("storage-target" "ipu-storage-container" \
+  "host-target" "traffic-generator" "test-driver" "ipdk-unit-tests")
 if [[ " ${possible_containers[*]} " =~ ${container_to_build} ]]; then
     export DOCKER_BUILDKIT="${DOCKER_BUILDKIT}"
+    if [ "$container_to_build" == "traffic-generator" ]; then
+      trap 'traffic_generator_build_cleanup' EXIT
+      save_host_target_image_to_file "$host_target_image_tar"
+    fi
 
     docker_build="docker build ${build_proxies} \
         ${spdk_version_build_arg} \
