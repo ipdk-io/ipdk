@@ -38,23 +38,50 @@ if [[ -e /config ]]; then
 fi
 
 function is_port_on_ip_addr_open() {
-	ip_addr="$1"
-	port="$2"
+	local ip_addr="$1"
+	local port="$2"
 	timeout 1 bash -c "cat < /dev/null > /dev/tcp/${ip_addr}/${port}" &> /dev/null
 	return $?
 }
 
-EXPOSE_SPDK="${EXPOSE_SPDK:-"true"}"
-if [ "$EXPOSE_SPDK" == "true" ]; then
-	if is_port_on_ip_addr_open "$SPDK_IP_ADDR" "$SPDK_PORT"; then
-		echo "Cannot run socat for ${SPDK_IP_ADDR} and port ${SPDK_PORT}." >&2
+function wait_until_socket_file_exists() {
+	local socket="$1"
+	local timeout="${2:-10}"
+	local wait_counter=0
+	while [ "${wait_counter}" -le "${timeout}" ] ; do
+		if [ -S "$socket" ]; then
+			return 0
+		fi
+		sleep 1
+		wait_counter=$(( wait_counter + 1 ))
+	done
+	return 1
+}
+
+function expose_spdk() {
+	local ip_addr="$1"
+	local port="$2"
+	local socket="$3"
+	if ! wait_until_socket_file_exists "$spdk_socket"; then
+		echo "SPDK unix socket is not created" >&2
+		exit 1
+	fi
+	if is_port_on_ip_addr_open "$ip_addr" "$port"; then
+		echo "Cannot run socat for $ip_addr and port $port." >&2
 		echo "Port is already in use." >&2
 		exit 1
 	fi
-	socat TCP-LISTEN:"${SPDK_PORT}",reuseaddr,bind="${SPDK_IP_ADDR}",fork \
-		UNIX-CLIENT:/var/tmp/spdk.sock &
+	socat TCP-LISTEN:"$port",reuseaddr,bind="$ip_addr",fork \
+		UNIX-CLIENT:"$spdk_socket"
+}
+
+
+spdk_socket="/var/tmp/spdk.sock"
+EXPOSE_SPDK="${EXPOSE_SPDK:-"true"}"
+if [ "$EXPOSE_SPDK" == "true" ]; then
+	expose_spdk "$SPDK_IP_ADDR" "$SPDK_PORT" "$spdk_socket" &
 fi
 
 spdk_pid_file="/spdk_pid"
 rm -f "$spdk_pid_file"
-$app "${args[@]}" -r /var/tmp/spdk.sock -f "$spdk_pid_file"
+$app "${args[@]}" -r "$spdk_socket" -f "$spdk_pid_file"
