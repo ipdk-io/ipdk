@@ -17,9 +17,9 @@ class DeviceExerciserKvmTests(unittest.TestCase):
         self.stub_device_path = "/dev/some_device"
         self.parsed_pci_addr = ""
 
-        def get_virtio_blk(pci_addr):
+        def get_virtio_blk(pci_addr, volume_ids):
             self.parsed_pci_addr = str(pci_addr)
-            return self.stub_device_path
+            return {self.stub_device_path}
 
         stub_get_virtio_blk_path = unittest.mock.Mock(side_effect=get_virtio_blk)
         self.stub_fio_output = "output"
@@ -85,4 +85,3 @@ class DeviceExerciserKvmTests(unittest.TestCase):
         self.assertTrue(
             self.stub_device_path in str(self.stub_run_fio.call_args.args[0])
         )
-        self.assertTrue(str(self.fio_args) in str(self.stub_run_fio.call_args.args[0]))

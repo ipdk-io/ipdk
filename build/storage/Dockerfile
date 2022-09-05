@@ -228,6 +228,7 @@ COPY --from=host-target device_exerciser_if.py /host-target/src/
 COPY --from=host-target device_exerciser_customization.py /host-target/src/
 COPY --from=host-target host_target_main.py /host-target/src/
 COPY --from=host-target host_target_grpc_server.py /host-target/src/
+COPY --from=host-target volume.py /host-target/src/
 COPY --from=host-target host_target_*pb2.py /host-target/generated/
 COPY --from=host-target host_target_*pb2_grpc.py /host-target/generated/
 

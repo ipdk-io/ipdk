@@ -24,7 +24,8 @@ class FioArgsTests(unittest.TestCase):
             self.assertTrue(os.path.isfile(config.file_name))
 
     def test_config_file_has_right_content(self):
-        fio_args = FioArgs('{"name":"test", "size":"4MB", "filename":"test"}')
+        fio_args = FioArgs('{"name":"test", "size":"4MB"}')
+        fio_args.add_volumes_to_exercise({"test"})
         with fio_args.create_config_file() as config:
             with open(config.file_name) as file:
                 config_content = file.read()
@@ -64,3 +65,7 @@ class FioArgsTests(unittest.TestCase):
         fio_args_str = '{"name": "test"}'
         fio_args = FioArgs(fio_args_str)
         self.assertEqual(str(fio_args), fio_args_str)
+
+    def test_no_filename_allowed(self):
+        with self.assertRaises(FioArgsError) as ex:
+            FioArgs('{"filename":"/dev/sda"}')

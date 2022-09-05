@@ -5,6 +5,8 @@ import os
 import re
 import glob
 
+from volume import VolumeId, Volume
+
 
 pci_validator = re.compile(
     r"[0-9a-fA-F]{4}:[0-9a-fA-F]{2}:[0-1]{1}[0-9a-fA-F]{1}\.[0-7]{1}"
@@ -63,7 +65,14 @@ class FailedPciDeviceDetection(RuntimeError):
     pass
 
 
-def get_virtio_blk_path_by_pci_address(addr: PciAddress) -> str:
+def get_virtio_blk_volume(
+    addr: PciAddress, volume_ids: set[VolumeId] = set()
+) -> set[Volume]:
+    if volume_ids:
+        raise FailedPciDeviceDetection(
+            f"Volume id '{volume_ids}' cannot be specified for virtio-blk devices,"
+            + "since virtio-blk always associated with one volume"
+        )
     block_directory_pattern = os.path.join(
         os.path.join("/sys/bus/pci/devices", str(addr).lower()), "virtio*/block"
     )
@@ -79,7 +88,6 @@ def get_virtio_blk_path_by_pci_address(addr: PciAddress) -> str:
             + " : "
             + str(block_device_matches)
         )
-
     devices = get_directories(block_device_matches[0])
     if not devices or len(devices) == 0:
         raise FailedPciDeviceDetection(
@@ -98,7 +106,4 @@ def get_virtio_blk_path_by_pci_address(addr: PciAddress) -> str:
             + "'"
         )
     device_path = os.path.join("/dev", devices[0])
-    if not os.path.exists(device_path):
-        raise FailedPciDeviceDetection("Device " + device_path + " does not exist")
-
-    return device_path
+    return {Volume(device_path)}
