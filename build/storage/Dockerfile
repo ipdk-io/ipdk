@@ -178,11 +178,11 @@ ENTRYPOINT ["/init"]
 
 
 ################################################################################
-# test-driver
+# cmd-sender
 #
-# Used as a control point to issue commands to other containers
+# Contains all required tools to send control commands to other containers.
 ################################################################################
-FROM spdk-app AS test-driver
+FROM spdk-app AS cmd-sender-base
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
@@ -191,6 +191,18 @@ RUN dnf install -y socat grpc-cli jq && dnf clean all
 
 COPY tests/it/test-drivers/test-helpers /test-helpers
 COPY scripts/ /scripts
+
+FROM cmd-sender-base AS cmd-sender
+RUN echo "source /scripts/disk_infrastructure.sh" >> ~/.bashrc
+ENTRYPOINT ["/bin/bash"]
+
+
+################################################################################
+# test-driver
+#
+# Issues all control commands for other containers in tests.
+################################################################################
+FROM cmd-sender-base AS test-driver
 
 ENTRYPOINT ["/init"]
 

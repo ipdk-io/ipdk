@@ -42,7 +42,8 @@ function traffic_generator_build_cleanup() {
 container_to_build="${1}"
 
 possible_containers=("storage-target" "ipu-storage-container" \
-  "host-target" "traffic-generator" "test-driver" "ipdk-unit-tests")
+  "host-target" "traffic-generator" "test-driver" "ipdk-unit-tests" \
+  "cmd-sender")
 if [[ " ${possible_containers[*]} " =~ ${container_to_build} ]]; then
     export DOCKER_BUILDKIT="${DOCKER_BUILDKIT}"
     if [ "$container_to_build" == "traffic-generator" ]; then
