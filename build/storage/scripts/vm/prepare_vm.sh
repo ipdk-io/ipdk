@@ -30,6 +30,8 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     host_target_tar_file_name=$(basename "${HOST_TARGET_TAR}")
     vm_host_target_tar_dir="/"
     vm_host_target_tar_path="${vm_host_target_tar_dir}${host_target_tar_file_name}"
+    run_host_target_container_script="run_host_target_container.sh"
+    run_container_script="run_container.sh"
     if [ ! -f "${HOST_TARGET_TAR}" ]; then
         host_target_container_name="host-target"
         "${scripts_dir}"/build_container.sh "$host_target_container_name"
@@ -45,8 +47,8 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     run_customize+=(--run-command 'grubby --update-kernel ALL --args selinux=0')
     run_customize+=(--install "dnf-plugins-core,docker-ce,docker-ce-cli,containerd.io")
     run_customize+=(--copy-in "${HOST_TARGET_TAR}:${vm_host_target_tar_dir}")
-    run_customize+=(--copy-in "${scripts_dir}/run_host_target_container.sh:/usr/local/bin")
-    run_customize+=(--copy-in "${scripts_dir}/run_container.sh:/usr/local/bin")
+    run_customize+=(--copy-in "${scripts_dir}/$run_host_target_container_script:/usr/local/bin")
+    run_customize+=(--copy-in "${scripts_dir}/$run_container_script:/usr/local/bin")
     run_customize+=(--run-command 'systemctl enable docker.service')
     run_customize+=(--run-command 'service docker start')
     run_customize+=(--append-line "${systemd_host_target_service}:[Unit]")
@@ -64,6 +66,9 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     run_customize+=(--firstboot-command "rm -f ${vm_host_target_tar_path}")
     run_customize+=(--firstboot-command 'systemctl start host-target')
     run_customize+=(--firstboot-command 'systemctl enable host-target')
+    run_customize+=(--run-command "test -s $vm_host_target_tar_path")
+    run_customize+=(--run-command "test -f /usr/local/bin/$run_host_target_container_script")
+    run_customize+=(--run-command "test -f /usr/local/bin/$run_container_script")
 
     "${run_customize[@]}"
     mv "${vm_tmp_file}" "${DRIVE_TO_BOOT}"

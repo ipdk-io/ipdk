@@ -65,6 +65,17 @@ function wait_until_host_target_is_up() {
 		sleep "${wait_period_sec}"
 		wait_counter=$(( wait_counter + 1 ))
 	done
+	cmd="docker image ls"
+	out=$(send_command_over_unix_socket "${console}" "$cmd" 1)
+	echo "$out"
+
+	cmd="service docker status | cat"
+	out=$(send_command_over_unix_socket "${console}" "$cmd" 1)
+	echo "$out"
+
+	cmd="systemctl status host-target | cat"
+	out=$(send_command_over_unix_socket "${console}" "$cmd" 1)
+	echo "$out"
 	return 1
 }
 
