@@ -39,7 +39,14 @@ git submodule update --init --recursive
 # available in open source p4lang/p4c
 git apply "$WORKDIR/patches/ipdk_p4c_001.patch"
 mkdir build && cd build
-cmake  ..
+cmake -DENABLE_BMV2=OFF \
+  -DENABLE_EBPF=OFF \
+  -DENABLE_UBPF=OFF \
+  -DENABLE_GTESTS=OFF \
+  -DENABLE_P4TEST=OFF \
+  -DENABLE_P4C_GRAPHS=OFF \
+  ..
+
 make $NUM_THREADS
 make $NUM_THREADS install
 make $NUM_THREADS clean
