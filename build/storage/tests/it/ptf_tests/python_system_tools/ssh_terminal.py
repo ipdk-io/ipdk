@@ -1,3 +1,7 @@
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
 import logging
 
 from paramiko.client import SSHClient, AutoAddPolicy
