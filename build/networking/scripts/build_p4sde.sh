@@ -1,5 +1,5 @@
 #!/bin/bash
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2021-2022 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
 set -e
@@ -62,6 +62,7 @@ git clone https://github.com/p4lang/p4-dpdk-target.git p4-driver
 pushd "$SDE/p4-driver"
 git checkout v22.07
 git submodule update --init --recursive
+git apply "$WORKDIR/patches/Optimize-P4-SDE-install-files.patch"
 popd
 
 pip3 install distro

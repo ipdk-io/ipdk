@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright (C) 2021 Sander Tolsma
+# Copyright (C) 2021-2022 Sander Tolsma
 # SPDX-License-Identifier: Apache-2.0
 
 # Initialize the IPDK container environment
@@ -15,7 +15,7 @@ rundaemon() {
 	echo "Start as long running process."
 	initialize_env
 	/root/scripts/set_hugepages.sh 10
-	/root/scripts/run_ovs.sh
+	/root/scripts/run_ovs.sh /root/p4ovs/P4OVS_DEPS_INSTALL
 	# TODO() Following doesn't work :-(
 	# PIDFile="/var/run/openvswitch/ovs-vswitchd.pid"
 	# wait $(<"$PIDFile")

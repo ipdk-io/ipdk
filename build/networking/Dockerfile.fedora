@@ -1,8 +1,9 @@
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2021-2022 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 #
 # Version 0.1.0
 
+#..Build Container..#
 ARG BASE_IMG=${BASE_IMG}
 
 FROM ${BASE_IMG} AS base
@@ -65,14 +66,38 @@ RUN python -m pip install --upgrade pip && \
     pip3 install six
 
 WORKDIR /root
-
-FROM base AS p4-ovs-container
-ARG KEEP_SOURCE_CODE
-WORKDIR /root
 COPY ./scripts scripts
 COPY ./examples /root/examples
 COPY ./start_p4ovs.sh /root/start_p4ovs.sh 
 COPY ./run_ovs_cmds /root/run_ovs_cmds
 COPY ./patches /root/patches
-RUN  /root/start_p4ovs.sh /root && \
-     /root/scripts/run_cleanup.sh /root ${KEEP_SOURCE_CODE}
+RUN  /root/start_p4ovs.sh /root
+
+#..Final Container With Packages And Dependent Libraries..#
+
+FROM ${BASE_IMG} AS p4ovs
+ARG PROXY
+COPY --from=base /root/P4-OVS/p4ovs_env_setup.sh /root/scripts/
+COPY --from=base /root/examples /root/examples
+COPY --from=base /root/scripts /root/scripts
+COPY --from=base /root/p4c /root/p4c
+COPY --from=base /root/p4-sde/install /root/p4-sde/install
+COPY --from=base /root/p4ovs /root/p4ovs
+# Configuration Files
+COPY --from=base /root/P4-OVS/stratum/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf \
+     /usr/share/stratum/target_skip_p4_no_bsp.conf
+COPY --from=base /root/P4-OVS/external/dpdk_port_config.pb.txt /usr/share/stratum/dpdk_port_config.pb.txt
+COPY --from=base /root/p4-sde/install/share/target_sys/zlog-cfg /usr/share/target_sys/zlog-cfg
+
+RUN dnf install -y boost-iostreams boost-devel gmp-devel \
+  numactl-devel libedit-devel libunwind libnl3-devel python pip procps-ng \
+  iproute net-tools iputils
+
+RUN python -m pip install --upgrade pip && \
+    python -m pip install grpcio && \
+    python -m pip install ovspy && \
+    python -m pip install protobuf==3.20.1 && \
+    python -m pip install p4runtime && \
+    pip3 install scapy && dnf -y clean all && \
+    rm -rf /var/cache/yum && rm -rf /var/cache/dnf && rm -rf /root/.cache/pip && \
+    mkdir /etc/stratum && touch /etc/stratum/pipeline_cfg.pb.txt
