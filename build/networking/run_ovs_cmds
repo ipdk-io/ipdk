@@ -1,4 +1,4 @@
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2021-2022 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
 These are the manual steps to setup environment variables, hugepages 
@@ -14,4 +14,4 @@ and run P4-OVS.
   rm -rf /tmp/vhost-user-*
 
 4) Start OvS from /root/scripts (Script to start P4-OvS process)
-  /root/scripts/run_ovs.sh
+  /root/scripts/run_ovs.sh /root/p4ovs/P4OVS_DEPS_INSTALL

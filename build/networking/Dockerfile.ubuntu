@@ -1,15 +1,16 @@
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2021-2022 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 #
 # Version 0.1.0
 
+#..Build Container..#
 ARG BASE_IMG=${BASE_IMG}
 
 FROM ${BASE_IMG} AS base
 LABEL maintainer="neha1.singh@intel.com"
 ARG PROXY
 ARG BASE_IMG
-
+ARG KEEP_SOURCE_CODE
 SHELL ["/bin/bash", "-c"]
 
 RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
@@ -78,13 +79,39 @@ RUN python3 -m pip install --no-cache-dir --upgrade pip && \
     meson==0.59.4 \
     ninja>=1.8.2
 
-FROM base AS p4-ovs-container
-ARG KEEP_SOURCE_CODE
 WORKDIR /root
 COPY ./scripts scripts
 COPY ./examples /root/examples
 COPY ./start_p4ovs.sh /root/start_p4ovs.sh
 COPY ./run_ovs_cmds /root/run_ovs_cmds
 COPY ./patches /root/patches
-RUN  /root/start_p4ovs.sh /root && \
-     /root/scripts/run_cleanup.sh /root ${KEEP_SOURCE_CODE}
+RUN  /root/start_p4ovs.sh /root
+
+#..Final Container With Packages And Dependent Libraries..#
+FROM ${BASE_IMG} AS p4-ovs-container
+ENV DEBIAN_FRONTEND noninteractive
+ARG PROXY
+COPY --from=base /root/P4-OVS/p4ovs_env_setup.sh /root/scripts/
+COPY --from=base /root/examples /root/examples
+COPY --from=base /root/scripts /root/scripts
+COPY --from=base /root/p4c /root/p4c
+COPY --from=base /root/p4-sde/install /root/p4-sde/install
+COPY --from=base /root/p4ovs /root/p4ovs
+# Configuration Files
+COPY --from=base /root/P4-OVS/stratum/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf \
+     /usr/share/stratum/target_skip_p4_no_bsp.conf
+COPY --from=base /root/P4-OVS/external/dpdk_port_config.pb.txt /usr/share/stratum/dpdk_port_config.pb.txt
+COPY --from=base /root/p4-sde/install/share/target_sys/zlog-cfg /usr/share/target_sys/zlog-cfg
+
+RUN apt-get update
+RUN apt-get install -y libboost-iostreams-dev libboost-dev libgmp-dev \
+    numactl libedit-dev libnl-route-3-dev python pip libunwind-dev sudo \
+    net-tools iproute2 vim
+#
+# Installing all PYTHON packages
+RUN python3 -m pip install --no-cache-dir --upgrade pip && \
+    python3 -m pip install --no-cache-dir grpcio && \
+    python3 -m pip install --no-cache-dir ovspy protobuf==3.20.1 p4runtime scapy && \
+    apt-get -y clean all && \
+    rm -rf /var/cache/yum && rm -rf /var/cache/apt && rm -rf /root/.cache/pip && \
+    mkdir /etc/stratum && touch /etc/stratum/pipeline_cfg.pb.txt

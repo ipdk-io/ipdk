@@ -1,0 +1,34 @@
+From ccf41798c4c7a6d52a409c39f038efc43a082d58 Mon Sep 17 00:00:00 2001
+From: Venkata Suresh Kumar P <venkata.suresh.kumar.p@intel.com>
+Date: Thu, 15 Sep 2022 14:47:19 +0000
+Subject: [PATCH] Optimize P4 SDE install files
+
+Modified P4 SDE build to compile and install required
+DPDK libraries and utilities.
+
+Signed-off-by: Venkata Suresh Kumar P <venkata.suresh.kumar.p@intel.com>
+---
+ src/lld/dpdk/Makefile.am | 7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/src/lld/dpdk/Makefile.am b/src/lld/dpdk/Makefile.am
+index 7a8d51b..9ca8553 100644
+--- a/src/lld/dpdk/Makefile.am
++++ b/src/lld/dpdk/Makefile.am
+@@ -1,8 +1,11 @@
++export libdir
+ all:
+ 	$(shell ./apply_patch.sh > /dev/null 2>&1)
+ 	stat dpdk_src/build > /dev/null 2>&1 || \
+-	(cd dpdk_src && meson -Dprefix=$(prefix) build && \
+-	cd build && ninja && ninja install)
++        (cd dpdk_src && meson -Dprefix=$(prefix) -Dtests=false -Ddefault_library=shared \
++	 -Dexamples='' -Denable_kmods=false -Denable_docs=false -Denable_driver_sdk=false \
++	 -Ddisable_drivers=dma/*,raw/*,compress/*,crypto/*,event/*,baseband/* -Dbuildtype=release build && \
++	cd build && ninja && ninja install)
+ 	$(MAKE) -C infra install_dir=$(prefix)
+ 	cp infra/build/dpdk_infra.so $(libdir)/libdpdk_infra.so
+ install:
+-- 
+2.25.1
+

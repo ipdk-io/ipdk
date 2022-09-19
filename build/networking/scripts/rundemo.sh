@@ -1,5 +1,5 @@
 #!/bin/bash
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2021-2022 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
 stty -echoctl # hide ctrl-c
@@ -145,9 +145,9 @@ echo ""
 
 pushd /root/P4-OVS || exit
 # shellcheck source=/dev/null
-. /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
+. /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install /root/p4ovs/P4OVS_DEPS_INSTALL
 /root/scripts/set_hugepages.sh
-/root/scripts/run_ovs.sh
+/root/scripts/run_ovs.sh /root/p4ovs/P4OVS_DEPS_INSTALL
 popd || exit
 
 echo ""
@@ -156,7 +156,7 @@ echo ""
 
 pushd /root/P4-OVS || exit
 # shellcheck source=/dev/null
-. /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install
+. /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install /root/p4ovs/P4OVS_DEPS_INSTALL
 gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,\
     device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-0,\
     port-type:LINK"
