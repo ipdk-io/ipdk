@@ -72,6 +72,17 @@ Linux kernel image not being readable by issuing:
 $ sudo chmod +r /boot/vmlinuz-*
 ```
 
+### oracle/qemu
+```
+$ git clone https://github.com/oracle/qemu qemu-orcl
+$ cd qemu-orcl
+$ git checkout 46bb039c31e92ae84cf7fe1f64119c1a78e0d101
+$ git submodule update --init --recursive
+$ ./configure --enable-multiprocess
+$ make
+$ make install
+```
+
 ## Setting security policies
 Make sure that required security permissions are configured to enable vm network
 connectivity or disable them temporarily.
