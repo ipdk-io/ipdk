@@ -15,7 +15,8 @@ from fio_args import FioArgs
 class FioRunner(unittest.TestCase):
     def setUp(self):
         self.fio_file = "test"
-        self.fio_args = FioArgs('{"name":"test", "size":"4MB", "filename":"test"}')
+        self.fio_args = FioArgs('{"name":"test", "size":"4MB"}')
+        self.fio_args.add_volumes_to_exercise({"test"})
 
     def tearDown(self):
         if os.path.exists(self.fio_file):
