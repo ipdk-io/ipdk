@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+set -e
+[ "$DEBUG" == 'true' ] && set -x
+
+current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+declare vm_serial
+declare nqn
+declare storage_target_ip
+declare ipu_storage_container_ip
+declare port_to_expose
+# shellcheck disable=SC1091,SC1090
+source "${current_script_dir}"/test-helpers
+
+wait_until_port_on_ip_addr_open "$storage_target_ip" "$DEFAULT_SPDK_PORT"
+create_and_expose_sybsystem_over_tcp \
+	"$storage_target_ip" "$nqn" "$port_to_expose"
+
+ramdrive_size_in_mb=16
+malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+	"$storage_target_ip" Malloc0 "$ramdrive_size_in_mb" "$nqn")
+malloc1=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+	"$storage_target_ip" Malloc1 "$ramdrive_size_in_mb" "$nqn")
+malloc2=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+	"$storage_target_ip" Malloc2 "$ramdrive_size_in_mb" "$nqn")
+
+wait_until_vm_is_up "$vm_serial"
+log_in_with_default_credentials "$vm_serial"
+
+
+echo ""
+echo "### Create 2 nvme devices ###"
+nvme_physical_id=0
+nvme0=$(create_nvme_device "$ipu_storage_container_ip" "$nvme_physical_id" 0)
+nvme_physical_id=1
+nvme1=$(create_nvme_device "$ipu_storage_container_ip" "$nvme_physical_id" 0)
+
+echo ""
+echo "### Attach 3 namespaces to nvme devices ###"
+verify_expected_number_of_nvme_devices "$vm_serial" 0
+attach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc0" "$nqn" \
+	"$storage_target_ip"
+attach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc1" "$nqn" \
+	"$storage_target_ip"
+attach_volume "$ipu_storage_container_ip" "$nvme1" "$malloc2" "$nqn" \
+	"$storage_target_ip"
+verify_expected_number_of_nvme_devices "$vm_serial" 3
+
+echo ""
+echo "### Dettach namespace from nvme device ###"
+detach_volume "$ipu_storage_container_ip" "$nvme1" "$malloc2"
+verify_expected_number_of_nvme_devices "$vm_serial" 2
+
+echo ""
+echo "### Delete nvme device ###"
+delete_nvme_device "$ipu_storage_container_ip" "$nvme1"
+verify_expected_number_of_nvme_devices "$vm_serial" 2
+
+echo ""
+echo "### Re-attach ramdrive as namespace to another nvme device ###"
+attach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc2" "$nqn" \
+	"$storage_target_ip"
+verify_expected_number_of_nvme_devices "$vm_serial" 3
+
+
+echo "### Detach all namespaces from nvme device ###"
+detach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc0"
+detach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc1"
+detach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc2"
+verify_expected_number_of_nvme_devices "$vm_serial" 0
+
+echo "### Delete nvme devices ###"
+delete_nvme_device "$ipu_storage_container_ip" "$nvme0"
+
+exit 0
