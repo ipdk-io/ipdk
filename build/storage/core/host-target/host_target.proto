@@ -10,8 +10,13 @@ service HostTarget {
   rpc RunFio (RunFioRequest) returns (RunFioReply) {}
 }
 
-message RunFioRequest {
+message DiskToExercise {
   string deviceHandle = 1;
+  repeated string volumeId = 2;
+}
+
+message RunFioRequest {
+  DiskToExercise diskToExercise = 1;
   string fioArgs = 2;
 }
 

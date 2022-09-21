@@ -2,20 +2,25 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from typing import Callable
 import fio_runner
 import copy
+import os
+import glob
+import logging
+from typing import Callable
 from device_exerciser_if import DeviceExerciserIf
 from fio_args import FioArgs
 from device_exerciser_if import *
 from volume import VolumeId
 from pci_devices import (
     PciAddress,
+    get_nvme_volumes,
     get_virtio_blk_volume,
 )
 
 
 VIRTIO_BLK_PROTOCOL = "virtio_blk"
+NVME_PROTOCOL = "nvme"
 
 
 class SmaHandleError(ValueError):
@@ -27,6 +32,7 @@ class DeviceExerciserKvm(DeviceExerciserIf):
         self,
         volume_detectors={
             VIRTIO_BLK_PROTOCOL: get_virtio_blk_volume,
+            NVME_PROTOCOL: get_nvme_volumes,
         },
         fio_runner=fio_runner.run_fio,
     ) -> None:
@@ -136,11 +142,37 @@ class DeviceExerciserKvm(DeviceExerciserIf):
         def _calculate_corresponding_device(self, physical_id: int):
             return physical_id % self.MAX_NUMBER_OF_DEVICES_ON_BUS
 
-    def run_fio(self, device_handle: str, fio_args: FioArgs) -> str:
-        # Currently only virtio-blk is supported.
-        # virtio-blk is always associated with only one volume.
-        # For that purpose volume_ids set should be empty
-        volume_ids = set()
+    class _KvmNvmeDevice(_KvmStorageDevice):
+        def __init__(
+            self, device_id: str, volume_detector: Callable, fio_runner: Callable
+        ) -> None:
+            super().__init__(device_id, volume_detector, fio_runner)
+
+        def _find_pci_addr(self, device_id: str) -> PciAddress:
+            subsysnqn = device_id
+            nvme_devices = glob.glob("/sys/bus/pci/devices/*/nvme/nvme*")
+            for nvme_device_path in nvme_devices:
+                if self._get_subsysnqn(nvme_device_path) == subsysnqn:
+                    return self._get_nvme_device_pci_addr(nvme_device_path)
+
+            raise DeviceExerciserError(f"No nvme device with subsysnqn '{subsysnqn}'")
+
+        def _get_subsysnqn(self, nvme_device_path: str) -> str:
+            subsysnqn_file = os.path.join(nvme_device_path, "subsysnqn")
+            subsysnqn_file_value = ""
+            with open(subsysnqn_file) as f:
+                subsysnqn_file_value = f.read().rstrip()
+                logging.debug(f"Found nvme device with nqn {subsysnqn_file_value}")
+            return subsysnqn_file_value
+
+        def _get_nvme_device_pci_addr(self, nvme_device_path: str) -> PciAddress:
+            return PciAddress(
+                os.path.basename(os.path.dirname(os.path.dirname(nvme_device_path)))
+            )
+
+    def run_fio(
+        self, device_handle: str, volume_ids: set[VolumeId], fio_args: FioArgs
+    ) -> str:
         sma_handle = self._KvmSmaHandle(device_handle)
         storage_device = self._create_storage_device(sma_handle)
         return storage_device.run_fio_on_volumes(fio_args, volume_ids)
@@ -148,6 +180,12 @@ class DeviceExerciserKvm(DeviceExerciserIf):
     def _create_storage_device(self, sma_handle: _SmaHandle) -> _KvmStorageDevice:
         if sma_handle.get_protocol() == VIRTIO_BLK_PROTOCOL:
             return self._KvmVirtioBlkDevice(
+                sma_handle.get_device_id(),
+                self._volume_detectors[sma_handle.get_protocol()],
+                self._fio_runner,
+            )
+        elif sma_handle.get_protocol() == NVME_PROTOCOL:
+            return self._KvmNvmeDevice(
                 sma_handle.get_device_id(),
                 self._volume_detectors[sma_handle.get_protocol()],
                 self._fio_runner,

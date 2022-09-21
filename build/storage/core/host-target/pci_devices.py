@@ -1,6 +1,7 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
+import logging
 import os
 import re
 import glob
@@ -107,3 +108,44 @@ def get_virtio_blk_volume(
         )
     device_path = os.path.join("/dev", devices[0])
     return {Volume(device_path)}
+
+
+def get_nvme_volumes(
+    addr: PciAddress, volume_ids: set[VolumeId] = set()
+) -> set[Volume]:
+    namespace_directories_pattern = os.path.join(
+        os.path.join("/sys/bus/pci/devices", str(addr).lower()), "nvme/nvme*/nvme*n*"
+    )
+
+    namespaces_in_sysfs = get_all_files_by_pattern(namespace_directories_pattern)
+    if volume_ids:
+        namespaces_in_sysfs = _match_namespaces_to_volumes(
+            namespaces_in_sysfs, volume_ids
+        )
+    if not namespaces_in_sysfs:
+        logging.warning(f"Cannot find device for '{str(addr)}' '{str(volume_ids)}'")
+
+    return _find_namespaces_in_dev(namespaces_in_sysfs)
+
+
+def _match_namespaces_to_volumes(
+    namespaces_in_sysfs: list[str], volume_ids: set[VolumeId]
+) -> list[str]:
+    filtered_namespaces_in_sysfs = []
+    for namespace in namespaces_in_sysfs:
+        namespace_uuid_file = os.path.join(namespace, "uuid")
+        namespace_uuid = ""
+        with open(namespace_uuid_file) as f:
+            namespace_uuid = f.read()
+
+        if VolumeId(namespace_uuid) in volume_ids:
+            filtered_namespaces_in_sysfs.append(namespace)
+    return filtered_namespaces_in_sysfs
+
+
+def _find_namespaces_in_dev(namespaces_in_sysfs: list[str]) -> set[Volume]:
+    namespace_dev_paths = set()
+    for namespace_in_sysfs in namespaces_in_sysfs:
+        namespace_dev_path = os.path.join("/dev", os.path.basename(namespace_in_sysfs))
+        namespace_dev_paths.add(Volume(namespace_dev_path))
+    return namespace_dev_paths

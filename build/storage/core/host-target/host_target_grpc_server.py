@@ -14,6 +14,7 @@ from device_exerciser_kvm import DeviceExerciserKvm
 from device_exerciser_if import *
 from device_exerciser_customization import find_make_custom_device_exerciser
 from fio_args import FioArgs, FioArgsError
+from volume import VolumeId
 
 
 class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
@@ -25,11 +26,18 @@ class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
         self._device_exerciser = device_exerciser
 
     def RunFio(self, request, context):
-        logging.debug(f"RunFio: request:'{request}'")
+        logging.info(f"RunFio: request:'{request}'")
         output = None
         try:
+            volume_ids = set()
+            for volume_id in request.diskToExercise.volumeId:
+                logging.info(f"volume id to exercise is `{volume_id}`")
+                volume_ids.add(VolumeId(volume_id))
+
             output = self._device_exerciser.run_fio(
-                request.deviceHandle, FioArgs(request.fioArgs)
+                request.diskToExercise.deviceHandle,
+                volume_ids,
+                FioArgs(request.fioArgs),
             )
         except BaseException as ex:
             logging.error("Service exception: '" + str(ex) + "'")
