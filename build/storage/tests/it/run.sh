@@ -49,7 +49,7 @@ function provide_hugepages() {
 
 provide_hugepages
 
-test_cases=(hot-plug.virtio-blk hot-plug.nvme fio)
+test_cases=(hot-plug.virtio-blk hot-plug.nvme fio.virtio-blk fio.nvme)
 if [ "${BASE_TESTS_ONLY}" != "true" ]; then
     test_cases+=(scale-out)
 fi

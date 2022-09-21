@@ -69,3 +69,18 @@ class FioArgsTests(unittest.TestCase):
     def test_no_filename_allowed(self):
         with self.assertRaises(FioArgsError) as ex:
             FioArgs('{"filename":"/dev/sda"}')
+
+    def test_multiple_devices(self):
+        fio_args = FioArgs('{"name":"test"}')
+        devices = ["/dev/nvme0n1", "/dev/nvme0n3"]
+        fio_args.add_volumes_to_exercise(set(devices))
+        config_lines = []
+        with fio_args.create_config_file() as config:
+            with open(config.file_name) as file:
+                config_lines = file.readlines()
+
+        for line in config_lines:
+            if "filename" in line:
+                self.assertTrue(":".join(set(devices)) in line)
+                return
+        self.fail("No devices in fio config file")

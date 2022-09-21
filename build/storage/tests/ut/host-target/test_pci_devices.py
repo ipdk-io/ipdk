@@ -180,3 +180,75 @@ class VirtioBlkPciDeviceTests(TestCase):
                 PciAddress("0000:00:04.0"),
                 {VolumeId(str(uuid.uuid1()))},
             )
+
+
+class NvmePciDeviceTests(TestCase):
+    def setUp(self):
+        self.setUpPyfakefs()
+
+    def test_get_device_by_pci_address(self):
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n1"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/nvme0n1")
+        dev_paths = get_nvme_volumes(PciAddress("0000:01:00.0"))
+        self.assertEqual(dev_paths, {"/dev/nvme0n1"})
+
+    def test_no_namespace_on_device(self):
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/nvme0")
+        dev_paths = get_nvme_volumes(PciAddress("0000:01:00.0"))
+        self.assertEqual(dev_paths, set())
+
+    def test_multiple_namespaces_on_device(self):
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n1"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/nvme0n1")
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n2"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/nvme0n2")
+        dev_paths = get_nvme_volumes(PciAddress("0000:01:00.0"))
+        self.assertEqual(dev_paths, {"/dev/nvme0n1", "/dev/nvme0n2"})
+
+    def test_more_than_ten_namespaces(self):
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n11"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/nvme0n11")
+        dev_paths = get_nvme_volumes(PciAddress("0000:01:00.0"))
+        self.assertEqual(dev_paths, {"/dev/nvme0n11"})
+
+    def test_namespace_internal_files_handled_correctly(self):
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n1/another_file"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/nvme0n1")
+        dev_paths = get_nvme_volumes(PciAddress("0000:01:00.0"))
+        self.assertEqual(dev_paths, {"/dev/nvme0n1"})
+
+    def test_namespace_does_not_exist_under_dev(self):
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n1"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/nvme0n1")
+
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n2"
+        self.fs.create_dir(path)
+
+        with self.assertRaises(VolumeError) as ex:
+            get_nvme_volumes(PciAddress("0000:01:00.0"))
+
+    def test_get_nvme_volumes(self):
+        disk_uuid = uuid.uuid1()
+        volume_ids = [VolumeId(str(disk_uuid))]
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n1"
+        self.fs.create_dir(path)
+        self.fs.create_file(
+            os.path.join(path, "uuid"), contents=str(uuid.uuid1()) + "\n"
+        )
+        self.fs.create_file("/dev/nvme0n1")
+
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n2"
+        self.fs.create_dir(path)
+        self.fs.create_file(os.path.join(path, "uuid"), contents=str(disk_uuid))
+        self.fs.create_file("/dev/nvme0n2")
+
+        dev_paths = get_nvme_volumes(PciAddress("0000:01:00.0"), volume_ids)
+        self.assertEqual(dev_paths, {"/dev/nvme0n2"})
