@@ -71,6 +71,7 @@ services:
     environment:
       - *debug-env-var
       - NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT=${NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT}
+      - MAX_NUMBER_OF_NAMESPACES=${MAX_NUMBER_OF_NAMESPACES}
       - *host-target-service-port
     privileged: true
 networks:

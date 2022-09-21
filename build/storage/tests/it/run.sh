@@ -25,6 +25,8 @@ export DOCKER_BUILDKIT=${DOCKER_BUILDKIT:-1}
 export COMPOSE_DOCKER_CLI_BUILD=${COMPOSE_DOCKER_CLI_BUILD:-1}
 export NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT=\
 "${NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT:-64}"
+export MAX_NUMBER_OF_NAMESPACES=\
+"${MAX_NUMBER_OF_NAMESPACES:-32}"
 
 function run_test() {
     sudo_for_docker="sudo"
@@ -51,7 +53,7 @@ provide_hugepages
 
 test_cases=(hot-plug fio)
 if [ "${BASE_TESTS_ONLY}" != "true" ]; then
-    test_cases+=(scale-out)
+    test_cases+=(scale-out.virtio-blk scale-out.nvme)
 fi
 
 "$scripts_dir"/build_container.sh storage-target

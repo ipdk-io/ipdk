@@ -9,3 +9,11 @@ devices:
     buses:
     - name: 'pci.ipdk.0'
     - name: 'pci.ipdk.1'
+- name: vfiouser
+  params:
+    qmp_addr: 192.168.42.5
+    qmp_port: 5555
+    sock_path: /ipdk-shared
+    buses:
+    - name: 'pci.ipdk.0'
+    - name: 'pci.ipdk.1'
