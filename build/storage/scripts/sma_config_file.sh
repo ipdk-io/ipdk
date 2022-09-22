@@ -23,6 +23,14 @@ function create_sma_config_file() {
 address: $sma_addr
 port: $sma_port
 devices:
+- name: vfiouser
+  params:
+    qmp_addr: $qmp_addr
+    qmp_port: $qmp_port
+    sock_path: $sock_path
+    buses:
+    - name: '$IPDK_PCI_BRIDGE_0'
+    - name: '$IPDK_PCI_BRIDGE_1'
 - name: vhost_blk
   params:
     qmp_addr: $qmp_addr
