@@ -5,7 +5,7 @@ The virtio-blk device is backed up by an ideal target on `storage-target-platfor
 machine exposed over NVMe/TCP.
 
 For this recipe, two physical machines are required.
-They are referred as `storage-target-platform` and `ipu-storage-container-platform`.
+They are referred to as `storage-target-platform` and `ipu-storage-container-platform`.
 The containers running on those platforms are named `storage-target` and
 `ipu-storage-container` respectively.
 
