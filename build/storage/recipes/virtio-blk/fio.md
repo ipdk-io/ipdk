@@ -10,7 +10,7 @@ The containers running on those platforms are named `storage-target` and
 
 To apply this scenario the following steps need to be applied:
 
-1. Perform all steps described in [environment setup](environment_setup.md)
+1. Perform all steps described in [environment setup](../environment_setup.md)
 
 2. Run [hot-plug scenario](hot-plug.md) until a virtio-blk device is attached to
 the vm(step 5)

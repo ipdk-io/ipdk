@@ -11,10 +11,10 @@ The containers running on those platforms are named `storage-target` and
 
 To apply this scenario, the following steps need to be applied:
 
-1. Perform all steps described in [environment setup](environment_setup.md)
+1. Perform all steps described in [environment setup](../environment_setup.md)
 
 2. Make sure there is no virtio-blk device attached.
-Run in [vm console](environment_setup.md#vm-console)
+Run in [vm console](../environment_setup.md#vm-console)
 ```
 $ lsblk
 ```
@@ -61,7 +61,7 @@ done
 ```
 
 6. Check if virtio-blk is attached to the vm.
-Open the [vm console](environment_setup.md#vm-console) and run the following command
+Open the [vm console](../environment_setup.md#vm-console) and run the following command
 to calculate number of virtio-blk devices attached to the vm.
 ```
 $ lsblk | grep vd -c
@@ -81,7 +81,7 @@ done
 ```
 
 8. Check that there is no virtio-blk device.
-Open the [vm console](environment_setup.md#vm-console) and run the following command
+Open the [vm console](../environment_setup.md#vm-console) and run the following command
 ```
 $ lsblk
 ```
