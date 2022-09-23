@@ -4,13 +4,13 @@ This recipe describes how to run fio from a host to an ideal target
 with IPDK containers.
 
 For this recipe, two physical machines are required.
-They are referred as `storage-target-platform` and `ipu-storage-container-platform`.
+They are referred to as `storage-target-platform` and `ipu-storage-container-platform`.
 The containers running on those platforms are named `storage-target` and
 `ipu-storage-container` respectively.
 
 To apply this scenario the following steps need to be applied:
 
-1. Perform all steps described in [environment setup](environment_setup.md)
+1. Perform all steps described in [environment setup](../environment_setup.md)
 
 2. Run [hot-plug scenario](hot-plug.md) until a virtio-blk device is attached to
 the vm(step 5)
@@ -21,7 +21,8 @@ $ echo -e $(no_grpc_proxy= grpc_cli call <host_ip_where_vm_is_run>:50051 \
 RunFio "deviceHandle: '$virtio_blk0' fioArgs: '\
     {\"rw\":\"randrw\", \"direct\":1, \"bs\":\"4k\", \
 	\"iodepth\":256, \"ioengine\":\"libaio\", \"runtime\":1, \
-	\"name\":\"iops_test-job\", \"time_based\": 1, \"numjobs\": 4}'")
+	\"name\":\"iops_test-job\", \"time_based\": 1, \"numjobs\": 4}, \
+	\"group_reporting\": 1 }}'")
 ```
 
 Expected output
