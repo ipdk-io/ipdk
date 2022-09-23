@@ -57,5 +57,4 @@ if ! is_pid_running "$pid" ; then
     exit 1
 fi
 
-export SMA_PLUGINS=spdk.sma.device.vhost_blk
 sma.py -c sma_config.yml
