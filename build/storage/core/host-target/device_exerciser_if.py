@@ -3,6 +3,7 @@
 #
 
 from fio_args import FioArgs
+from volume import VolumeId
 
 
 class DeviceExerciserError(RuntimeError):
@@ -10,5 +11,7 @@ class DeviceExerciserError(RuntimeError):
 
 
 class DeviceExerciserIf:
-    def run_fio(self, device_handle: str, fio_args: FioArgs) -> str:
+    def run_fio(
+        self, device_handle: str, volume_ids: set[VolumeId], fio_args: FioArgs
+    ) -> str:
         raise NotImplementedError()

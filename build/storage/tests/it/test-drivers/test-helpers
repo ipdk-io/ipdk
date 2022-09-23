@@ -84,10 +84,16 @@ function send_fio_cmd() {
 	local host_target_service_port="$2"
 	local device_handle="$3"
 	local fio_args="$4"
+	local volume_id="$5"
 	local out=""
+	local volume_argument=""
+
+	if [ -n "$volume_id" ] ; then
+		volume_argument="volumeId: '$volume_id'"
+	fi
 	out=$(env -i no_grpc_proxy="" grpc_cli call \
 		"$traffic_generator_ip:$host_target_service_port" \
-		RunFio "deviceHandle: '$device_handle' \
+		RunFio "diskToExercise: { deviceHandle: '$device_handle' $volume_argument} \
 		fioArgs: '$fio_args'")
 	echo "$out"
 }

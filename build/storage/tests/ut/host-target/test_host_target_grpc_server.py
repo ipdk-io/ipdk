@@ -26,7 +26,7 @@ class HostTargetServerTests(unittest.TestCase):
         exerciser_kvm.run_fio = unittest.mock.Mock(return_value="output")
         server = HostTargetService(exerciser_kvm)
         request = host_target_pb2.RunFioRequest()
-        request.deviceHandle = "virtio_blk:sma-0"
+        request.diskToExercise.deviceHandle = "virtio_blk:sma-0"
         request.fioArgs = "{}"
         context = unittest.mock.MagicMock()
 
@@ -42,7 +42,7 @@ class HostTargetServerTests(unittest.TestCase):
         exerciser_kvm.run_fio = unittest.mock.Mock(side_effect=BaseException())
         server = HostTargetService(exerciser_kvm)
         request = host_target_pb2.RunFioRequest()
-        request.deviceHandle = "virtio_blk:sma-0"
+        request.diskToExercise.deviceHandle = "virtio_blk:sma-0"
         request.fioArgs = "{}"
         context = unittest.mock.MagicMock()
 
