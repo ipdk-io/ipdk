@@ -48,7 +48,7 @@ class SSHTerminal:
         self,
         cmd: str,
         timeout: float = None,
-    ) -> tuple[str, int]:
+    ) -> list:
         """
         Simple function executes a command on the SSH server
 
@@ -67,6 +67,5 @@ class SSHTerminal:
 
         _, stdout, stderr = self.terminal.exec_command(cmd, timeout=timeout)
         #  if command is executed in the background don't wait for the output
-        out = [] if cmd.rstrip().endswith("&") else stdout.readlines() or stderr.readlines()
-        result = map(lambda x: x[:-1], out)
-        return list(result)
+        out = [] if cmd.rstrip().endswith("&") else stdout.readlines()
+        return [line.rstrip() for line in out]

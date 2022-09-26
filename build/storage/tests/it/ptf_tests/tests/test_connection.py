@@ -24,7 +24,7 @@ class TestTerminalConnect(BaseTest):
         )
         self.assertEqual(
             self.ipu_storage_terminal.execute("whoami")[0],
-            self.ipu_storage255.config.username,
+            self.ipu_storage_terminal.config.username,
         )
         self.assertEqual(
             self.host_target_terminal.execute("whoami")[0],
