@@ -249,3 +249,17 @@ if not disk_infrastructure.verify_expected_number_of_nvme_devices(
 EOF
 }
 
+function verify_expected_number_of_nvme_namespaces() {
+    python3 <<- EOF
+import sys
+from scripts import disk_infrastructure
+
+if not disk_infrastructure.verify_expected_number_of_nvme_namespaces(
+    vm_serial="${1}",
+    expected_number_of_namespaces=int("${2}"),
+):
+    sys.exit(1)
+EOF
+
+}
+

@@ -1,3 +1,8 @@
+#!/usr/bin/env python
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
 import base64
 import importlib
 import logging
@@ -18,20 +23,24 @@ logging.root.setLevel(logging.CRITICAL)
 
 
 def get_number_of_virtio_blk(sock: str) -> int:
-    return _get_number_of_blk_devices(sock, "vd")
+    return _get_number_of_devices(sock, "vd[a-z]+\\b")
 
 
 def get_number_of_nvme_devices(sock: str) -> int:
-    return _get_number_of_blk_devices(sock, "nvme")
+    return _get_number_of_devices(sock, "nvme[0-9]+\\b")
 
 
-def _get_number_of_blk_devices(sock: str, device_prefix: str) -> int:
-    cmd = 'lsblk --output "NAME"'
+def get_number_of_nvme_namespaces(sock: str) -> int:
+    return _get_number_of_devices(sock, "nvme[0-9]+n[0-9]+\\b")
+
+
+def _get_number_of_devices(sock: str, device_regex_filter: str) -> int:
+    cmd = "ls -1 /dev"
     out = socket_functions.send_command_over_unix_socket(
         sock=sock, cmd=cmd, wait_for_secs=1
     )
     logging.info(out)
-    number_of_devices = len(re.findall(device_prefix, out))
+    number_of_devices = len(re.findall(device_regex_filter, out))
     return number_of_devices
 
 
@@ -72,6 +81,15 @@ def verify_expected_number_of_nvme_devices(
     number_of_devices = get_number_of_nvme_devices(vm_serial)
     return _verify_expected_number_of_devices(
         expected_number_of_devices, number_of_devices
+    )
+
+
+def verify_expected_number_of_nvme_namespaces(
+    vm_serial: str, expected_number_of_namespaces: int
+) -> bool:
+    number_of_devices = get_number_of_nvme_namespaces(vm_serial)
+    return _verify_expected_number_of_devices(
+        expected_number_of_namespaces, number_of_devices
     )
 
 

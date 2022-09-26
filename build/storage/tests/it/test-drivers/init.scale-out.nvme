@@ -34,6 +34,8 @@ done
 wait_until_vm_is_up "${vm_serial}"
 log_in_with_default_credentials "${vm_serial}"
 
+verify_expected_number_of_nvme_devices "$vm_serial" 0
+
 echo "Create $NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT NVMe devices"
 nvme_virtual_id=0
 nvme_devices=()
@@ -42,17 +44,18 @@ do
     nvme_devices+=("$(create_nvme_device "$ipu_storage_container_ip" \
         "${i}" "$nvme_virtual_id")")
 done
+verify_expected_number_of_nvme_devices "$vm_serial" 64
 
 
 echo "Attach $NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT namespaces to"
 echo "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT nvme devices"
+verify_expected_number_of_nvme_namespaces "$vm_serial" 0
 for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
     attach_volume "$ipu_storage_container_ip" "${nvme_devices[$i]}" \
         "${ramdrives[$i]}" "$nqn" "$storage_target_ip"
 done
-
-verify_expected_number_of_nvme_devices "${vm_serial}" \
+verify_expected_number_of_nvme_namespaces "$vm_serial" \
     "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"
 
 echo "Delete all created nvme namespaces"
@@ -60,7 +63,7 @@ for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
     detach_volume "$ipu_storage_container_ip" "${nvme_devices[$i]}" "${ramdrives[$i]}"
 done
-verify_expected_number_of_nvme_devices "${vm_serial}" 0
+verify_expected_number_of_nvme_namespaces "$vm_serial" 0
 
 
 
@@ -72,17 +75,18 @@ do
     attach_volume "$ipu_storage_container_ip" "$nvme_device" \
         "${ramdrives[$i]}" "$nqn" "$storage_target_ip"
 done
-verify_expected_number_of_nvme_devices "${vm_serial}" "$MAX_NUMBER_OF_NAMESPACES"
+verify_expected_number_of_nvme_namespaces "${vm_serial}" "$MAX_NUMBER_OF_NAMESPACES"
 
 echo "Detach all nvme namespaces attached to single device"
 for ((i=0; i < "$MAX_NUMBER_OF_NAMESPACES"; i++))
 do
     detach_volume "$ipu_storage_container_ip" "$nvme_device" "${ramdrives[$i]}"
 done
-verify_expected_number_of_nvme_devices "${vm_serial}" 0
+verify_expected_number_of_nvme_namespaces "${vm_serial}" 0
 
 echo "Delete all created nvme devices"
 for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
     delete_nvme_device "$ipu_storage_container_ip" "${nvme_devices[$i]}"
 done
+verify_expected_number_of_nvme_devices "${vm_serial}" 0

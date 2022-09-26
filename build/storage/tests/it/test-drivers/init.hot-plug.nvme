@@ -32,48 +32,52 @@ wait_until_vm_is_up "$vm_serial"
 log_in_with_default_credentials "$vm_serial"
 
 
+verify_expected_number_of_nvme_devices "$vm_serial" 0
+
 echo ""
 echo "### Create 2 nvme devices ###"
 nvme_physical_id=0
 nvme0=$(create_nvme_device "$ipu_storage_container_ip" "$nvme_physical_id" 0)
 nvme_physical_id=1
 nvme1=$(create_nvme_device "$ipu_storage_container_ip" "$nvme_physical_id" 0)
+verify_expected_number_of_nvme_devices "$vm_serial" 2
 
 echo ""
 echo "### Attach 3 namespaces to nvme devices ###"
-verify_expected_number_of_nvme_devices "$vm_serial" 0
+verify_expected_number_of_nvme_namespaces "$vm_serial" 0
 attach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc0" "$nqn" \
 	"$storage_target_ip"
 attach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc1" "$nqn" \
 	"$storage_target_ip"
 attach_volume "$ipu_storage_container_ip" "$nvme1" "$malloc2" "$nqn" \
 	"$storage_target_ip"
-verify_expected_number_of_nvme_devices "$vm_serial" 3
+verify_expected_number_of_nvme_namespaces "$vm_serial" 3
 
 echo ""
 echo "### Dettach namespace from nvme device ###"
 detach_volume "$ipu_storage_container_ip" "$nvme1" "$malloc2"
-verify_expected_number_of_nvme_devices "$vm_serial" 2
+verify_expected_number_of_nvme_namespaces "$vm_serial" 2
 
 echo ""
 echo "### Delete nvme device ###"
 delete_nvme_device "$ipu_storage_container_ip" "$nvme1"
-verify_expected_number_of_nvme_devices "$vm_serial" 2
+verify_expected_number_of_nvme_devices "$vm_serial" 1
 
 echo ""
 echo "### Re-attach ramdrive as namespace to another nvme device ###"
 attach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc2" "$nqn" \
 	"$storage_target_ip"
-verify_expected_number_of_nvme_devices "$vm_serial" 3
+verify_expected_number_of_nvme_namespaces "$vm_serial" 3
 
 
 echo "### Detach all namespaces from nvme device ###"
 detach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc0"
 detach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc1"
 detach_volume "$ipu_storage_container_ip" "$nvme0" "$malloc2"
-verify_expected_number_of_nvme_devices "$vm_serial" 0
+verify_expected_number_of_nvme_namespaces "$vm_serial" 0
 
 echo "### Delete nvme devices ###"
 delete_nvme_device "$ipu_storage_container_ip" "$nvme0"
+verify_expected_number_of_nvme_devices "$vm_serial" 0
 
 exit 0
