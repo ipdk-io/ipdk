@@ -45,7 +45,8 @@ COPY --from=base /spdk-rpm/*.rpm /spdk-rpm/
 COPY --from=base /spdk-rpm/fio /spdk-rpm/
 
 # hadolint ignore=DL3013
-RUN dnf install -y python python3-pip && dnf clean all && python -m pip install --no-cache-dir grpcio grpcio-tools
+RUN dnf install -y python python3-pip && dnf clean all && \
+    python -m pip install --no-cache-dir grpcio grpcio-tools protobuf==3.20.2
 
 # Wrap up the image
 COPY core/build_base/post-install /install
