@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+import os
 from ptf.base_tests import BaseTest
 
 from system_tools.config import (
@@ -9,7 +10,9 @@ from system_tools.config import (
 )
 from system_tools.ssh_terminal import SSHTerminal
 from system_tools.test_platform import HostPlatform
-from system_tools.services import CloneRepository
+from system_tools.services import (
+    CloneRepository, RunStorageTargetContainer, RunIPUStorageContainer, RunHostRargetContainer
+)
 
 
 class TestHostPlatform(BaseTest):
@@ -40,13 +43,26 @@ class TestDeployContainers(BaseTest):
         self.host_target_terminal = SSHTerminal(HostTargetConfig())
 
     def runTest(self):
-        repository_step = CloneRepository(
+        clone_step = CloneRepository(
             self.storage_target_terminal,
             is_teardown=False,
             repository_url='https://github.com/intelfisz/ipdk.git',
             branch='t-env'
         )
-        repository_step.run()
+        clone_step.run()
+
+        RunStorageTargetContainer(
+            self.storage_target_terminal,
+            storage_dir=os.path.join(clone_step.workdir, 'ipdk/build/storage'),
+        ).run()
+        RunIPUStorageContainer(
+            self.ipu_storage_terminal,
+            storage_dir=os.path.join(clone_step.workdir, 'ipdk/build/storage'),
+        ).run()
+        RunHostRargetContainer(
+            self.host_target_terminal,
+            storage_dir=os.path.join(clone_step.workdir, 'ipdk/build/storage'),
+        ).run()
 
 
     def tearDown(self):

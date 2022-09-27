@@ -72,3 +72,85 @@ class RunVmInstance(TestStep):
 
 class RunSender(TestStep):
     pass
+
+
+class RunStorageTargetContainer(TestStep):
+
+    def __init__(self, terminal, is_teardown=False, storage_dir=None):
+        super().__init__(terminal, is_teardown)
+        self.terminal = terminal
+        self.storage_dir = storage_dir
+
+    def _step(self):
+        cmd = f'cd {self.storage_dir} && ' \
+              f'AS_DAEMON=true scripts/run_storage_target_container.sh'
+        _, self.stdout, _ = self.terminal.terminal.exec_command(cmd)
+
+    def _assertion_after_step(self):
+        assert not self.stdout.channel.recv_exit_status()
+
+        out = self.terminal.execute("docker ps")
+        is_container = False
+        for line in out:
+            if "storage-target" in line:
+                is_container = True
+        assert is_container
+
+
+class RunIPUStorageContainer(TestStep):
+
+    def __init__(self, terminal, is_teardown=False, storage_dir=None, shared_dir=None):
+        super().__init__(terminal, is_teardown)
+        self.terminal = terminal
+        self.storage_dir = storage_dir
+        self.shared_dir = shared_dir or f'/home/{terminal.config.username}/share'
+
+    def _prepare(self):
+        self.terminal.terminal.exec_command(f'mkdir -p {self.shared_dir}')
+
+        out = self.terminal.execute('docker ps -aq')
+        if out:
+            self.terminal.terminal.exec_command('docker container rm -fv $(docker ps -aq)')
+
+    def _assertion_after_step(self):
+        out = self.terminal.execute('docker ps -aq')
+        assert not out
+
+    def _step(self):
+        cmd = f"cd {self.storage_dir} && " \
+              f"AS_DAEMON=true SHARED_VOLUME={self.shared_dir} "\
+              f"scripts/run_ipu_storage_container.sh"
+        _, self.stdout, _ = self.terminal.terminal.exec_command(cmd)
+
+    def _assertion_after_step(self):
+        assert not self.stdout.channel.recv_exit_status()
+
+        out = self.terminal.execute("docker ps")
+        is_container = False
+        for line in out:
+            if "ipu-storage-container" in line:
+                is_container = True
+        assert is_container
+
+
+class RunHostRargetContainer(TestStep):
+
+    def __init__(self, terminal, is_teardown=False, storage_dir=None):
+        super().__init__(terminal, is_teardown)
+        self.terminal = terminal
+        self.storage_dir = storage_dir
+
+    def _step(self):
+        cmd = f"cd {self.storage_dir} && " \
+              f"AS_DAEMON=true scripts/run_host_target_container.sh"
+        _, self.stdout, _ = self.terminal.terminal.exec_command(cmd)
+
+    def _assertion_after_step(self):
+        assert not self.stdout.channel.recv_exit_status()
+
+        out = self.terminal.execute("docker ps")
+        is_container = False
+        for line in out:
+            if "host-target" in line:
+                is_container = True
+        assert is_container
