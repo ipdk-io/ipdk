@@ -4,10 +4,10 @@
 
 from ptf.base_tests import BaseTest
 
-from python_system_tools.config import (
+from system_tools.config import (
     StorageTargetConfig, IPUStorageConfig, HostTargetConfig,
 )
-from python_system_tools.ssh_terminal import SSHTerminal
+from system_tools.ssh_terminal import SSHTerminal
 
 
 class TestTerminalConnect(BaseTest):
