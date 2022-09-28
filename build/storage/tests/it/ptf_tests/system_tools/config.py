@@ -18,25 +18,25 @@ class BaseConfig(ABC):
 class StorageTargetConfig(BaseConfig):
 
     def __init__(self):
-        self.username = os.getenv('STORAGE_TARGET_USERNAME')
-        self.password = os.getenv('STORAGE_TARGET_PASSWORD')
-        self.ip_address = os.getenv('STORAGE_TARGET_IP_ADDRESS')
-        self.port = os.getenv('STORAGE_TARGET_PORT', 22)
+        self.username = os.getenv('STORAGE_TARGET_USERNAME') or os.getenv('MAIN_PLATFORM_USERNAME')
+        self.password = os.getenv('STORAGE_TARGET_PASSWORD') or os.getenv('MAIN_PLATFORM_PASSWORD')
+        self.ip_address = os.getenv('STORAGE_TARGET_IP_ADDRESS') or os.getenv('MAIN_PLATFORM_IP_ADDRESS')
+        self.port = os.getenv('STORAGE_TARGET_PORT') or os.getenv('MAIN_PLATFORM_PORT')
 
 
 class IPUStorageConfig(BaseConfig):
 
     def __init__(self):
-        self.username = os.getenv('IPU_STORAGE_USERNAME')
-        self.password = os.getenv('IPU_STORAGE_PASSWORD')
-        self.ip_address = os.getenv('IPU_STORAGE_IP_ADDRESS')
-        self.port = os.getenv('IPU_STORAGE_PORT', 22)
+        self.username = os.getenv('IPU_STORAGE_USERNAME') or os.getenv('MAIN_PLATFORM_USERNAME')
+        self.password = os.getenv('IPU_STORAGE_PASSWORD') or os.getenv('MAIN_PLATFORM_PASSWORD')
+        self.ip_address = os.getenv('IPU_STORAGE_IP_ADDRESS') or os.getenv('MAIN_PLATFORM_IP_ADDRESS')
+        self.port = os.getenv('IPU_STORAGE_PORT') or os.getenv('MAIN_PLATFORM_PORT')
 
 
 class HostTargetConfig(BaseConfig):
 
     def __init__(self):
-        self.username = os.getenv('HOST_TARGET_USERNAME')
-        self.password = os.getenv('HOST_TARGET_PASSWORD')
-        self.ip_address = os.getenv('HOST_TARGET_IP_ADDRESS')
-        self.port = os.getenv('HOST_TARGET_PORT', 22)
+        self.username = os.getenv('HOST_TARGET_USERNAME') or os.getenv('MAIN_PLATFORM_USERNAME')
+        self.password = os.getenv('HOST_TARGET_PASSWORD') or os.getenv('MAIN_PLATFORM_PASSWORD')
+        self.ip_address = os.getenv('HOST_TARGET_IP_ADDRESS') or os.getenv('MAIN_PLATFORM_IP_ADDRESS')
+        self.port = os.getenv('HOST_TARGET_PORT') or os.getenv('MAIN_PLATFORM_PORT')
