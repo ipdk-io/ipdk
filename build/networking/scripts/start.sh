@@ -6,7 +6,7 @@
 initialize_env() {
 	pushd /root/scripts > /dev/null  || exit
 		# shellcheck source=/dev/null
-		. p4ovs_env_setup.sh /root/p4-sde/install > /dev/null
+		. p4ovs_env_setup.sh /root/p4-sde/install /root/p4ovs/P4OVS_DEPS_INSTALL > /dev/null
 	popd > /dev/null || exit
 }
 
