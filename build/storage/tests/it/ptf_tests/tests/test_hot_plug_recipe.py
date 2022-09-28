@@ -42,6 +42,10 @@ class TestDeployContainers(BaseTest):
         self.ipu_storage_terminal = SSHTerminal(IPUStorageConfig())
         self.host_target_terminal = SSHTerminal(HostTargetConfig())
 
+        self.storage_target_terminal.delete_all_containers()
+        self.ipu_storage_terminal.delete_all_containers()
+        self.host_target_terminal.delete_all_containers()
+
     def runTest(self):
         clone_step = CloneRepository(
             self.storage_target_terminal,

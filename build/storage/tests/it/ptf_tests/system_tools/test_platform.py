@@ -50,11 +50,11 @@ class HostPlatform:
         return self.terminal.execute("sudo cat /etc/os-release | grep ^ID=")[0][3:]
 
     def _is_dnf(self):
-        _, stdout, _ = self.terminal.terminal.exec_command("dnf --version")
+        _, stdout, _ = self.terminal.client.exec_command("dnf --version")
         return not stdout.channel.recv_exit_status()
 
     def _is_apt(self):
-        _, stdout, _ = self.terminal.terminal.exec_command("apt-get --version")
+        _, stdout, _ = self.terminal.client.exec_command("apt-get --version")
         return not stdout.channel.recv_exit_status()
 
     def _is_virtualization(self) -> bool:
@@ -123,12 +123,12 @@ class HostPlatform:
             True if change is successful else False
         """
 
-        _, stdout, stderr = self.terminal.terminal.exec_command("sudo chmod +r /boot/vmlinuz-*")
+        _, stdout, stderr = self.terminal.client.exec_command("sudo chmod +r /boot/vmlinuz-*")
         return not stdout.read().decode() or stderr.read().decode()
 
     def _set_security_policies(self) -> bool:
         cmd = "sudo setenforce 0" if self.system == "fedora" else "sudo systemctl stop apparmor"
-        _, stdout, stderr = self.terminal.terminal.exec_command(cmd)
+        _, stdout, stderr = self.terminal.client.exec_command(cmd)
         return "disabled" in stdout.read().decode() or "disabled" in stderr.read().decode()
 
     def _is_installed_docker_dependencies(self):

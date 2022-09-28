@@ -50,11 +50,11 @@ class CloneRepository(TestStep):
         self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
-        _, stdout, stderr = self.terminal.terminal.exec_command(f"cd {self.workdir}")
+        _, stdout, stderr = self.terminal.client.exec_command(f"cd {self.workdir}")
         assert not stderr.read().decode()
-        _, stdout, stderr = self.terminal.terminal.exec_command(f"cd {self.workdir}/ipdk/build/storage")
+        _, stdout, stderr = self.terminal.client.exec_command(f"cd {self.workdir}/ipdk/build/storage")
         assert not stderr.read().decode()
-        _, stdout, stderr = self.terminal.terminal.exec_command(f"cd {self.workdir}/ipdk/build/storage && git log")
+        _, stdout, stderr = self.terminal.client.exec_command(f"cd {self.workdir}/ipdk/build/storage && git log")
         assert not stderr.read().decode()
 
 
@@ -84,7 +84,7 @@ class RunStorageTargetContainer(TestStep):
     def _step(self):
         cmd = f'cd {self.storage_dir} && ' \
               f'AS_DAEMON=true scripts/run_storage_target_container.sh'
-        _, self.stdout, _ = self.terminal.terminal.exec_command(cmd)
+        _, self.stdout, _ = self.terminal.client.exec_command(cmd)
 
     def _assertion_after_step(self):
         assert not self.stdout.channel.recv_exit_status()
@@ -106,11 +106,7 @@ class RunIPUStorageContainer(TestStep):
         self.shared_dir = shared_dir or f'/home/{terminal.config.username}/share'
 
     def _prepare(self):
-        self.terminal.terminal.exec_command(f'mkdir -p {self.shared_dir}')
-
-        out = self.terminal.execute('docker ps -aq')
-        if out:
-            self.terminal.terminal.exec_command('docker container rm -fv $(docker ps -aq)')
+        self.terminal.client.exec_command(f'mkdir -p {self.shared_dir}')
 
     def _assertion_after_step(self):
         out = self.terminal.execute('docker ps -aq')
@@ -120,7 +116,7 @@ class RunIPUStorageContainer(TestStep):
         cmd = f"cd {self.storage_dir} && " \
               f"AS_DAEMON=true SHARED_VOLUME={self.shared_dir} "\
               f"scripts/run_ipu_storage_container.sh"
-        _, self.stdout, _ = self.terminal.terminal.exec_command(cmd)
+        _, self.stdout, _ = self.terminal.client.exec_command(cmd)
 
     def _assertion_after_step(self):
         assert not self.stdout.channel.recv_exit_status()
@@ -143,7 +139,7 @@ class RunHostRargetContainer(TestStep):
     def _step(self):
         cmd = f"cd {self.storage_dir} && " \
               f"AS_DAEMON=true scripts/run_host_target_container.sh"
-        _, self.stdout, _ = self.terminal.terminal.exec_command(cmd)
+        _, self.stdout, _ = self.terminal.client.exec_command(cmd)
 
     def _assertion_after_step(self):
         assert not self.stdout.channel.recv_exit_status()
