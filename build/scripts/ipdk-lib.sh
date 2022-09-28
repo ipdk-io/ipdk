@@ -170,8 +170,8 @@ create_images() {
 	print_banner "Create requested VM images"
 
 	# remove old vm distribution images and seed images
-	rm -f "$IMAGE_LOCATION/vm*.qcow2"
-	rm -f "$IMAGE_LOCATION/seed*.img"
+	rm -f "$IMAGE_LOCATION/"vm*.qcow2
+	rm -f "$IMAGE_LOCATION/"seed*.img
 
 	# create new vm distribution images
 	cp "$IMAGE_LOCATION/$DIST_FNAME" "$IMAGE_LOCATION/vm1.qcow2"
