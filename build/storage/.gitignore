@@ -5,3 +5,22 @@ __pycache__
 core/host-target/customizations/*
 !core/host-target/customizations/README.md
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+.pytest_cache
+
+# C extensions
+*.so
+
+# Enviroments
+*.env*
+*/venv/
+
+# Own
+*.idea/
+*.swp
+*.un~
+*.vs
