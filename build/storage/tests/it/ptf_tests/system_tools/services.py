@@ -1,6 +1,7 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
+import os
 
 
 class TestStep:
@@ -32,30 +33,30 @@ class TestStep:
             self._teardown()
 
 
-class CloneRepository(TestStep):
+class CloneIPDKRepository(TestStep):
 
-    def __init__(self, terminal, is_teardown, repository_url, branch='master', workdir=None):
+    def __init__(self, terminal, is_teardown, repository_url, branch='main', workdir=None):
+        """
+        Assumption: In workdir folder You can't have any important files
+        All files will be deleted
+        """
         super().__init__(terminal, is_teardown)
-        self.terminal = terminal
-        self.workdir = workdir or f"/home/{terminal.config.username}/workdir"
         self.repository_url = repository_url
         self.branch = branch
+        self.workdir = workdir or f"/home/{terminal.config.username}/ipdk_tests_workdir"
 
     def _prepare(self):
         self.terminal.execute(f"sudo rm -rf {self.workdir}")
         self.terminal.execute(f"mkdir {self.workdir}")
 
+    # TODO: init submodules
     def _step(self):
         cmd = f'cd {self.workdir} && git clone --branch {self.branch} {self.repository_url}'
         self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
-        _, stdout, stderr = self.terminal.client.exec_command(f"cd {self.workdir}")
-        assert not stderr.read().decode()
-        _, stdout, stderr = self.terminal.client.exec_command(f"cd {self.workdir}/ipdk/build/storage")
-        assert not stderr.read().decode()
-        _, stdout, stderr = self.terminal.client.exec_command(f"cd {self.workdir}/ipdk/build/storage && git log")
-        assert not stderr.read().decode()
+        self.terminal.execute(f"cd {self.workdir}/ipdk/build")
+        self.terminal.execute(f"cd {self.workdir}/ipdk/build/storage && git log")
 
 
 class RunDockerStorageContainer(TestStep):
@@ -76,19 +77,16 @@ class RunSender(TestStep):
 
 class RunStorageTargetContainer(TestStep):
 
-    def __init__(self, terminal, is_teardown=False, storage_dir=None):
+    def __init__(self, terminal, storage_dir, is_teardown=False):
         super().__init__(terminal, is_teardown)
-        self.terminal = terminal
         self.storage_dir = storage_dir
 
     def _step(self):
         cmd = f'cd {self.storage_dir} && ' \
               f'AS_DAEMON=true scripts/run_storage_target_container.sh'
-        _, self.stdout, _ = self.terminal.client.exec_command(cmd)
+        self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
-        assert not self.stdout.channel.recv_exit_status()
-
         out = self.terminal.execute("docker ps")
         is_container = False
         for line in out:
@@ -99,28 +97,21 @@ class RunStorageTargetContainer(TestStep):
 
 class RunIPUStorageContainer(TestStep):
 
-    def __init__(self, terminal, is_teardown=False, storage_dir=None, shared_dir=None):
+    def __init__(self, terminal, storage_dir, shared_dir, is_teardown=False):
         super().__init__(terminal, is_teardown)
-        self.terminal = terminal
         self.storage_dir = storage_dir
         self.shared_dir = shared_dir or f'/home/{terminal.config.username}/share'
 
     def _prepare(self):
         self.terminal.client.exec_command(f'mkdir -p {self.shared_dir}')
 
-    def _assertion_after_step(self):
-        out = self.terminal.execute('docker ps -aq')
-        assert not out
-
     def _step(self):
         cmd = f"cd {self.storage_dir} && " \
               f"AS_DAEMON=true SHARED_VOLUME={self.shared_dir} "\
               f"scripts/run_ipu_storage_container.sh"
-        _, self.stdout, _ = self.terminal.client.exec_command(cmd)
+        self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
-        assert not self.stdout.channel.recv_exit_status()
-
         out = self.terminal.execute("docker ps")
         is_container = False
         for line in out:
@@ -131,19 +122,16 @@ class RunIPUStorageContainer(TestStep):
 
 class RunHostRargetContainer(TestStep):
 
-    def __init__(self, terminal, is_teardown=False, storage_dir=None):
+    def __init__(self, terminal, storage_dir, is_teardown=False):
         super().__init__(terminal, is_teardown)
-        self.terminal = terminal
         self.storage_dir = storage_dir
 
     def _step(self):
         cmd = f"cd {self.storage_dir} && " \
               f"AS_DAEMON=true scripts/run_host_target_container.sh"
-        _, self.stdout, _ = self.terminal.client.exec_command(cmd)
+        self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
-        assert not self.stdout.channel.recv_exit_status()
-
         out = self.terminal.execute("docker ps")
         is_container = False
         for line in out:
