@@ -1,9 +1,15 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
+from ssh_terminal import SSHTerminal
+
 
 class TestStep:
-    def __init__(self, terminal, is_teardown=False):
+    """The base class represents the single step in test story
+    It's abstract class
+    """
+
+    def __init__(self, terminal: SSHTerminal, is_teardown: bool = False) -> None:
         self.terminal = terminal
         self.is_teardown = is_teardown
 
@@ -23,6 +29,16 @@ class TestStep:
         pass
 
     def run(self):
+        """This is the only public method in step
+
+        This method represents what you have to do if you want properly validate one step in test story.
+        First, you have to prepare environment. Second, check if all preconditions are fulfilled.
+        Next is action and check if postconditions is fulfilled. The last is bringing environment to beggining.
+
+        If you initialize class with is_teardown=False the environment after step not will be bringing to beggining.
+        It is allow connect steps with whole test story.
+        You have to remember to yourself teardown environment after all steps.
+        """
         self._prepare()
         self._assertions_before_step()
         self._step()
@@ -32,8 +48,16 @@ class TestStep:
 
 
 class CloneIPDKRepository(TestStep):
+    """Clone ipdk repository"""
 
-    def __init__(self, terminal, is_teardown, repository_url, branch='main', workdir=None):
+    def __init__(
+            self,
+            terminal: SSHTerminal,
+            is_teardown: bool,
+            repository_url: str,
+            branch: str = 'main',
+            workdir: str = None,
+    ) -> None:
         """
         Assumption: In workdir folder You can't have any important files
         All files will be deleted
@@ -75,7 +99,7 @@ class RunSender(TestStep):
 
 class RunStorageTargetContainer(TestStep):
 
-    def __init__(self, terminal, storage_dir, is_teardown=False):
+    def __init__(self, terminal: SSHTerminal, storage_dir: str, is_teardown: bool = False) -> None:
         super().__init__(terminal, is_teardown)
         self.storage_dir = storage_dir
 
@@ -95,7 +119,7 @@ class RunStorageTargetContainer(TestStep):
 
 class RunIPUStorageContainer(TestStep):
 
-    def __init__(self, terminal, storage_dir, shared_dir, is_teardown=False):
+    def __init__(self, terminal: SSHTerminal, storage_dir: str, shared_dir: str, is_teardown: bool = False) -> None:
         super().__init__(terminal, is_teardown)
         self.storage_dir = storage_dir
         self.shared_dir = shared_dir
@@ -120,7 +144,7 @@ class RunIPUStorageContainer(TestStep):
 
 class RunHostTargetContainer(TestStep):
 
-    def __init__(self, terminal, storage_dir, is_teardown=False):
+    def __init__(self, terminal: SSHTerminal, storage_dir: str, is_teardown: bool = False) -> None:
         super().__init__(terminal, is_teardown)
         self.storage_dir = storage_dir
 
