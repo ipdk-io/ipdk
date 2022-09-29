@@ -32,9 +32,6 @@ class TestTerminalConnect(BaseTerminalMixin, BaseTest):
             self.host_target_terminal.config.username,
         )
 
-    def tearDown(self):
-        pass
-
 
 class TestTerminalConnectHasRootPrivilegnes(BaseTerminalMixin, BaseTest):
     def runTest(self):

@@ -5,23 +5,19 @@
 import os
 
 from ptf.base_tests import BaseTest
-from system_tools.config import HostTargetConfig, IPUStorageConfig, StorageTargetConfig
 from system_tools.services import (
     CloneIPDKRepository,
     RunHostTargetContainer,
     RunIPUStorageContainer,
     RunStorageTargetContainer,
 )
-from system_tools.ssh_terminal import SSHTerminal
 from system_tools.test_platform import HostPlatform
+from test_connection import BaseTerminalMixin
 
 
-class TestHostPlatform(BaseTest):
+class TestHostPlatform(BaseTerminalMixin, BaseTest):
     def setUp(self):
-        self.storage_target_terminal = SSHTerminal(StorageTargetConfig())
-        self.ipu_storage_terminal = SSHTerminal(IPUStorageConfig())
-        self.host_target_terminal = SSHTerminal(HostTargetConfig())
-
+        super().setUp()
         self.storage_target_platform = HostPlatform(self.storage_target_terminal)
         self.ipu_storage_platform = HostPlatform(self.ipu_storage_terminal)
         self.host_target_platform = HostPlatform(self.host_target_terminal)
@@ -31,16 +27,10 @@ class TestHostPlatform(BaseTest):
         self.ipu_storage_platform.host_system_setup()
         self.host_target_platform.host_system_setup()
 
-    def tearDown(self):
-        pass
 
-
-class TestDeployContainers(BaseTest):
+class TestDeployContainers(BaseTerminalMixin, BaseTest):
     def setUp(self):
-        self.storage_target_terminal = SSHTerminal(StorageTargetConfig())
-        self.ipu_storage_terminal = SSHTerminal(IPUStorageConfig())
-        self.host_target_terminal = SSHTerminal(HostTargetConfig())
-
+        super().setUp()
         self.storage_target_terminal.delete_all_containers()
         self.ipu_storage_terminal.delete_all_containers()
         self.host_target_terminal.delete_all_containers()
@@ -67,6 +57,3 @@ class TestDeployContainers(BaseTest):
             self.host_target_terminal,
             storage_dir=os.path.join(clone_step.workdir, "ipdk/build/storage"),
         ).run()
-
-    def tearDown(self):
-        pass

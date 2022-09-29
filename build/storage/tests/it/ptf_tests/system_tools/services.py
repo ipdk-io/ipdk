@@ -1,7 +1,7 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
-from ssh_terminal import SSHTerminal
+from system_tools.ssh_terminal import SSHTerminal
 
 
 class TestStep:

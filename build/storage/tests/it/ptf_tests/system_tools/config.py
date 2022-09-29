@@ -35,7 +35,7 @@ class StorageTargetConfig(MainPlatformConfig):
             self.port = os.getenv("STORAGE_TARGET_PORT", 22)
 
 
-class IPUStorageConfig(BaseConfig):
+class IPUStorageConfig(MainPlatformConfig):
     def __init__(self):
         super().__init__()
         username = os.getenv("IPU_STORAGE_USERNAME")
@@ -46,7 +46,7 @@ class IPUStorageConfig(BaseConfig):
             self.port = os.getenv("IPU_STORAGE_PORT", 22)
 
 
-class HostTargetConfig(BaseConfig):
+class HostTargetConfig(MainPlatformConfig):
     def __init__(self):
         super().__init__()
         username = os.getenv("HOST_TARGET_USERNAME")
