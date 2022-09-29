@@ -1,8 +1,6 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
-import os
-
 
 class TestStep:
     def __init__(self, terminal, is_teardown=False):
@@ -18,10 +16,10 @@ class TestStep:
     def _step(self):
         pass
 
-    def _teardown(self):
+    def _assertion_after_step(self):
         pass
 
-    def _assertion_after_step(self):
+    def _teardown(self):
         pass
 
     def run(self):
@@ -55,7 +53,7 @@ class CloneIPDKRepository(TestStep):
         self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
-        self.terminal.execute(f"cd {self.workdir}/ipdk/build")
+        self.terminal.execute(f"ls {self.workdir}/ipdk/build")
         self.terminal.execute(f"cd {self.workdir}/ipdk/build/storage && git log")
 
 
@@ -120,7 +118,7 @@ class RunIPUStorageContainer(TestStep):
         assert is_container
 
 
-class RunHostRargetContainer(TestStep):
+class RunHostTargetContainer(TestStep):
 
     def __init__(self, terminal, storage_dir, is_teardown=False):
         super().__init__(terminal, is_teardown)
@@ -132,6 +130,7 @@ class RunHostRargetContainer(TestStep):
         self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
+        # it's ok but container stops in few seconds
         out = self.terminal.execute("docker ps")
         is_container = False
         for line in out:

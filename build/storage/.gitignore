@@ -12,15 +12,12 @@ __pycache__/
 *.pyc
 .pytest_cache
 
-# C extensions
-*.so
-
 # Enviroments
 *.env*
-*/venv/
+*venv*
 
 # Own
-*.idea/
+*.idea*
 *.swp
 *.un~
 *.vs

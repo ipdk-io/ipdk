@@ -1,3 +1,7 @@
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
 class HostPlatform:
     """
     A class used to represent a setup of a machine
@@ -55,6 +59,14 @@ class HostPlatform:
 
     def _is_apt(self):
         _, stdout, _ = self.terminal.client.exec_command("apt-get --version")
+        return not stdout.channel.recv_exit_status()
+
+    def _is_docker(self):
+        _, stdout, _ = self.terminal.client.exec_command("docker --version")
+        return not stdout.channel.recv_exit_status()
+
+    def _is_docker_compose(self):
+        _, stdout, _ = self.terminal.client.exec_command("docker-compose --version")
         return not stdout.channel.recv_exit_status()
 
     def _is_virtualization(self) -> bool:
@@ -139,6 +151,23 @@ class HostPlatform:
                 return False
         return True
 
+    def _install_docker_compose(self):
+        """
+        Checks if docker-compose is installed and installs it if it's not
+        True if setup is successful or docker-compose is already installed else False
+        """
+        cmds = (
+            'curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose',
+            "chmod +x /usr/local/bin/docker-compose",
+            "ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose",
+        )
+        if not self._is_docker():
+            for cmd in cmds:
+                self.terminal.execute(cmd)
+
+    def _install_docker(self):
+        pass
+
     def host_system_setup(self):
         assert self._is_virtualization()
         assert self._is_kvm()
@@ -147,3 +176,10 @@ class HostPlatform:
         assert self._set_security_policies()
         assert self._is_installed_docker_dependencies()
         assert self._change_vmlinuz()
+        if not self._is_docker():
+            self._install_docker()
+        assert self._is_docker()
+        if not self._is_docker_compose():
+            self._install_docker_compose()
+        assert self._is_docker_compose()
+

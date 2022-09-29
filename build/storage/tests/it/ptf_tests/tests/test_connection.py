@@ -9,13 +9,18 @@ from system_tools.config import (
 )
 from system_tools.ssh_terminal import SSHTerminal
 
-
-class TestTerminalConnect(BaseTest):
+class BaseTerminalMixin:
 
     def setUp(self):
         self.storage_target_terminal = SSHTerminal(StorageTargetConfig())
         self.ipu_storage_terminal = SSHTerminal(IPUStorageConfig())
         self.host_target_terminal = SSHTerminal(HostTargetConfig())
+
+    def tearDown(self):
+        pass
+
+
+class TestTerminalConnect(BaseTerminalMixin, BaseTest):
 
     def runTest(self):
         self.assertEqual(
@@ -35,12 +40,7 @@ class TestTerminalConnect(BaseTest):
         pass
 
 
-class TestTerminalConnectHasRootPrivilegnes(BaseTest):
-
-    def setUp(self):
-        self.storage_target_terminal = SSHTerminal(StorageTargetConfig())
-        self.ipu_storage_terminal = SSHTerminal(IPUStorageConfig())
-        self.host_target_terminal = SSHTerminal(HostTargetConfig())
+class TestTerminalConnectHasRootPrivilegnes(BaseTerminalMixin, BaseTest):
 
     def runTest(self):
         self.assertEqual(
@@ -55,6 +55,3 @@ class TestTerminalConnectHasRootPrivilegnes(BaseTest):
             self.host_target_terminal.execute("sudo whoami")[0],
             "root",
         )
-
-    def tearDown(self):
-        pass

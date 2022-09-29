@@ -3,7 +3,6 @@
 #
 
 from paramiko.client import SSHClient, AutoAddPolicy
-from tenacity import retry, stop_after_attempt, stop_after_delay
 
 
 class CommandError(Exception):
@@ -56,8 +55,6 @@ class SSHTerminal:
         ----------
         cmd: str
             The command to execute
-        timeout: int | None
-            Set command's channel timeout (default None)
 
         Returns
         -------

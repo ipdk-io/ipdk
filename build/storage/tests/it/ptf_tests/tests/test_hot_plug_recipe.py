@@ -11,7 +11,7 @@ from system_tools.config import (
 from system_tools.ssh_terminal import SSHTerminal
 from system_tools.test_platform import HostPlatform
 from system_tools.services import (
-    CloneIPDKRepository, RunStorageTargetContainer, RunIPUStorageContainer, RunHostRargetContainer
+    CloneIPDKRepository, RunStorageTargetContainer, RunIPUStorageContainer, RunHostTargetContainer
 )
 
 
@@ -64,7 +64,7 @@ class TestDeployContainers(BaseTest):
             storage_dir=os.path.join(clone_step.workdir, 'ipdk/build/storage'),
             shared_dir=os.path.join(clone_step.workdir, 'shared'),
         ).run()
-        RunHostRargetContainer(
+        RunHostTargetContainer(
             self.host_target_terminal,
             storage_dir=os.path.join(clone_step.workdir, 'ipdk/build/storage'),
         ).run()
