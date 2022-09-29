@@ -100,7 +100,7 @@ class RunIPUStorageContainer(TestStep):
     def __init__(self, terminal, storage_dir, shared_dir, is_teardown=False):
         super().__init__(terminal, is_teardown)
         self.storage_dir = storage_dir
-        self.shared_dir = shared_dir or f'/home/{terminal.config.username}/share'
+        self.shared_dir = shared_dir
 
     def _prepare(self):
         self.terminal.client.exec_command(f'mkdir -p {self.shared_dir}')

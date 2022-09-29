@@ -11,7 +11,7 @@ from system_tools.config import (
 from system_tools.ssh_terminal import SSHTerminal
 from system_tools.test_platform import HostPlatform
 from system_tools.services import (
-    CloneRepository, RunStorageTargetContainer, RunIPUStorageContainer, RunHostRargetContainer
+    CloneIPDKRepository, RunStorageTargetContainer, RunIPUStorageContainer, RunHostRargetContainer
 )
 
 
@@ -47,7 +47,7 @@ class TestDeployContainers(BaseTest):
         self.host_target_terminal.delete_all_containers()
 
     def runTest(self):
-        clone_step = CloneRepository(
+        clone_step = CloneIPDKRepository(
             self.storage_target_terminal,
             is_teardown=False,
             repository_url='https://github.com/intelfisz/ipdk.git',
@@ -62,6 +62,7 @@ class TestDeployContainers(BaseTest):
         RunIPUStorageContainer(
             self.ipu_storage_terminal,
             storage_dir=os.path.join(clone_step.workdir, 'ipdk/build/storage'),
+            shared_dir=os.path.join(clone_step.workdir, 'shared'),
         ).run()
         RunHostRargetContainer(
             self.host_target_terminal,
