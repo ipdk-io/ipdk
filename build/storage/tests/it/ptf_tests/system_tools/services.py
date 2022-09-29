@@ -51,12 +51,12 @@ class CloneIPDKRepository(TestStep):
     """Clone ipdk repository"""
 
     def __init__(
-            self,
-            terminal: SSHTerminal,
-            is_teardown: bool,
-            repository_url: str,
-            branch: str = 'main',
-            workdir: str = None,
+        self,
+        terminal: SSHTerminal,
+        is_teardown: bool,
+        repository_url: str,
+        branch: str = "main",
+        workdir: str = None,
     ) -> None:
         """
         Assumption: In workdir folder You can't have any important files
@@ -73,7 +73,7 @@ class CloneIPDKRepository(TestStep):
 
     # TODO: init submodules
     def _step(self):
-        cmd = f'cd {self.workdir} && git clone --branch {self.branch} {self.repository_url}'
+        cmd = f"cd {self.workdir} && git clone --branch {self.branch} {self.repository_url}"
         self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
@@ -98,14 +98,17 @@ class RunSender(TestStep):
 
 
 class RunStorageTargetContainer(TestStep):
-
-    def __init__(self, terminal: SSHTerminal, storage_dir: str, is_teardown: bool = False) -> None:
+    def __init__(
+        self, terminal: SSHTerminal, storage_dir: str, is_teardown: bool = False
+    ) -> None:
         super().__init__(terminal, is_teardown)
         self.storage_dir = storage_dir
 
     def _step(self):
-        cmd = f'cd {self.storage_dir} && ' \
-              f'AS_DAEMON=true scripts/run_storage_target_container.sh'
+        cmd = (
+            f"cd {self.storage_dir} && "
+            f"AS_DAEMON=true scripts/run_storage_target_container.sh"
+        )
         self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
@@ -118,19 +121,26 @@ class RunStorageTargetContainer(TestStep):
 
 
 class RunIPUStorageContainer(TestStep):
-
-    def __init__(self, terminal: SSHTerminal, storage_dir: str, shared_dir: str, is_teardown: bool = False) -> None:
+    def __init__(
+        self,
+        terminal: SSHTerminal,
+        storage_dir: str,
+        shared_dir: str,
+        is_teardown: bool = False,
+    ) -> None:
         super().__init__(terminal, is_teardown)
         self.storage_dir = storage_dir
         self.shared_dir = shared_dir
 
     def _prepare(self):
-        self.terminal.client.exec_command(f'mkdir -p {self.shared_dir}')
+        self.terminal.client.exec_command(f"mkdir -p {self.shared_dir}")
 
     def _step(self):
-        cmd = f"cd {self.storage_dir} && " \
-              f"AS_DAEMON=true SHARED_VOLUME={self.shared_dir} "\
-              f"scripts/run_ipu_storage_container.sh"
+        cmd = (
+            f"cd {self.storage_dir} && "
+            f"AS_DAEMON=true SHARED_VOLUME={self.shared_dir} "
+            f"scripts/run_ipu_storage_container.sh"
+        )
         self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
@@ -143,18 +153,21 @@ class RunIPUStorageContainer(TestStep):
 
 
 class RunHostTargetContainer(TestStep):
-
-    def __init__(self, terminal: SSHTerminal, storage_dir: str, is_teardown: bool = False) -> None:
+    def __init__(
+        self, terminal: SSHTerminal, storage_dir: str, is_teardown: bool = False
+    ) -> None:
         super().__init__(terminal, is_teardown)
         self.storage_dir = storage_dir
 
     def _step(self):
-        cmd = f"cd {self.storage_dir} && " \
-              f"AS_DAEMON=true scripts/run_host_target_container.sh"
+        cmd = (
+            f"cd {self.storage_dir} && "
+            f"AS_DAEMON=true scripts/run_host_target_container.sh"
+        )
         self.terminal.execute(cmd)
 
     def _assertion_after_step(self):
-        # it's ok but container stops in few seconds
+        # it's ok but container stops after few seconds
         out = self.terminal.execute("docker ps")
         is_container = False
         for line in out:

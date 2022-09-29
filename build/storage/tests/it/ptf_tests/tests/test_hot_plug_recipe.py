@@ -3,20 +3,20 @@
 #
 
 import os
-from ptf.base_tests import BaseTest
 
-from system_tools.config import (
-    StorageTargetConfig, IPUStorageConfig, HostTargetConfig,
+from ptf.base_tests import BaseTest
+from system_tools.config import HostTargetConfig, IPUStorageConfig, StorageTargetConfig
+from system_tools.services import (
+    CloneIPDKRepository,
+    RunHostTargetContainer,
+    RunIPUStorageContainer,
+    RunStorageTargetContainer,
 )
 from system_tools.ssh_terminal import SSHTerminal
 from system_tools.test_platform import HostPlatform
-from system_tools.services import (
-    CloneIPDKRepository, RunStorageTargetContainer, RunIPUStorageContainer, RunHostTargetContainer
-)
 
 
 class TestHostPlatform(BaseTest):
-
     def setUp(self):
         self.storage_target_terminal = SSHTerminal(StorageTargetConfig())
         self.ipu_storage_terminal = SSHTerminal(IPUStorageConfig())
@@ -36,7 +36,6 @@ class TestHostPlatform(BaseTest):
 
 
 class TestDeployContainers(BaseTest):
-
     def setUp(self):
         self.storage_target_terminal = SSHTerminal(StorageTargetConfig())
         self.ipu_storage_terminal = SSHTerminal(IPUStorageConfig())
@@ -50,25 +49,24 @@ class TestDeployContainers(BaseTest):
         clone_step = CloneIPDKRepository(
             self.storage_target_terminal,
             is_teardown=False,
-            repository_url='https://github.com/intelfisz/ipdk.git',
-            branch='t-env'
+            repository_url="https://github.com/intelfisz/ipdk.git",
+            branch="t-env",
         )
         clone_step.run()
 
         RunStorageTargetContainer(
             self.storage_target_terminal,
-            storage_dir=os.path.join(clone_step.workdir, 'ipdk/build/storage'),
+            storage_dir=os.path.join(clone_step.workdir, "ipdk/build/storage"),
         ).run()
         RunIPUStorageContainer(
             self.ipu_storage_terminal,
-            storage_dir=os.path.join(clone_step.workdir, 'ipdk/build/storage'),
-            shared_dir=os.path.join(clone_step.workdir, 'shared'),
+            storage_dir=os.path.join(clone_step.workdir, "ipdk/build/storage"),
+            shared_dir=os.path.join(clone_step.workdir, "shared"),
         ).run()
         RunHostTargetContainer(
             self.host_target_terminal,
-            storage_dir=os.path.join(clone_step.workdir, 'ipdk/build/storage'),
+            storage_dir=os.path.join(clone_step.workdir, "ipdk/build/storage"),
         ).run()
-
 
     def tearDown(self):
         pass

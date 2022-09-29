@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from paramiko.client import SSHClient, AutoAddPolicy
+from paramiko.client import AutoAddPolicy, SSHClient
 
 
 class SSHTerminal:
@@ -14,10 +14,17 @@ class SSHTerminal:
 
         self.client.load_system_host_keys()
         self.client.set_missing_host_key_policy(AutoAddPolicy)
-        self.client.connect(config.ip_address, config.port, config.username, config.password, *args, **kwargs)
+        self.client.connect(
+            config.ip_address,
+            config.port,
+            config.username,
+            config.password,
+            *args,
+            **kwargs
+        )
 
     def execute(self, cmd: str, timeout: int = None) -> list:
-        """ Simple function executes a command on the SSH server
+        """Simple function executes a command on the SSH server
         Return list of the lines output
         """
 
@@ -29,6 +36,6 @@ class SSHTerminal:
 
     def delete_all_containers(self):
         """Delete all containers even currently running"""
-        out = self.execute('docker ps -aq')
+        out = self.execute("docker ps -aq")
         if out:
-            self.execute('docker container rm -fv $(docker ps -aq)')
+            self.execute("docker container rm -fv $(docker ps -aq)")

@@ -3,14 +3,11 @@
 #
 
 from ptf.base_tests import BaseTest
-
-from system_tools.config import (
-    StorageTargetConfig, IPUStorageConfig, HostTargetConfig,
-)
+from system_tools.config import HostTargetConfig, IPUStorageConfig, StorageTargetConfig
 from system_tools.ssh_terminal import SSHTerminal
 
-class BaseTerminalMixin:
 
+class BaseTerminalMixin:
     def setUp(self):
         self.storage_target_terminal = SSHTerminal(StorageTargetConfig())
         self.ipu_storage_terminal = SSHTerminal(IPUStorageConfig())
@@ -21,7 +18,6 @@ class BaseTerminalMixin:
 
 
 class TestTerminalConnect(BaseTerminalMixin, BaseTest):
-
     def runTest(self):
         self.assertEqual(
             self.storage_target_terminal.execute("whoami")[0],
@@ -41,7 +37,6 @@ class TestTerminalConnect(BaseTerminalMixin, BaseTest):
 
 
 class TestTerminalConnectHasRootPrivilegnes(BaseTerminalMixin, BaseTest):
-
     def runTest(self):
         self.assertEqual(
             self.storage_target_terminal.execute("sudo whoami")[0],
