@@ -1,6 +1,7 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
+
 from system_tools.ssh_terminal import SSHTerminal
 
 
@@ -54,7 +55,7 @@ class CloneIPDKRepository(TestStep):
         self,
         terminal: SSHTerminal,
         is_teardown: bool,
-        repository_url: str,
+        repository_url: str = "'https://github.com/ipdk-io/ipdk.git'",
         branch: str = "main",
         workdir: str = None,
     ) -> None:
@@ -79,22 +80,6 @@ class CloneIPDKRepository(TestStep):
     def _assertion_after_step(self):
         self.terminal.execute(f"ls {self.workdir}/ipdk/build")
         self.terminal.execute(f"cd {self.workdir}/ipdk/build/storage && git log")
-
-
-class RunDockerStorageContainer(TestStep):
-    pass
-
-
-class RunDockerIpuStorageContainer(TestStep):
-    pass
-
-
-class RunVmInstance(TestStep):
-    pass
-
-
-class RunSender(TestStep):
-    pass
 
 
 class RunStorageTargetContainer(TestStep):

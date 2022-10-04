@@ -2,8 +2,4 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-ptf
-scapy
-paramiko
-tenacity
-python-dotenv
+STORAGE_DIR_PATH = "ipdk/build/storage"

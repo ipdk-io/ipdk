@@ -1,11 +1,17 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
+
+from system_tools.config import (
+    HostTargetConfig,
+    IPUStorageConfig,
+    StorageTargetConfig,
+)
 from system_tools.ssh_terminal import SSHTerminal
 
 
-class HostPlatform:
-    """A class used to represent a setup of a machine"""
+class BaseTestPlatform:
+    """A base class used to represent operating system with needed libraries"""
 
     def __init__(self, terminal: SSHTerminal):
         self.terminal = terminal
@@ -25,10 +31,6 @@ class HostPlatform:
 
     def _is_docker(self) -> bool:
         _, stdout, _ = self.terminal.client.exec_command("docker --version")
-        return not stdout.channel.recv_exit_status()
-
-    def _is_docker_compose(self) -> bool:
-        _, stdout, _ = self.terminal.client.exec_command("docker-compose --version")
         return not stdout.channel.recv_exit_status()
 
     def _is_virtualization(self) -> bool:
@@ -51,8 +53,8 @@ class HostPlatform:
                 return True
         return False
 
-    # todo
-    def _is_quemu(self) -> bool:
+    # TODO add implementation
+    def _is_qemu(self) -> bool:
         return True
 
     def _install_libguestfs_tools(self) -> bool:
@@ -87,42 +89,72 @@ class HostPlatform:
             "disabled" in stdout.read().decode() or "disabled" in stderr.read().decode()
         )
 
-    def _is_installed_docker_dependencies(self) -> bool:
-        cmds = ("docker --version", "wget --version", "docker-compose --version")
-        for cmd in cmds:
-            out = self.terminal.execute(cmd)
-            if not out:
-                return False
-        return True
-
-    def _install_docker_compose(self):
-        """Checks if docker-compose is installed and installs it if it's not
-        True if setup is successful or docker-compose is already installed else False
-        """
-        cmds = (
-            'curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose',
-            "chmod +x /usr/local/bin/docker-compose",
-            "ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose",
-        )
-        if not self._is_docker():
-            for cmd in cmds:
-                self.terminal.execute(cmd)
-
-    # TODO
+    # TODO add implementation
     def _install_docker(self):
         pass
 
-    def host_system_setup(self):
-        assert self._is_virtualization()
-        assert self._is_kvm()
-        assert self.pms
-        assert self._is_quemu()
-        assert self._set_security_policies()
-        assert self._is_installed_docker_dependencies()
-        assert self._change_vmlinuz()
+    def check_system_setup(self):
+        """Overwrite this method in specific platform if you don't want check all setup"""
+        if not self._is_virtualization():
+            raise Exception('Virtualization is not setting properly')
+        if not self._is_kvm():
+            raise Exception('KVM is not setting properly')
+        if not self.pms:
+            raise Exception('Packet manager is not setting properly')
+        if not self._is_qemu():
+            raise Exception('QUEMU is not setting properly')
+        if not self._set_security_policies():
+            raise Exception('Security polices is not setting properly')
+        if not self._is_docker():
+            raise Exception('Docker is not setting properly')
+
+    # TODO: after testing restore settings
+    def set_system_setup(self):
+        """Overwrite this method in specific platform if you don't want set all setup"""
+        self._change_vmlinuz()
         if not self._is_docker():
             self._install_docker()
-        assert self._is_docker()
-        if not self._is_docker_compose():
-            self._install_docker_compose()
-        assert self._is_docker_compose()
+
+
+class StorageTargetPlatform(BaseTestPlatform):
+
+    def __init__(self):
+        config = StorageTargetConfig()
+        terminal = SSHTerminal(config)
+        super().__init__(terminal)
+
+    # TODO add implementation
+    def create_subsystem(self):
+        pass
+
+    # TODO add implementation
+    def create_ramdrive(self):
+        return 'Guid'
+
+
+class IPUStoragePlatform(BaseTestPlatform):
+
+    def __init__(self):
+        config = IPUStorageConfig()
+        terminal = SSHTerminal(config)
+        super().__init__(terminal)
+
+    # TODO add implementation
+    def create_virtio_blk_device(self):
+        return 'VirtioBlkDevice'
+
+
+class HostTargetPlatform(BaseTestPlatform):
+
+    def __init__(self):
+        config = HostTargetConfig()
+        terminal = SSHTerminal(config)
+        super().__init__(terminal)
+
+    # TODO add implementation
+    def run_fio(self):
+        return 'FioOutput'
+
+    # TODO add implementation
+    def check_number_of_virtio_blks(self):
+        return 'int'

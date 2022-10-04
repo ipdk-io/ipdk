@@ -5,27 +5,32 @@
 import os
 
 from ptf.base_tests import BaseTest
-from system_tools.services import (
+from system_tools.const import STORAGE_DIR_PATH
+from tests.steps.initial_steps import (
     CloneIPDKRepository,
     RunHostTargetContainer,
     RunIPUStorageContainer,
     RunStorageTargetContainer,
 )
-from system_tools.test_platform import HostPlatform
+from system_tools.test_platform import HostTargetPlatform, IPUStoragePlatform, StorageTargetPlatform
 from test_connection import BaseTerminalMixin
 
 
-class TestHostPlatform(BaseTerminalMixin, BaseTest):
+class TestTestPlatforms(BaseTerminalMixin, BaseTest):
     def setUp(self):
         super().setUp()
-        self.storage_target_platform = HostPlatform(self.storage_target_terminal)
-        self.ipu_storage_platform = HostPlatform(self.ipu_storage_terminal)
-        self.host_target_platform = HostPlatform(self.host_target_terminal)
+        self.storage_target_platform = StorageTargetPlatform()
+        self.ipu_storage_platform = IPUStoragePlatform()
+        self.host_target_platform = HostTargetPlatform()
 
     def runTest(self):
-        self.storage_target_platform.host_system_setup()
-        self.ipu_storage_platform.host_system_setup()
-        self.host_target_platform.host_system_setup()
+        self.storage_target_platform.set_system_setup()
+        self.ipu_storage_platform.set_system_setup()
+        self.host_target_platform.set_system_setup()
+
+        self.storage_target_platform.check_system_setup()
+        self.ipu_storage_platform.check_system_setup()
+        self.host_target_platform.check_system_setup()
 
 
 class TestDeployContainers(BaseTerminalMixin, BaseTest):
@@ -39,21 +44,19 @@ class TestDeployContainers(BaseTerminalMixin, BaseTest):
         clone_step = CloneIPDKRepository(
             self.storage_target_terminal,
             is_teardown=False,
-            repository_url="https://github.com/intelfisz/ipdk.git",
-            branch="t-env",
         )
         clone_step.run()
 
         RunStorageTargetContainer(
             self.storage_target_terminal,
-            storage_dir=os.path.join(clone_step.workdir, "ipdk/build/storage"),
+            storage_dir=os.path.join(clone_step.workdir, STORAGE_DIR_PATH),
         ).run()
         RunIPUStorageContainer(
             self.ipu_storage_terminal,
-            storage_dir=os.path.join(clone_step.workdir, "ipdk/build/storage"),
+            storage_dir=os.path.join(clone_step.workdir, STORAGE_DIR_PATH),
             shared_dir=os.path.join(clone_step.workdir, "shared"),
         ).run()
         RunHostTargetContainer(
             self.host_target_terminal,
-            storage_dir=os.path.join(clone_step.workdir, "ipdk/build/storage"),
+            storage_dir=os.path.join(clone_step.workdir, STORAGE_DIR_PATH),
         ).run()

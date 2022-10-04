@@ -5,6 +5,10 @@
 from paramiko.client import AutoAddPolicy, SSHClient
 
 
+class CommandException(Exception):
+    """Custom Exception raises if error occurs during command execution"""
+
+
 class SSHTerminal:
     """A class used to represent a session with an SSH server"""
 
@@ -25,15 +29,16 @@ class SSHTerminal:
 
     def execute(self, cmd: str, timeout: int = None) -> list:
         """Simple function executes a command on the SSH server
-        Return list of the lines output
+        Returns list of the lines output
         """
-
         _, stdout, stderr = self.client.exec_command(cmd, timeout=timeout)
-        assert not stdout.channel.recv_exit_status()
+        if stdout.channel.recv_exit_status():
+            raise CommandException(stderr.read().decode())
         #  if command is executed in the background don't wait for the output
         out = [] if cmd.rstrip().endswith("&") else stdout.readlines()
         return [line.rstrip() for line in out]
 
+    # TODO: add tracking running containers while testing and kill only relevant ones
     def delete_all_containers(self):
         """Delete all containers even currently running"""
         out = self.execute("docker ps -aq")
