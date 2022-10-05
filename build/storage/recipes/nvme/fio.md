@@ -19,12 +19,10 @@ namespace exists in the vm(step 7)
 
 3. Run fio. Execute the following command from `cmd-sender`
 ```
-echo -e $(no_grpc_proxy="" grpc_cli call <host_ip_where_vm_is_run>:50051 \
+$ echo -e $(no_grpc_proxy="" grpc_cli call <host_ip_where_vm_is_run>:50051 \
         RunFio "diskToExercise: { deviceHandle: '$nvme0' volumeId: '$malloc0'} \
-        fioArgs: '{\"rw\":\"randrw\", \"direct\":1, \"bs\":\"4k\", \
-        \"iodepth\":256, \"ioengine\":\"libaio\", \"runtime\":1, \
-        \"name\":\"iops_test-job\", \"time_based\": 1, \"numjobs\": 4,  \
-        \"group_reporting\": 1 }}'")
+        fioArgs: '{\"rw\":\"randrw\",\"runtime\":5, \"numjobs\": 1, \
+            \"time_based\": 1, \"group_reporting\": 1 }'")
 ```
 
 Expected output
