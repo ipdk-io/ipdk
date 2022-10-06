@@ -17,12 +17,10 @@ the vm(step 5)
 
 3. Run fio. Execute the following command from `cmd-sender`
 ```
-$ echo -e $(no_grpc_proxy= grpc_cli call <host_ip_where_vm_is_run>:50051 \
-RunFio "deviceHandle: '$virtio_blk0' fioArgs: '\
-    {\"rw\":\"randrw\", \"direct\":1, \"bs\":\"4k\", \
-	\"iodepth\":256, \"ioengine\":\"libaio\", \"runtime\":1, \
-	\"name\":\"iops_test-job\", \"time_based\": 1, \"numjobs\": 4}, \
-	\"group_reporting\": 1 }}'")
+$ echo -e $(env -i no_grpc_proxy="" grpc_cli call <host_ip_where_vm_is_run>:50051 \
+        RunFio "diskToExercise: { deviceHandle: '$virtio_blk0' } \
+        fioArgs: '{\"rw\":\"randrw\", \"runtime\":5, \"numjobs\": 1, \
+            \"time_based\": 1, \"group_reporting\": 1 }'")
 ```
 
 Expected output

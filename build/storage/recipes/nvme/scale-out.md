@@ -128,7 +128,7 @@ The Expected output is
 Send from your `cmd-sender`
 ```
 $ for ((i=0; i < "32"; i++)) ; do \
-    detach_volume <ipu_storage_container_platform_ip> "${devs[0]}" "${ramdrives[$i]}" \
+    detach_volume <ipu_storage_container_platform_ip> "${devs[0]}" "${ramdrives[$i]}"; \
 done ; \
 for ((i=0; i < "64"; i++)) ; do \
     delete_nvme_device <ipu_storage_container_platform_ip> "${devs[$i]}"; \
