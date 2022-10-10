@@ -37,10 +37,6 @@ function check_all_variables_are_set() {
 check_all_variables_are_set
 
 export IMAGE_NAME="host-target"
-if [[ "$FORCE_BUILD" == "true" || \
-     $(docker images --filter=reference='host-target' -q) == "" ]]; then
-    export BUILD_IMAGE="true"
-fi
 
 ARGS=()
 ARGS+=("-v" "/dev:/dev")
@@ -50,6 +46,12 @@ if [[ -n "$CUSTOMIZATION_DIR" ]]; then
     customization_dir_in_container="/customizations"
     ARGS+=("-v" "$(realpath "$CUSTOMIZATION_DIR"):$customization_dir_in_container")
     ARGS+=("-e" "CUSTOMIZATION_DIR_IN_CONTAINER=$customization_dir_in_container")
+
+    echo "Customization directoty is specified. Environment variable will be set to start a local build."
+    export BUILD_IMAGE="true"
+elif find "$scripts_dir/../core/host-target/customizations" -name '*.py' | grep '.py' ; then
+    echo "Python files are found in host-target customizations dir. Environment variable will be set to start a local build. "
+    export BUILD_IMAGE="true"
 fi
 
 # shellcheck source=./scripts/run_container.sh

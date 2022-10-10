@@ -31,7 +31,7 @@ host_target_image_tar="$script_dir/host-target.tar"
 
 function save_host_target_image_to_file() {
     local host_target_image_tar="$1"
-    FORCE_BUILD="true" "${script_dir}"/build_container.sh "host-target"
+    BUILD_IMAGE="true" "${script_dir}"/build_container.sh "host-target"
     docker save -o "$host_target_image_tar" host-target
 }
 

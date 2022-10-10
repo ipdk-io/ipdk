@@ -35,7 +35,6 @@ function check_all_variables_are_set() {
 check_all_variables_are_set
 
 export ALLOCATE_HUGEPAGES="true"
-export BUILD_IMAGE="true"
 export IMAGE_NAME="storage-target"
 ARGS=()
 ARGS+=("-e" "SPDK_IP_ADDR=${SPDK_IP_ADDR}")
