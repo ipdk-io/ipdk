@@ -2,11 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
+from typing import Optional
+
 from paramiko.client import AutoAddPolicy, SSHClient
 
-
-class CommandException(Exception):
-    """Custom Exception raises if error occurs during command execution"""
+from system_tools.errors import CommandException
 
 
 class SSHTerminal:
@@ -27,20 +27,14 @@ class SSHTerminal:
             **kwargs
         )
 
-    def execute(self, cmd: str, timeout: int = None) -> list:
+    def execute(self, cmd: str, timeout: int = None) -> Optional[str]:
         """Simple function executes a command on the SSH server
         Returns list of the lines output
         """
         _, stdout, stderr = self.client.exec_command(cmd, timeout=timeout)
         if stdout.channel.recv_exit_status():
             raise CommandException(stderr.read().decode())
-        #  if command is executed in the background don't wait for the output
-        out = [] if cmd.rstrip().endswith("&") else stdout.readlines()
-        return [line.rstrip() for line in out]
-
-    # TODO: add tracking running containers while testing and kill only relevant ones
-    def delete_all_containers(self):
-        """Delete all containers even currently running"""
-        out = self.execute("docker ps -aq")
-        if out:
-            self.execute("docker container rm -fv $(docker ps -aq)")
+        # if command is executed in the background don't wait for the output
+        return (
+            None if cmd.rstrip().endswith("&") else stdout.read().decode().rstrip("\n")
+        )
