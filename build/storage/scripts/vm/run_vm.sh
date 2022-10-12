@@ -17,7 +17,7 @@ DRIVE_TO_BOOT=${DRIVE_TO_BOOT:-${SHARED_VOLUME}/vm.qcow2}
 HOST_TARGET_SERVICE_PORT=${HOST_TARGET_SERVICE_PORT:-50051}
 HOST_TARGET_SERVICE_PORT_IN_VM=${HOST_TARGET_SERVICE_PORT_IN_VM:-50051}
 
-qemu_serial="-serial stdio"
+qemu_serial="-serial mon:stdio"
 if [ -n "$UNIX_SERIAL" ]; then
   qemu_serial="-serial unix:${SHARED_VOLUME}/${UNIX_SERIAL},server,nowait"
 fi
