@@ -46,6 +46,7 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     run_customize+=(--run-command 'dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo')
     run_customize+=(--run-command 'grubby --update-kernel ALL --args selinux=0')
     run_customize+=(--install "dnf-plugins-core,docker-ce,docker-ce-cli,containerd.io")
+    run_customize+=(--install "pciutils,nvme-cli")
     run_customize+=(--copy-in "${HOST_TARGET_TAR}:${vm_host_target_tar_dir}")
     run_customize+=(--copy-in "${scripts_dir}/$run_host_target_container_script:/usr/local/bin")
     run_customize+=(--copy-in "${scripts_dir}/$run_container_script:/usr/local/bin")
