@@ -35,6 +35,7 @@ exit_function()
     echo "Exiting cleanly"
     pushd /root || exit
     rm -f network-config-v1.yaml meta-data user-data
+    pkill qemu
     rm -rf /tmp/vhost-user-*
     rm -f vm1.qcow2 vm2.qcow2
     popd || exit
@@ -47,6 +48,7 @@ echo ""
 echo "Cleaning from previous run"
 echo ""
 
+pkill qemu
 rm -rf /tmp/vhost-user-*
 killall ovsdb-server
 killall ovs-vswitchd
@@ -157,6 +159,10 @@ echo ""
 pushd /root/P4-OVS || exit
 # shellcheck source=/dev/null
 . /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install /root/p4ovs/P4OVS_DEPS_INSTALL
+
+# Wait for P4-OVS to start gRPC server and open ports for clients to connect.
+sleep 1
+
 gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,\
     device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-0,\
     port-type:LINK"
@@ -170,6 +176,7 @@ echo "Generating dependent files from P4C and OVS pipeline builder"
 echo ""
 
 export OUTPUT_DIR=/root/examples/simple_l3/
+export PATH=$PATH:/root/p4c/install/bin
 p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files \
     $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json \
     --context $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
@@ -182,6 +189,7 @@ echo ""
 echo "Starting VM1_TAP_DEV"
 echo ""
 
+pushd /root || exit
     #-object memory-backend-file,id=mem,size=1024M,mem-path=/hugetlbfs1,share=on \
 kvm -smp 1 -m 256M \
     -boot c -cpu host --enable-kvm -nographic \
@@ -227,6 +235,7 @@ kvm -smp 1 -m 256M \
     -netdev type=vhost-user,id=netdev1,chardev=char2,vhostforce \
     -device virtio-net-pci,mac=52:54:00:34:12:bb,netdev=netdev1 \
     -serial telnet::6552,server,nowait &
+popd || exit
 
 echo ""
 echo "Programming P4-OVS pipelines"
