@@ -9,61 +9,8 @@ ARG BASE_IMG=${BASE_IMG}
 FROM ${BASE_IMG} AS base
 LABEL maintainer="neha1.singh@intel.com"
 ARG PROXY
-
-# Installing dependent packages required for DPDK Build
-RUN dnf -y update && \
-    dnf install -y git \
-    meson \
-    cmake \
-    libtool \
-    clang \
-    gcc \
-    g++ \
-    autoconf \
-    automake \
-    autoconf-archive \
-    libconfig \
-    libgc-devel \
-    unifdef \
-    libffi-devel \
-    boost-iostreams \
-    boost-graph \
-    llvm \
-    pkg-config \
-    flex flex-devel \
-    zlib-devel \
-    iproute \
-    net-tools \
-    iputils \
-    python \
-    pip \
-    bison \
-    python3-setuptools \
-    python3-pip \
-    python3-wheel \
-    python3-cffi \
-    libedit-devel \
-    gmp-devel \
-    expat-devel \
-    boost-devel \
-    google-perftools \
-    curl \
-    connect-proxy \
-    coreutils \
-    numactl-devel \
-    which && \
-    dnf -y clean all && \
-    rm -rf /var/cache/yum
-
-# Installing all PYTHON packages
-RUN python -m pip install --upgrade pip && \
-    python -m pip install grpcio && \
-    python -m pip install ovspy && \
-    python -m pip install protobuf==3.20.1 && \
-    python -m pip install p4runtime && \
-    pip3 install pyelftools && \
-    pip3 install scapy && \
-    pip3 install six
+ARG KEEP_SOURCE_CODE
+ARG DEPLOYMENT_IMAGE
 
 WORKDIR /root
 COPY ./scripts scripts
@@ -71,33 +18,29 @@ COPY ./examples /root/examples
 COPY ./start_p4ovs.sh /root/start_p4ovs.sh 
 COPY ./run_ovs_cmds /root/run_ovs_cmds
 COPY ./patches /root/patches
-RUN  /root/start_p4ovs.sh /root
+RUN /root/scripts/distro_pkg_install.sh -b && \
+    /root/start_p4ovs.sh /root && \
+    /root/scripts/run_cleanup.sh /root ${KEEP_SOURCE_CODE} ${DEPLOYMENT_IMAGE}
 
 #..Final Container With Packages And Dependent Libraries..#
-
 FROM ${BASE_IMG} AS p4ovs
 ARG PROXY
-COPY --from=base /root/P4-OVS/p4ovs_env_setup.sh /root/scripts/
-COPY --from=base /root/examples /root/examples
+ARG DEPLOYMENT_IMAGE
 COPY --from=base /root/scripts /root/scripts
+COPY --from=base /root/examples /root/examples
 COPY --from=base /root/p4c /root/p4c
 COPY --from=base /root/p4-sde/install /root/p4-sde/install
 COPY --from=base /root/p4ovs /root/p4ovs
+COPY --from=base /root/source_code /root/source_code
 # Configuration Files
-COPY --from=base /root/P4-OVS/stratum/stratum/hal/bin/barefoot/tofino_skip_p4_no_bsp.conf \
+COPY --from=base /root/configs/tofino_skip_p4_no_bsp.conf \
      /usr/share/stratum/target_skip_p4_no_bsp.conf
-COPY --from=base /root/P4-OVS/external/dpdk_port_config.pb.txt /usr/share/stratum/dpdk_port_config.pb.txt
+COPY --from=base /root/configs/dpdk_port_config.pb.txt /usr/share/stratum/dpdk_port_config.pb.txt
 COPY --from=base /root/p4-sde/install/share/target_sys/zlog-cfg /usr/share/target_sys/zlog-cfg
 
-RUN dnf install -y boost-iostreams boost-devel gmp-devel \
-  numactl-devel libedit-devel libunwind libnl3-devel python pip procps-ng \
-  iproute net-tools iputils
-
-RUN python -m pip install --upgrade pip && \
-    python -m pip install grpcio && \
-    python -m pip install ovspy && \
-    python -m pip install protobuf==3.20.1 && \
-    python -m pip install p4runtime && \
-    pip3 install scapy && dnf -y clean all && \
-    rm -rf /var/cache/yum && rm -rf /var/cache/dnf && rm -rf /root/.cache/pip && \
+RUN if [ "${DEPLOYMENT_IMAGE}" = "YES" ]; then \
+        /root/scripts/distro_pkg_install.sh -d; \
+    else \
+        /root/scripts/distro_pkg_install.sh; \
+    fi && \
     mkdir /etc/stratum && touch /etc/stratum/pipeline_cfg.pb.txt

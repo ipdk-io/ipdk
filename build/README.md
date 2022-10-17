@@ -66,6 +66,11 @@ configuration file settings and inner workings!
 * By default source code will not be retained in the IPDK container when built.
   If user wants to retain source code, set the (`KEEP_SOURCE_CODE=true`)
   option in the CLI configuration file.
+* By default, image will contain all the modules including its dependencies.
+  To minimize the image size suitable for K8S or any cloud deployments, set the
+  (`DEPLOYMENT_IMAGE=true`) option in the CLI configuration file to keep only
+  modules and libraries required for bringing up the stack.
+
 * Set the location of the working directory for the logs, interfaces and
   example VM images by setting the `VOLUME=` option in your user CLI
   configuration file. Default location is `~/.ipdk/volume`
