@@ -57,5 +57,6 @@ make $NUM_THREADS
 make $NUM_THREADS install
 make $NUM_THREADS clean
 ldconfig
+rm -rf build
 
 set +e

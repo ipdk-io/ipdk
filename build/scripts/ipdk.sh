@@ -158,6 +158,11 @@ build_image() {
 		else
 			ARGS+=("--build-arg" "KEEP_SOURCE_CODE=NO")
 		fi
+		if $DEPLOYMENT_IMAGE ; then
+			ARGS+=("--build-arg" "DEPLOYMENT_IMAGE=YES")
+		else
+			ARGS+=("--build-arg" "DEPLOYMENT_IMAGE=NO")
+		fi
 		ARGS+=("--build-arg" "BASE_IMG=$BASE_IMG")
 
 		# create build command
@@ -478,6 +483,7 @@ status() {
 	echo "TAG=$TAG"
 	echo "DOCKERFILE=$DOCKERFILE"
 	echo "KEEP_SOURCE_CODE=$KEEP_SOURCE_CODE"
+	echo "DEPLOYMENT_IMAGE=$DEPLOYMENT_IMAGE"
 	echo ""
 
 	echo "start arguments:"
@@ -516,6 +522,8 @@ help() {
 		         use the given proxy as defined in the PROXY environment variable
 		       --keep-source-code 
 		         keep the source code during build (Default is to remove the source code)
+		       --deployment-image
+		         keeps libraries and binaries in image required for running the stack
 		       --platform <build platforms to use>
 		         comma seperated list of platform architecture to build for.
 		         'docker buildx build --platform [build platforms to use]' will be executed.
@@ -671,6 +679,10 @@ while (( "$#" )); do
 			;;
 		-k|--keep-source-code)
 			KEEP_SOURCE_CODE=true
+			shift
+			;;
+		--deployment-image)
+			DEPLOYMENT_IMAGE=true
 			shift
 			;;
 		--tag)
