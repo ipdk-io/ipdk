@@ -8,6 +8,12 @@ on:
     paths:
       - 'build/storage/**'
       - '.github/workflows/storage-ci.yml'
+   push:
+    branches:
+      - main
+    paths:
+      - 'build/storage/**'
+      - '.github/workflows/storage-ci.yml'
 
 concurrency:
   # if workflow for PR or push is already running stop it, and start new one
@@ -27,3 +33,43 @@ jobs:
         run: |
           chmod -R 777 run.sh
           ./run.sh
+  storage_build_containers:
+    needs: run_storage_ut
+    timeout-minutes: 30
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: [ubuntu-latest]
+        image: [storage-target, ipu-storage-container, host-target, cmd-sender]
+
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+
+      - name: 'docker build'
+        working-directory: ./build/storage/scripts
+        run: |
+          ./build_container.sh ${{ matrix.image }}
+
+      - name: 'list docker images'
+        run: docker images
+
+      - name: 'docker tag images'
+        run: |
+           docker tag ${{ matrix.image }}:latest ghcr.io/${{ github.repository_owner }}/storage/${{ matrix.image }}-kvm-x86_64:sha-${GITHUB_SHA::7}
+           docker images
+
+      - name: 'Login to GitHub Container Registry'
+        if: github.event_name == 'push'
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'push images to registry'
+        if: github.event_name == 'push'
+        run: |
+           docker tag ${{ matrix.image }}:latest ghcr.io/${{ github.repository_owner }}/storage/${{ matrix.image }}-kvm-x86_64:${GITHUB_REF##*/}
+           docker push ghcr.io/${{ github.repository_owner }}/storage/${{ matrix.image }}-kvm-x86_64:sha-${GITHUB_SHA::7}
+           docker push ghcr.io/${{ github.repository_owner }}/storage/${{ matrix.image }}-kvm-x86_64:${GITHUB_REF##*/}

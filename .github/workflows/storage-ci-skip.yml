@@ -8,6 +8,12 @@ on:
     paths-ignore:
       - 'build/storage/**'
       - '.github/workflows/storage-ci.yml'
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'build/storage/**'
+      - '.github/workflows/storage-ci.yml'
 
 concurrency:
   # if workflow for PR or push is already running stop it, and start new one
@@ -16,7 +22,12 @@ concurrency:
 
 jobs:
   run_storage_ut:
-    timeout-minutes: 15
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No Storage Unit Test Integration Required"'
+  storage_build_containers:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
       - run: 'echo "No Storage Unit Test Integration Required"'
