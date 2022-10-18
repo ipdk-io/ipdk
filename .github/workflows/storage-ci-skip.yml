@@ -16,7 +16,12 @@ concurrency:
 
 jobs:
   run_storage_ut:
-    timeout-minutes: 15
+    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    steps:
+      - run: 'echo "No Storage Unit Test Integration Required"'
+  storage_build_containers:
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
       - run: 'echo "No Storage Unit Test Integration Required"'
