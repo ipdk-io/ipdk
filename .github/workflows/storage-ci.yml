@@ -8,7 +8,7 @@ on:
     paths:
       - 'build/storage/**'
       - '.github/workflows/storage-ci.yml'
-   push:
+  push:
     branches:
       - main
     paths:
