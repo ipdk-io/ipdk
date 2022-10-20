@@ -60,7 +60,7 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     run_customize+=(--append-line "${systemd_host_target_service}:Environment='PORT=${HOST_TARGET_SERVICE_PORT_IN_VM}'")
     run_customize+=(--append-line "${systemd_host_target_service}:Environment='WITHOUT_TTY=true'")
     run_customize+=(--append-line "${systemd_host_target_service}:ExecStart=run_host_target_container.sh")
-    run_customize+=(--append-line "${systemd_host_target_service}:ExecStop=docker container rm -f host-target")
+    run_customize+=(--append-line "${systemd_host_target_service}:ExecStop=/bin/bash -c 'docker container rm -f \$(docker container ls  | grep host-target | awk \'{print \$1}\')'")
     run_customize+=(--append-line "${systemd_host_target_service}:[Install]")
     run_customize+=(--append-line "${systemd_host_target_service}:WantedBy=multi-user.target")
     run_customize+=(--firstboot-command "docker load --input ${vm_host_target_tar_path}")
