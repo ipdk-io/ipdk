@@ -224,6 +224,22 @@ class NvmePciDeviceTests(TestCase):
         dev_paths = get_nvme_volumes(PciAddress("0000:01:00.0"))
         self.assertEqual(dev_paths, {"/dev/nvme0n1"})
 
+    def test_namespace_with_controller_part_in_the_end(self):
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n1c1"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/nvme0n1")
+
+        dev_paths = get_nvme_volumes(PciAddress("0000:01:00.0"))
+        self.assertEqual(dev_paths, {"/dev/nvme0n1"})
+
+    def test_namespace_with_controller_part_in_the_middle(self):
+        path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0c1n1"
+        self.fs.create_dir(path)
+        self.fs.create_file("/dev/nvme0n1")
+
+        dev_paths = get_nvme_volumes(PciAddress("0000:01:00.0"))
+        self.assertEqual(dev_paths, {"/dev/nvme0n1"})
+
     def test_namespace_does_not_exist_under_dev(self):
         path = "/sys/bus/pci/devices/0000:01:00.0/nvme/nvme0/nvme0n1"
         self.fs.create_dir(path)

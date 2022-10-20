@@ -55,7 +55,8 @@ $ malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
 5. Attach NVMe device to the virtual host.
 Send from your `cmd-sender`
 ```
-$ nvme0=$(create_nvme_device <ipu_storage_container_platform_ip> "0" "0")
+$ nvme0=$(create_nvme_device <ipu_storage_container_platform_ip> \
+     8080 <host_ip_where_vm_is_run> 50051 "0" "0")
 ```
 
 
@@ -131,7 +132,8 @@ zram0  252:0    0  964M  0 disk [SWAP]
 11. Hot-unplug NVMe device.
 Send from `cmd-sender`
 ```
-$ delete_nvme_device <ipu_storage_container_platform_ip> "$nvme0"
+$ delete_nvme_device <ipu_storage_container_platform_ip> \
+     8080 <host_ip_where_vm_is_run> 50051 "$nvme0"
 ```
 
 

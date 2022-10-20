@@ -16,8 +16,8 @@ from pyfakefs.fake_filesystem_unittest import patchfs
 
 class DeviceExerciserKvmTests(unittest.TestCase):
     def setUp(self):
-        virtio_blk_protocol_name = "virtio_blk"
-        nvme_protocol_name = "nvme"
+        self.virtio_blk_protocol_name = "virtio_blk"
+        self.nvme_protocol_name = "nvme"
         self.stub_device_path = "/dev/some_device"
         self.parsed_pci_addr = ""
 
@@ -25,16 +25,17 @@ class DeviceExerciserKvmTests(unittest.TestCase):
             self.parsed_pci_addr = str(pci_addr)
             return {self.stub_device_path}
 
-        stub_get_virtio_blk_path = unittest.mock.Mock(side_effect=get_blk_path)
-        stub_get_nvme_path = unittest.mock.Mock(side_effect=get_blk_path)
+        self.stub_get_virtio_blk_path = unittest.mock.Mock(side_effect=get_blk_path)
+        self.stub_get_nvme_path = unittest.mock.Mock(side_effect=get_blk_path)
         self.stub_fio_output = "output"
         self.stub_run_fio = unittest.mock.Mock(return_value=self.stub_fio_output)
         self.device_exerciser = DeviceExerciserKvm(
             {
-                virtio_blk_protocol_name: stub_get_virtio_blk_path,
-                nvme_protocol_name: stub_get_nvme_path,
+                self.virtio_blk_protocol_name: self.stub_get_virtio_blk_path,
+                self.nvme_protocol_name: self.stub_get_nvme_path,
             },
             self.stub_run_fio,
+            lambda _: None,
         )
         self.fio_args = FioArgs('{ "some": "arg" }')
 
@@ -103,6 +104,41 @@ class DeviceExerciserKvmTests(unittest.TestCase):
         self.device_exerciser.run_fio("virtio_blk:sma-0", {}, self.fio_args)
         self.assertEqual(str(self.fio_args), str(copy_fio_args))
 
+    @patchfs
+    def test_successfully_plugged_virtio_blk_device(self, fake_fs):
+        bound_device_dir = "/sys/bus/pci/drivers/virtio-pci/0000:01:00.0"
+        fake_fs.create_dir(bound_device_dir)
+        sma_handle = "virtio_blk:sma-0"
+        self.device_exerciser.plug_device(sma_handle)
+
+    @patchfs
+    def test_successfully_plugged_virtio_blk_with_multiple_tries(self, fake_fs):
+        bound_device_dir = "/sys/bus/pci/drivers/virtio-pci/0000:01:00.0"
+        sma_handle = "virtio_blk:sma-0"
+
+        def fake_wait(_):
+            if fake_wait.counter == 2:
+                fake_fs.create_dir(bound_device_dir)
+            fake_wait.counter = fake_wait.counter + 1
+
+        fake_wait.counter = 0
+
+        device_exerciser = DeviceExerciserKvm(
+            {
+                self.virtio_blk_protocol_name: self.stub_get_virtio_blk_path,
+                self.nvme_protocol_name: self.stub_get_nvme_path,
+            },
+            self.stub_run_fio,
+            fake_wait,
+        )
+
+        device_exerciser.plug_device(sma_handle)
+
+    def test_unsuccessfully_plugged_virtio_blk_device(self):
+        sma_handle = "virtio_blk:sma-0"
+        with self.assertRaises(DeviceExerciserError):
+            self.device_exerciser.plug_device(sma_handle)
+
     def _create_nvme_device(self, fake_fs, pci_addr, device_num, subsysnqn):
         device_path = f"/sys/bus/pci/devices/{pci_addr}/nvme/nvme{device_num}"
         path = os.path.join(device_path, f"nvme{device_num}n1")
@@ -135,3 +171,48 @@ class DeviceExerciserKvmTests(unittest.TestCase):
             self.device_exerciser.run_fio(
                 f"nvme:{subsysnqn}-non-existing-suffix", {}, self.fio_args
             )
+
+    @patchfs
+    def test_successfully_plugged_nvme_device(self, fake_fs):
+        subsysnqn = "nqn.2016-06.io.spdk:vfiouser-0"
+        pci_addr = "0000:01:10.0"
+        self._create_nvme_device(fake_fs, pci_addr, 0, subsysnqn)
+
+        bound_device_dir = "/sys/bus/pci/drivers/nvme/0000:01:10.0"
+        fake_fs.create_dir(bound_device_dir)
+
+        self.device_exerciser.plug_device(f"nvme:{subsysnqn}")
+
+    @patchfs
+    def test_successfully_plugged_nvme_device_with_multiple_tries(self, fake_fs):
+        subsysnqn = "nqn.2016-06.io.spdk:vfiouser-0"
+        pci_addr = "0000:01:10.0"
+        self._create_nvme_device(fake_fs, pci_addr, 1, subsysnqn)
+
+        def fake_wait(_):
+            if fake_wait.counter == 2:
+                bound_device_dir = f"/sys/bus/pci/drivers/nvme/{pci_addr}"
+                fake_fs.create_dir(bound_device_dir)
+            fake_wait.counter = fake_wait.counter + 1
+
+        fake_wait.counter = 0
+
+        device_exerciser = DeviceExerciserKvm(
+            {
+                self.virtio_blk_protocol_name: self.stub_get_virtio_blk_path,
+                self.nvme_protocol_name: self.stub_get_nvme_path,
+            },
+            self.stub_run_fio,
+            fake_wait,
+        )
+
+        device_exerciser.plug_device(f"nvme:{subsysnqn}")
+
+    @patchfs
+    def test_unsuccessfully_plugged_nvme_device(self, fake_fs):
+        subsysnqn = "nqn.2016-06.io.spdk:vfiouser-0"
+        pci_addr = "0000:01:10.0"
+        self._create_nvme_device(fake_fs, pci_addr, 1, subsysnqn)
+
+        with self.assertRaises(DeviceExerciserError):
+            self.device_exerciser.plug_device(f"nvme:{subsysnqn}")

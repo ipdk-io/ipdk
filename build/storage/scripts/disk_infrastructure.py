@@ -143,8 +143,8 @@ def create_ramdrive_and_attach_as_ns_to_subsystem(
             "method": "bdev_malloc_create",
             "params": {
                 "name": ramdrive_name,
-                "num_blocks": ramdrive_size_in_mb * 1024 * 1024 // 512,
-                "block_size": 512,
+                "num_blocks": ramdrive_size_in_mb * 256,
+                "block_size": 4096,
             },
         },
         {
@@ -167,15 +167,17 @@ def uuid2base64(device_uuid: str) -> str:
     return base64.b64encode(uuid.UUID(device_uuid).bytes).decode()
 
 
-def create_virtio_blk_without_disk_check(
+def create_virtio_blk(
     ipu_storage_container_ip: str,
+    sma_port: int,
+    host_target_ip: str,
+    host_target_service_port: int,
     volume_id: str,
     physical_id: str,
     virtual_id: str,
     hostnqn: str,
     traddr: str,
     trsvcid: str,
-    sma_port: int,
 ) -> str:
     request = {
         "method": "CreateDevice",
@@ -200,38 +202,65 @@ def create_virtio_blk_without_disk_check(
         port=sma_port,
     )
     device_handle = response["handle"]
-    return device_handle
+
+    if device_handle:
+        if (
+            os.system(
+                f'env -i no_grpc_proxy="" grpc_cli call \
+            "{host_target_ip}:{host_target_service_port}" \
+            PlugDevice "deviceHandle: \'{device_handle}\'"'
+            )
+            == 0
+        ):
+            return device_handle
+        else:
+            _send_delete_sma_device_request(
+                ipu_storage_container_ip, sma_port, device_handle
+            )
+
+    return ""
+
+
+def _send_delete_sma_device_request(ipu_storage_container_ip, sma_port, device_handle):
+    request = {"method": "DeleteDevice", "params": {"handle": device_handle}}
+    send_sma_request(request, ipu_storage_container_ip, sma_port)
 
 
 def delete_sma_device(
-    ipu_storage_container_ip: str, device_handle: str, sma_port: int
+    ipu_storage_container_ip: str,
+    sma_port: int,
+    host_target_ip: str,
+    host_target_service_port: int,
+    device_handle: str,
 ) -> bool:
-    request = {"method": "DeleteDevice", "params": {"handle": device_handle}}
     try:
-        send_sma_request(request, ipu_storage_container_ip, sma_port)
+        if (
+            os.system(
+                f'env -i no_grpc_proxy="" grpc_cli call \
+                "{host_target_ip}:{host_target_service_port}" \
+                UnplugDevice "deviceHandle: \'{device_handle}\'"'
+            )
+            == 0
+        ):
+            _send_delete_sma_device_request(
+                ipu_storage_container_ip, sma_port, device_handle
+            )
+            return True
     except Exception as ex:
         logging.error(ex)
-        return False
-    return True
 
-
-def wait_for_virtio_blk_in_os(timeout: float = 2.0) -> None:
-    wait_for_volume_in_os(timeout)
+    return False
 
 
 def wait_for_volume_in_os(timeout: float = 2.0) -> None:
     time.sleep(timeout)
 
 
-def create_virtio_blk(*args, **kwargs) -> str:
-    disk_handle = create_virtio_blk_without_disk_check(*args, **kwargs)
-    wait_for_virtio_blk_in_os()
-    return disk_handle
-
-
 def create_nvme_device(
     ipu_storage_container_ip: str,
     sma_port: int,
+    host_target_ip: str,
+    host_target_service_port: int,
     physical_id: str,
     virtual_id: str,
 ) -> str:
@@ -252,9 +281,21 @@ def create_nvme_device(
         # it cannot handle other operations properly until all of them are
         # printed.
         time.sleep(2)
-        return device_handle
-    else:
-        return ""
+        if (
+            os.system(
+                f'env -i no_grpc_proxy="" grpc_cli call \
+            "{host_target_ip}:{host_target_service_port}" \
+            PlugDevice "deviceHandle: \'{device_handle}\'"'
+            )
+            == 0
+        ):
+            return device_handle
+        else:
+            _send_delete_sma_device_request(
+                ipu_storage_container_ip, sma_port, device_handle
+            )
+
+    return ""
 
 
 def attach_volume(

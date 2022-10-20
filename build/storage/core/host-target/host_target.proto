@@ -8,6 +8,8 @@ package host_target;
 
 service HostTarget {
   rpc RunFio (RunFioRequest) returns (RunFioReply) {}
+  rpc PlugDevice (PlugDeviceRequest) returns (PlugDeviceReply) {}
+  rpc UnplugDevice (UnplugDeviceRequest) returns (UnplugDeviceReply) {}
 }
 
 message DiskToExercise {
@@ -21,5 +23,19 @@ message RunFioRequest {
 }
 
 message RunFioReply {
-    string fioOutput = 1;
+  string fioOutput = 1;
+}
+
+message PlugDeviceRequest {
+  string deviceHandle = 1;
+}
+
+message PlugDeviceReply {
+}
+
+message UnplugDeviceRequest {
+  string deviceHandle = 1;
+}
+
+message UnplugDeviceReply {
 }

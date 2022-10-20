@@ -50,7 +50,8 @@ $ malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
 5. Attach exposed ramdrive to the vm.
 Send from your `cmd-sender`
 ```
-$ virtio_blk0=$(create_virtio_blk <ipu_storage_container_platform_ip> "${malloc0}" \
+$ virtio_blk0=$(create_virtio_blk <ipu_storage_container_platform_ip> \
+     8080 <host_ip_where_vm_is_run> 50051 "${malloc0}" \
 	"0" "0" nqn.2016-06.io.spdk:cnode0 <storage_target_platform_ip>)
 ```
 
@@ -78,7 +79,8 @@ zram0  252:0    0  964M  0 disk [SWAP]
 7. Perform unplug.
 Run the command below on `cmd-sender` to hot-unplug device
 ```
-delete_virtio_blk <ipu_storage_container_platform_ip> "${virtio_blk0}"
+delete_virtio_blk <ipu_storage_container_platform_ip> \
+    8080 <host_ip_where_vm_is_run> 50051 "${virtio_blk0}"
 ```
 
 8. Check that there is no virtio-blk device.

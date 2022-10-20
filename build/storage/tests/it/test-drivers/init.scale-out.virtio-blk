@@ -14,6 +14,7 @@ declare storage_target_ip
 declare ipu_storage_container_ip
 declare virtio_blk_virtual_id
 declare port_to_expose
+declare host_target_ip
 # shellcheck disable=SC1091,SC1090
 source "${current_script_dir}"/test-helpers
 
@@ -40,13 +41,11 @@ echo "Create $NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT virtio-blk disks backed b
 virtio_blk_devices=()
 for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
-    virtio_blk_devices+=("$(create_virtio_blk_without_disk_check "${ipu_storage_container_ip}" \
+    virtio_blk_devices+=("$(create_virtio_blk "${ipu_storage_container_ip}" \
+        "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
         "${ramdrives[$i]}" "${i}" "${virtio_blk_virtual_id}" \
         "${nqn}" "${storage_target_ip}" "${port_to_expose}")")
 done
-
-wait_for_virtio_blk_sec=5
-wait_for_virtio_blk_in_os "${virtio_blk_devices[-1]}" "$wait_for_virtio_blk_sec"
 
 verify_expected_number_of_virtio_blk_devices "${vm_serial}" \
     "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"
@@ -54,6 +53,8 @@ verify_expected_number_of_virtio_blk_devices "${vm_serial}" \
 echo "Delete all created virtio-blk disks"
 for dev in "${virtio_blk_devices[@]}"
 do
-    delete_virtio_blk "${ipu_storage_container_ip}" "${dev}"
+    delete_virtio_blk "${ipu_storage_container_ip}" \
+		"$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+        "${dev}"
 done
 verify_expected_number_of_virtio_blk_devices "${vm_serial}" 0

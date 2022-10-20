@@ -7,6 +7,7 @@
 export DEFAULT_SPDK_PORT=5260
 export DEFAULT_SMA_PORT=8080
 export DEFAULT_NVME_PORT=4420
+export DEFAULT_HOST_TARGET_SERVICE_PORT=50051
 export MAX_NUMBER_OF_NAMESPACES_IN_CONTROLLER=1024
 
 function get_number_of_virtio_blk() {
@@ -95,26 +96,6 @@ print(disk_infrastructure.uuid2base64(device_uuid="$1"))
 EOF
 }
 
-function wait_for_virtio_blk_in_os() {
-    python3 <<- EOF
-from scripts import disk_infrastructure
-
-disk_infrastructure.wait_for_virtio_blk_in_os(
-    timeout=float("${2}")
-)
-EOF
-}
-
-function wait_for_volume_in_os() {
-    python3 <<- EOF
-from scripts import disk_infrastructure
-
-disk_infrastructure.wait_for_volume_in_os(
-    timeout=float("${2}")
-)
-EOF
-}
-
 function create_virtio_blk() {
     python3 <<- EOF
 from scripts import disk_infrastructure
@@ -122,32 +103,15 @@ from scripts import disk_infrastructure
 print(
     disk_infrastructure.create_virtio_blk(
         ipu_storage_container_ip="${1}",
-        volume_id="${2}",
-        physical_id="${3}",
-        virtual_id="${4}",
-        hostnqn="${5}",
-        traddr="${6}",
-        trsvcid="${7:-"$DEFAULT_NVME_PORT"}",
-        sma_port=int("${8:-"$DEFAULT_SMA_PORT"}"),
-    )
-)
-EOF
-}
-
-function create_virtio_blk_without_disk_check() {
-    python3 <<- EOF
-from scripts import disk_infrastructure
-
-print(
-    disk_infrastructure.create_virtio_blk_without_disk_check(
-        ipu_storage_container_ip="${1}",
-        volume_id="${2}",
-        physical_id="${3}",
-        virtual_id="${4}",
-        hostnqn="${5}",
-        traddr="${6}",
-        trsvcid="${7:-"$DEFAULT_NVME_PORT"}",
-        sma_port=int("${8:-"$DEFAULT_SMA_PORT"}"),
+        sma_port=int("${2}"),
+        host_target_ip="${3}",
+        host_target_service_port=int("${4}"),
+        volume_id="${5}",
+        physical_id="${6}",
+        virtual_id="${7}",
+        hostnqn="${8}",
+        traddr="${9}",
+        trsvcid="${10:-"$DEFAULT_NVME_PORT"}",
     )
 )
 EOF
@@ -160,8 +124,10 @@ from scripts.disk_infrastructure import delete_sma_device
 
 if not delete_sma_device(
     ipu_storage_container_ip="${1}",
-    device_handle="${2}",
-    sma_port=int("${3:-"$DEFAULT_SMA_PORT"}"),
+    sma_port=int("${2}"),
+    host_target_ip="${3}",
+    host_target_service_port=int("${4}"),
+    device_handle="${5}",
 ):
     sys.exit(1)
 EOF
@@ -193,9 +159,11 @@ from scripts import disk_infrastructure
 
 device_handle=disk_infrastructure.create_nvme_device(
 	ipu_storage_container_ip="$1",
-	physical_id="$2",
-	virtual_id="$3",
-	sma_port=int("${4:-"$DEFAULT_SMA_PORT"}"),
+	sma_port=int("$2"),
+	host_target_ip="$3",
+	host_target_service_port=int("$4"),
+	physical_id="$5",
+	virtual_id="$6",
 )
 print(device_handle)
 EOF

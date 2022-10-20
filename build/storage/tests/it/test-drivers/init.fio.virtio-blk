@@ -15,6 +15,7 @@ declare ipu_storage_container_ip
 declare virtio_blk_virtual_id
 declare port_to_expose
 declare traffic_generator_ip
+declare host_target_ip
 # shellcheck disable=SC1091,SC1090
 source "${current_script_dir}"/test-helpers
 
@@ -40,13 +41,15 @@ function create_virtio_blk_and_test_run_fio() {
 		"${storage_target_ip}" "Malloc${virtio_blk_physical_id}" \
 		"${ramdrive_size_in_mb}" "${nqn}")
 
-	virtio_blk=$(create_virtio_blk "${ipu_storage_container_ip}" "${malloc}" \
+	virtio_blk=$(create_virtio_blk "${ipu_storage_container_ip}" \
+		"$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+		"${malloc}" \
 		"${virtio_blk_physical_id}" "${virtio_blk_virtual_id}" \
 		"${nqn}" "${storage_target_ip}" "${port_to_expose}")
 
 	echo "Run fio over ${virtio_blk}"
 
-	out=$(send_fio_cmd "$traffic_generator_ip" "$HOST_TARGET_SERVICE_PORT" \
+	out=$(send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
 					"$virtio_blk" "$fio_args")
 	echo -e "${out}"
 	echo "${out}" | grep "Disk stats (read/write)"
