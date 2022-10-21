@@ -14,6 +14,7 @@ declare storage_target_ip
 declare ipu_storage_container_ip
 declare virtio_blk_virtual_id
 declare port_to_expose
+declare host_target_ip
 # shellcheck disable=SC1091,SC1090
 source "${current_script_dir}"/test-helpers
 
@@ -38,31 +39,41 @@ echo ""
 echo "### Attach 3 virtio-blk devices ###"
 
 virtio_blk0_physical_id=0
-virtio_blk0=$(create_virtio_blk "${ipu_storage_container_ip}" "${malloc0}" \
+virtio_blk0=$(create_virtio_blk "${ipu_storage_container_ip}" \
+	"$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+	"${malloc0}" \
 	"${virtio_blk0_physical_id}" "${virtio_blk_virtual_id}" \
 	"${nqn}" "${storage_target_ip}" "${port_to_expose}")
 verify_expected_number_of_virtio_blk_devices "${vm_serial}" 1
 
 virtio_blk1_physical_id=1
-create_virtio_blk "${ipu_storage_container_ip}" "${malloc1}" \
+create_virtio_blk "${ipu_storage_container_ip}" \
+	"$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+	"${malloc1}" \
 	"${virtio_blk1_physical_id}" "${virtio_blk_virtual_id}" \
 	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
 verify_expected_number_of_virtio_blk_devices "${vm_serial}" 2
 
 virtio_blk2_physical_id=2
-create_virtio_blk "${ipu_storage_container_ip}" "${malloc2}" \
+create_virtio_blk "${ipu_storage_container_ip}" \
+	"$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+	"${malloc2}" \
 	"${virtio_blk2_physical_id}" "${virtio_blk_virtual_id}" \
 	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
 verify_expected_number_of_virtio_blk_devices "${vm_serial}" 3
 
 echo ""
 echo "### Dettach 1st virtio-blk ###"
-delete_virtio_blk "${ipu_storage_container_ip}" "${virtio_blk0}"
+delete_virtio_blk "${ipu_storage_container_ip}" \
+	"$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+	"${virtio_blk0}"
 verify_expected_number_of_virtio_blk_devices "${vm_serial}" 2
 
 echo ""
 echo "### Attach 1st virtio-blk back ###"
-create_virtio_blk "${ipu_storage_container_ip}" "${malloc0}" \
+create_virtio_blk "${ipu_storage_container_ip}" \
+	"$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+	"${malloc0}" \
 	"${virtio_blk0_physical_id}" "${virtio_blk_virtual_id}" \
 	"${nqn}" "${storage_target_ip}" "${port_to_expose}"
 verify_expected_number_of_virtio_blk_devices "${vm_serial}" 3

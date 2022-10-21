@@ -14,6 +14,7 @@ declare storage_target_ip
 declare ipu_storage_container_ip
 declare port_to_expose
 declare traffic_generator_ip
+declare host_target_ip
 # shellcheck disable=SC1091,SC1090
 source "${current_script_dir}"/test-helpers
 
@@ -42,7 +43,8 @@ malloc1=$(create_ramdrive_and_attach_as_ns_to_subsystem \
 physical_id=0
 echo "Cretae NVME device with attached namespaces"
 nvme=$(create_nvme_device "$ipu_storage_container_ip" \
-        "$physical_id" "0")
+    "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+    "$physical_id" "0")
 attach_volume "$ipu_storage_container_ip" "$nvme" "$malloc0" "$nqn" \
     "$storage_target_ip"
 
@@ -50,7 +52,7 @@ attach_volume "$ipu_storage_container_ip" "$nvme" "$malloc1" "$nqn" \
     "$storage_target_ip"
 
 echo "Run fio over all namespaces of ${nvme}"
-out=$(send_fio_cmd "$traffic_generator_ip" "$HOST_TARGET_SERVICE_PORT" \
+out=$(send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
                 "$nvme" "$fio_args")
 echo -e "$out"
 echo "$out" | grep "Disk stats (read/write)"
@@ -58,7 +60,7 @@ echo "$out" | grep "nvme0n1"
 echo "$out" | grep "nvme0n2"
 
 echo "Run fio only over $malloc0 of $nvme"
-out=$(send_fio_cmd "$traffic_generator_ip" "$HOST_TARGET_SERVICE_PORT" \
+out=$(send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
                 "$nvme" "$fio_args" "$malloc0")
 echo -e "$out"
 echo "$out" | grep "Disk stats (read/write)"
@@ -66,7 +68,7 @@ echo "$out" | grep "nvme0n1"
 echo "$out" | grep -v "nvme0n2"
 
 echo "Run fio only over $malloc1 of $nvme"
-out=$(send_fio_cmd "$traffic_generator_ip" "$HOST_TARGET_SERVICE_PORT" \
+out=$(send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
                 "$nvme" "$fio_args" "$malloc1")
 echo -e "$out"
 echo "$out" | grep "Disk stats (read/write)"
@@ -79,6 +81,8 @@ echo "Detach all namespaces from nvme device"
 detach_volume "$ipu_storage_container_ip" "$nvme" "$malloc0"
 detach_volume "$ipu_storage_container_ip" "$nvme" "$malloc1"
 echo "Delete nvme device"
-delete_nvme_device "$ipu_storage_container_ip" "$nvme"
+delete_nvme_device "$ipu_storage_container_ip" \
+    "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+    "$nvme"
 
 exit 0

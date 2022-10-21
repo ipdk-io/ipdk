@@ -54,7 +54,8 @@ Send from your `cmd-sender`
 ```
 virtio_blks=() ; \
 for ((i=0; i < "64"; i++)) ; do \
-virtio_blks+=("$(create_virtio_blk_without_disk_check <ipu_storage_container_platform_ip> \
+virtio_blks+=("$(create_virtio_blk <ipu_storage_container_platform_ip> \
+        8080 <host_ip_where_vm_is_run> 50051 \
         "${ramdrives[$i]}" ${i} 0 nqn.2016-06.io.spdk:cnode0 \
         "<storage_target_platform_ip>")") ; \
 done
@@ -76,7 +77,8 @@ Also `lsblk` command can be run to observe all block devices.
 Run the command below on `cmd-sender` to hot-unplug device
 ```
 for ((i=0; i < "64"; i++)) ; do \
-    delete_virtio_blk <ipu_storage_container_platform_ip> "${virtio_blks[$i]}"; \
+    delete_virtio_blk <ipu_storage_container_platform_ip> \
+        8080 <host_ip_where_vm_is_run> 50051 "${virtio_blks[$i]}"; \
 done
 ```
 

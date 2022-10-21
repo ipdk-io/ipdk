@@ -6,7 +6,7 @@ import os
 import re
 import glob
 
-from volume import VolumeId, Volume
+from volume import VolumeError, VolumeId, Volume
 
 
 pci_validator = re.compile(
@@ -144,8 +144,23 @@ def _match_namespaces_to_volumes(
 
 
 def _find_namespaces_in_dev(namespaces_in_sysfs: list[str]) -> set[Volume]:
+    from string import digits
+
     namespace_dev_paths = set()
     for namespace_in_sysfs in namespaces_in_sysfs:
-        namespace_dev_path = os.path.join("/dev", os.path.basename(namespace_in_sysfs))
+        dev = os.path.basename(namespace_in_sysfs)
+        namespace_dev_path = os.path.join("/dev", dev)
+        if not os.path.exists(namespace_dev_path) and "c" in namespace_dev_path:
+            # TODO Find a way to find namespaces without such low-level modifications
+            c_position = dev.find("c")
+            if c_position != -1:
+                namespace = dev[:c_position] + dev[c_position + 1 :].lstrip(digits)
+                namespace_dev_path = os.path.join("/dev", namespace)
+
+        if not os.path.exists(namespace_dev_path):
+            raise VolumeError(
+                f"Couldn't find device to exercise for: {namespace_dev_path}"
+            )
+
         namespace_dev_paths.add(Volume(namespace_dev_path))
     return namespace_dev_paths

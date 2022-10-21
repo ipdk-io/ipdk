@@ -57,7 +57,8 @@ Send from your `cmd-sender`
 ```
 $ devs=() ; \
 for ((i=0; i < "64"; i++)) ; do \
-    devs+=("$(create_nvme_device <ipu_storage_container_platform_ip> $i 0)") ; \
+    devs+=("$(create_nvme_device <ipu_storage_container_platform_ip> \
+         8080 <host_ip_where_vm_is_run> 50051 $i 0)") ; \
 done
 ```
 
@@ -98,7 +99,7 @@ The Expected output is
 Send from your `cmd-sender`
 ```
 $ for ((i=0; i < "64"; i++)) ; do \
-    detach_volume <ipu_storage_container_platform_ip> "${devs[$i]}" "${ramdrives[$i]}" \
+    detach_volume <ipu_storage_container_platform_ip> "${devs[$i]}" "${ramdrives[$i]}" ; \
 done
 ```
 
@@ -131,7 +132,8 @@ $ for ((i=0; i < "32"; i++)) ; do \
     detach_volume <ipu_storage_container_platform_ip> "${devs[0]}" "${ramdrives[$i]}"; \
 done ; \
 for ((i=0; i < "64"; i++)) ; do \
-    delete_nvme_device <ipu_storage_container_platform_ip> "${devs[$i]}"; \
+    delete_nvme_device <ipu_storage_container_platform_ip> \
+         8080 <host_ip_where_vm_is_run> 50051 "${devs[$i]}"; \
 done
 
 ```

@@ -8,7 +8,6 @@ version: "3.8"
 
 x-shared-volume: &shared-volume ipdk-shared:/ipdk-shared
 
-x-host-target-service-port: &host-target-service-port HOST_TARGET_SERVICE_PORT=50051
 x-debug-env-var: &debug-env-var DEBUG=${DEBUG}
 
 services:
@@ -55,7 +54,6 @@ services:
     environment:
       - *debug-env-var
       - DO_NOT_ATTACH_VIRTIO_BLK=true
-      - *host-target-service-port
     privileged: true
   test-driver:
     image: test-driver
@@ -72,7 +70,6 @@ services:
       - *debug-env-var
       - NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT=${NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT}
       - MAX_NUMBER_OF_NAMESPACES=${MAX_NUMBER_OF_NAMESPACES}
-      - *host-target-service-port
     privileged: true
 networks:
   ipdk:

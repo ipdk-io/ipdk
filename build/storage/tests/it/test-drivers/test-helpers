@@ -120,6 +120,7 @@ ipu_storage_container_ip=${IPU_STORAGE_CONTAINER_IP:-"$(hostname_to_ip ipu-stora
 export ipu_storage_container_ip="${ipu_storage_container_ip}"
 traffic_generator_ip=${TRAFFIC_GENERATOR_IP:-"$(hostname_to_ip traffic-generator)"}
 export traffic_generator_ip="${traffic_generator_ip}"
+export host_target_ip="$traffic_generator_ip"
 export nqn="nqn.2016-06.io.spdk:cnode1"
 export shared_volume=/ipdk-shared
 export vm_serial=${shared_volume}/vm_socket

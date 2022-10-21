@@ -45,6 +45,28 @@ class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
             context.set_details(str(ex))
         return host_target_pb2.RunFioReply(fioOutput=output)
 
+    def PlugDevice(self, request, context):
+        logging.info(f"PlugDevice: request:'{request}'")
+        try:
+            device_handle = request.deviceHandle
+            self._device_exerciser.plug_device(device_handle)
+        except BaseException as ex:
+            logging.error("Service exception: '" + str(ex) + "'")
+            context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
+            context.set_details(str(ex))
+        return host_target_pb2.RunFioReply()
+
+    def UnplugDevice(self, request, context):
+        logging.info(f"UnplugDevice: request:'{request}'")
+        try:
+            device_handle = request.deviceHandle
+            self._device_exerciser.unplug_device(device_handle)
+        except BaseException as ex:
+            logging.error("Service exception: '" + str(ex) + "'")
+            context.set_code(grpc.StatusCode.FAILED_PRECONDITION)
+            context.set_details(str(ex))
+        return host_target_pb2.RunFioReply()
+
 
 def make_default_device_exerciser() -> DeviceExerciserIf:
     return DeviceExerciserKvm()

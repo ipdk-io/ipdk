@@ -13,6 +13,7 @@ declare nqn
 declare storage_target_ip
 declare ipu_storage_container_ip
 declare port_to_expose
+declare host_target_ip
 # shellcheck disable=SC1091,SC1090
 source "${current_script_dir}"/test-helpers
 
@@ -42,6 +43,7 @@ nvme_devices=()
 for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
     nvme_devices+=("$(create_nvme_device "$ipu_storage_container_ip" \
+        "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
         "${i}" "$nvme_virtual_id")")
 done
 verify_expected_number_of_nvme_devices "$vm_serial" 64
@@ -87,6 +89,8 @@ verify_expected_number_of_nvme_namespaces "${vm_serial}" 0
 echo "Delete all created nvme devices"
 for ((i=0; i < "$NUMBER_OF_DEVICES_TO_ATTACH_IN_SCALE_OUT"; i++))
 do
-    delete_nvme_device "$ipu_storage_container_ip" "${nvme_devices[$i]}"
+    delete_nvme_device "$ipu_storage_container_ip" \
+        "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+        "${nvme_devices[$i]}"
 done
 verify_expected_number_of_nvme_devices "${vm_serial}" 0

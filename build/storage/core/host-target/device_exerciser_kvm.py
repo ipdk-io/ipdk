@@ -7,6 +7,7 @@ import copy
 import os
 import glob
 import logging
+import time
 from typing import Callable
 from device_exerciser_if import DeviceExerciserIf
 from fio_args import FioArgs
@@ -35,9 +36,11 @@ class DeviceExerciserKvm(DeviceExerciserIf):
             NVME_PROTOCOL: get_nvme_volumes,
         },
         fio_runner=fio_runner.run_fio,
+        wait=time.sleep,
     ) -> None:
         self._volume_detectors = volume_detectors
         self._fio_runner = fio_runner
+        self._wait = wait
 
     class _SmaHandle:
         def get_protocol(self) -> str:
@@ -85,8 +88,13 @@ class DeviceExerciserKvm(DeviceExerciserIf):
 
     class _KvmStorageDevice:
         def __init__(
-            self, device_id: str, volume_detector: Callable, fio_runner: Callable
+            self,
+            driver_name: str,
+            device_id: str,
+            volume_detector: Callable,
+            fio_runner: Callable,
         ) -> None:
+            self._driver_name = driver_name
             self._find_volumes = volume_detector
             self._fio_runner = fio_runner
             self._device_id = device_id
@@ -98,15 +106,33 @@ class DeviceExerciserKvm(DeviceExerciserIf):
             fio_args.add_volumes_to_exercise(volumes)
             return self._fio_runner(fio_args)
 
+        def is_plugged(self) -> bool:
+            return self._is_bound()
+
+        def _is_bound(self) -> bool:
+            try:
+                pci_addr = self._find_pci_addr(self._device_id)
+                if os.path.exists(
+                    f"/sys/bus/pci/drivers/{self._driver_name}/{pci_addr}"
+                ):
+                    return True
+            except DeviceExerciserError:
+                pass
+
+            return False
+
         def _find_pci_addr(self, device_id: str):
             raise NotImplementedError()
 
     class _KvmVirtioBlkDevice(_KvmStorageDevice):
         def __init__(
-            self, device_id: str, volume_detector: Callable, fio_runner: Callable
+            self,
+            device_id: str,
+            volume_detector: Callable,
+            fio_runner: Callable,
         ) -> None:
             self.MAX_NUMBER_OF_DEVICES_ON_BUS = 32
-            super().__init__(device_id, volume_detector, fio_runner)
+            super().__init__("virtio-pci", device_id, volume_detector, fio_runner)
 
         def _find_pci_addr(self, device_id: str) -> PciAddress:
             physical_id = self._parse_physical_id(device_id)
@@ -144,9 +170,12 @@ class DeviceExerciserKvm(DeviceExerciserIf):
 
     class _KvmNvmeDevice(_KvmStorageDevice):
         def __init__(
-            self, device_id: str, volume_detector: Callable, fio_runner: Callable
+            self,
+            device_id: str,
+            volume_detector: Callable,
+            fio_runner: Callable,
         ) -> None:
-            super().__init__(device_id, volume_detector, fio_runner)
+            super().__init__("nvme", device_id, volume_detector, fio_runner)
 
         def _find_pci_addr(self, device_id: str) -> PciAddress:
             subsysnqn = device_id
@@ -170,10 +199,13 @@ class DeviceExerciserKvm(DeviceExerciserIf):
                 os.path.basename(os.path.dirname(os.path.dirname(nvme_device_path)))
             )
 
+    def _create_sma_handle(self, device_handle: str) -> _SmaHandle:
+        return self._KvmSmaHandle(device_handle)
+
     def run_fio(
         self, device_handle: str, volume_ids: set[VolumeId], fio_args: FioArgs
     ) -> str:
-        sma_handle = self._KvmSmaHandle(device_handle)
+        sma_handle = self._create_sma_handle(device_handle)
         storage_device = self._create_storage_device(sma_handle)
         return storage_device.run_fio_on_volumes(fio_args, volume_ids)
 
@@ -194,3 +226,18 @@ class DeviceExerciserKvm(DeviceExerciserIf):
             raise DeviceExerciserError(
                 "Unsupported protocol '" + sma_handle.get_protocol() + "'"
             )
+
+    def plug_device(self, device_handle: str) -> str:
+        # For KVM case all devices are bound automatically
+        # we need to check if they are visible in OS
+        device = self._create_storage_device(self._create_sma_handle(device_handle))
+
+        max_wait_time_sec = 5
+        for _ in range(max_wait_time_sec):
+            if device.is_plugged():
+                return
+            self._wait(1)
+        raise DeviceExerciserError("Device is not bound")
+
+    def unplug_device(self, device_handle: str) -> str:
+        pass
