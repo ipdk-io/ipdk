@@ -99,7 +99,7 @@ The Expected output is
 Send from your `cmd-sender`
 ```
 $ for ((i=0; i < "64"; i++)) ; do \
-    detach_volume <ipu_storage_container_platform_ip> "${devs[$i]}" "${ramdrives[$i]}" \
+    detach_volume <ipu_storage_container_platform_ip> "${devs[$i]}" "${ramdrives[$i]}" ; \
 done
 ```
 
