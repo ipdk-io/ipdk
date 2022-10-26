@@ -15,3 +15,9 @@ class DeviceExerciserIf:
         self, device_handle: str, volume_ids: set[VolumeId], fio_args: FioArgs
     ) -> str:
         raise NotImplementedError()
+
+    def plug_device(self, device_handle: str) -> None:
+        raise NotImplementedError()
+
+    def unplug_device(self, device_handle: str) -> None:
+        raise NotImplementedError()
