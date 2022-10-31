@@ -6,18 +6,13 @@ import fio_runner
 import logging
 import time
 from device_exerciser_if import DeviceExerciserIf
-from fio_args import FioArgs
+from helpers.fio_args import FioArgs
 from device_exerciser_if import *
-from volume import VolumeId
-from pci_devices import (
+from volumes import VolumeId
+from volumes import (
     get_nvme_volumes,
     get_virtio_blk_volume,
 )
-from storage_pcie_device import StoragePcieDevice
-from virtio_blk_device import VirtioBlkDevice
-from nvme_device import NvmePfDevice, NvmeVfDevice
-from virtio_pci_driver import VirtioPciDriver
-from nvme_driver import NvmeDriver
 from sma_handle import SmaHandle, SmaHandleError
 from helpers.file_helpers import read_file, write_file
 

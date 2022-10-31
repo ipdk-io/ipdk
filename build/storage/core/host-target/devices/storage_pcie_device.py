@@ -4,13 +4,17 @@
 import os
 import copy
 
-import copy
-
 from typing import Callable
-from pci_devices import PciAddress
-from device_driver import DeviceDriver
-from fio_args import FioArgs
-from volume import VolumeId
+
+from pci import PciAddress
+from helpers.fio_args import FioArgs
+from volumes import VolumeId
+
+from drivers import DeviceDriver
+
+
+class DeviceError(RuntimeError):
+    pass
 
 
 class StoragePcieDevice:
@@ -32,8 +36,9 @@ class StoragePcieDevice:
 
     def run_fio_on_volumes(self, fio_args: FioArgs, volume_ids: set[VolumeId]) -> str:
         volumes = self._find_volumes(self._pci_addr, volume_ids)
+        volumes_as_strings = set(map(lambda x: str(x), volumes))
         fio_args = copy.deepcopy(fio_args)
-        fio_args.add_volumes_to_exercise(volumes)
+        fio_args.add_volumes_to_exercise(volumes_as_strings)
         return self._fio_runner(fio_args)
 
     def exists(self) -> bool:

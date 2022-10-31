@@ -3,11 +3,11 @@
 #
 import logging
 from typing import Callable
-from storage_pcie_device import StoragePcieDevice
-from pci_devices import PciAddress
-from device_driver import DeviceDriver
-from sriov_device_driver import SriovDeviceDriver
-from device_exerciser_if import DeviceExerciserError
+
+from pci import PciAddress
+
+from devices import StoragePcieDevice, DeviceError
+from drivers import DeviceDriver, SriovDeviceDriver
 
 
 class NvmeDevice(StoragePcieDevice):
@@ -48,9 +48,7 @@ class NvmePfDevice(NvmeDevice):
 
     def unplug(self) -> None:
         if self._sriov_driver.are_vfs_enabled(self._pci_addr):
-            raise DeviceExerciserError(
-                f"Cannot delete pf {self._pci_addr} with bound vfs"
-            )
+            raise DeviceError(f"Cannot delete pf {self._pci_addr} with bound vfs")
 
         if self._sriov_driver.is_sriov_supported(
             self._pci_addr

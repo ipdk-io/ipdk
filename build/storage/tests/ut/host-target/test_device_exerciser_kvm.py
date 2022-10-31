@@ -9,7 +9,7 @@ import unittest
 
 from device_exerciser_kvm import *
 from device_exerciser_if import *
-from fio_args import FioArgs
+from helpers.fio_args import FioArgs
 from pyfakefs.fake_filesystem_unittest import TestCase
 
 

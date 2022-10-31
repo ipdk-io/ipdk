@@ -9,7 +9,7 @@ import test_device_exerciser_kvm_nvme
 
 from device_exerciser_kvm import *
 from device_exerciser_if import *
-from helpers import read_file, write_file
+from helpers.file_helpers import read_file, write_file
 
 default_pf_pci_address = "0000:af:00.1"
 default_pf_sma_handle = "0.0"

@@ -3,8 +3,10 @@
 #
 import time
 from typing import Callable
-from helpers import read_file, write_file
-from sriov_device_driver import SriovDeviceDriver
+
+from helpers.file_helpers import read_file, write_file
+
+from drivers import SriovDeviceDriver
 
 
 class NvmeDriver(SriovDeviceDriver):

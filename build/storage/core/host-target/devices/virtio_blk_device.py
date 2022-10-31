@@ -2,9 +2,11 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 from typing import Callable
-from storage_pcie_device import StoragePcieDevice
-from pci_devices import PciAddress
-from virtio_pci_driver import VirtioPciDriver
+
+from pci import PciAddress
+
+from devices import StoragePcieDevice
+from drivers import VirtioPciDriver
 
 
 class VirtioBlkDevice(StoragePcieDevice):

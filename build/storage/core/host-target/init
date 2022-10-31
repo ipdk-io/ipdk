@@ -10,5 +10,5 @@
     export HOST_TARGET_LOGLEVEL="DEBUG"
 
 echo "Running host target server for ${IP_ADDR}:${PORT}"
-/host_target_main.py --ip "${IP_ADDR}" --port "${PORT}" \
+./host_target_main.py --ip "${IP_ADDR}" --port "${PORT}" \
     --customization-dir="${CUSTOMIZATION_DIR_IN_CONTAINER}"

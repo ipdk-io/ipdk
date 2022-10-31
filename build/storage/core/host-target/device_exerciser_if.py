@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from fio_args import FioArgs
-from volume import VolumeId
+from helpers.fio_args import FioArgs
+from volumes import VolumeId
 
 
 class DeviceExerciserError(RuntimeError):

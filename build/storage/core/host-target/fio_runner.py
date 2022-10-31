@@ -2,8 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import subprocess
-import tempfile
-from fio_args import FioArgs
+from helpers.fio_args import FioArgs
 
 
 class FioExecutionError(RuntimeError):

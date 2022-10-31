@@ -1,8 +1,8 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
-from pci_devices import PciAddress
 
+from pci  import PciAddress
 
 class SmaHandleError(ValueError):
     pass

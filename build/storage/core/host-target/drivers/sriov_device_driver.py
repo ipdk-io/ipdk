@@ -5,8 +5,10 @@ import os
 import logging
 import glob
 from typing import Callable
-from pci_devices import PciAddress
-from device_driver import DeviceDriver
+
+from pci import PciAddress
+
+from drivers import DeviceDriver
 
 
 class SriovDeviceDriver(DeviceDriver):

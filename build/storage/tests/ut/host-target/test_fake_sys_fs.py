@@ -7,9 +7,9 @@
 
 import os
 from fake_pci_sys_fs import FakePciSysFs
-from pci_devices import PciAddress
+from pci  import PciAddress
 from pyfakefs.fake_filesystem_unittest import TestCase
-from helpers import read_file
+from helpers.file_helpers import read_file
 
 
 class DeviceExerciserTest(TestCase):

@@ -3,8 +3,10 @@
 #
 import time
 from typing import Callable
-from device_driver import DeviceDriver
-from helpers import read_file, write_file
+
+from helpers.file_helpers import read_file, write_file
+
+from drivers import DeviceDriver
 
 
 class VirtioPciDriver(DeviceDriver):

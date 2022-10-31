@@ -2,9 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from pci_devices import (
-    PciAddress,
-)
+from pci import PciAddress
 from sma_handle import SmaHandle, SmaHandleError
 from device_exerciser import *
 
