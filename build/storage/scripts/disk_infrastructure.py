@@ -12,8 +12,10 @@ import socket
 import sys
 import time
 import uuid
+import json
 
 from scripts import socket_functions
+from enum import Enum
 
 sys.path.append("/usr/libexec/spdk/scripts")
 sma_client = importlib.import_module("sma-client")
@@ -388,3 +390,52 @@ class SuppressProxyEnvVariables:
 
     def __exit__(self, *args, **kwargs):
         os.environ.update(self._saved_env_vars)
+
+
+class QosDeviceType(Enum):
+    DEVICE_TYPE_NVME = 1
+    DEVICE_TYPE_VIRTIO_BLK = 2
+
+
+def _get_device_capabilities(
+    ipu_storage_container_ip: str, sma_port: int, device_type: QosDeviceType
+) -> dict:
+    request = {
+        "method": "GetQosCapabilities",
+        "params": {"device_type": device_type.value},
+    }
+    response = send_sma_request(request, ipu_storage_container_ip, sma_port)
+    return json.dumps(response)
+
+
+def get_virtio_blk_qos_capabilities(
+    ipu_storage_container_ip: str, sma_port: int
+) -> dict:
+    return _get_device_capabilities(
+        ipu_storage_container_ip, sma_port, QosDeviceType.DEVICE_TYPE_VIRTIO_BLK
+    )
+
+
+def get_nvme_qos_capabilities(ipu_storage_container_ip: str, sma_port: int) -> dict:
+    return _get_device_capabilities(
+        ipu_storage_container_ip, sma_port, QosDeviceType.DEVICE_TYPE_NVME
+    )
+
+
+def set_qos_limits(
+    ipu_storage_container_ip: str,
+    sma_port: int,
+    device_handle: str,
+    volume_id: str,
+    max_limits: dict,
+):
+    request = {
+        "method": "SetQos",
+        "params": {
+            "device_handle": device_handle,
+            "maximum": max_limits,
+        },
+    }
+    if volume_id:
+        request["params"]["volume_id"] = uuid2base64(volume_id)
+    return send_sma_request(request, ipu_storage_container_ip, sma_port)
