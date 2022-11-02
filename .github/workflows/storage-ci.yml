@@ -1,5 +1,5 @@
 ---
-name: 'Storage Unit Tests Integration'
+name: 'Storage Continuous Integration'
 
 on:
   pull_request:
@@ -33,8 +33,41 @@ jobs:
         run: |
           chmod -R 777 run.sh
           ./run.sh
+
+  py_black_test:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout'
+        uses: actions/checkout@v3
+      - name: 'Copy host target files' #work arround, as black ignores all files under "build" directory"
+        working-directory: ./build/storage/core
+        run: |
+          cp -r host-target ../../../
+
+      - name: 'Run Black Test'
+        uses: psf/black@stable
+        with:
+          options: "--check --verbose"
+          src: "./host-target/"
+          version: "22.10.0"
+          jupyter: true
+
+  py_bandit_test:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v3
+    - name: 'Run Bandit Test'
+      uses: tj-actions/bandit@v5.1
+      with:
+        targets: |  # or a single string "."
+          ./build/storage/core/host-target/
+        options: "-r"
+
   storage_build_containers:
-    needs: run_storage_ut
+    needs: [run_storage_ut, py_black_test, py_bandit_test]
     timeout-minutes: 30
     runs-on: ${{ matrix.runner }}
     strategy:
