@@ -29,12 +29,12 @@ Expected output
 ```
 connecting to 192.168.53.76:50051
 Rpc succeeded with OK status
-fioOutput: "iops-test-job: (g=0): rw=randrw, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=256
+fioOutput: "job (/dev/nvme0n1): (g=0): rw=randrw, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=256
 ...
 fio-3.29
 Starting 4 processes
 
-iops_test-job: (groupid=0, jobs=4): err= 0: pid=32: Thu Sep 22 11:04:43 2022
+job (/dev/nvme0n1): (groupid=0, jobs=4): err= 0: pid=32: Thu Sep 22 11:04:43 2022
  read: IOPS=21.4k, BW=83.4MiB/s (87.5MB/s)(84.5MiB/1013msec)
  slat (nsec): min=1127, max=12230k, avg=84547.05, stdev=780058.77
  clat (usec): min=2030, max=51525, avg=23478.74, stdev=6644.60
