@@ -37,7 +37,6 @@ def _load_module(module_path: str) -> ModuleType:
 def _find_make_device_exerciser_in_module(module: ModuleType) -> Optional[Callable]:
     exerciser = getattr(module, MAKE_DEVICE_EXERCISER_FUNCTION_NAME, None)
     if callable(exerciser):
-        logging.warning(f"Found non-callable {MAKE_DEVICE_EXERCISER_FUNCTION_NAME}")
         return exerciser
     else:
         return None

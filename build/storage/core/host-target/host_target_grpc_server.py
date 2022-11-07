@@ -13,8 +13,8 @@ from grpc_reflection.v1alpha import reflection
 from device_exerciser_kvm import DeviceExerciserKvm
 from device_exerciser_if import *
 from device_exerciser_customization import find_make_custom_device_exerciser
-from fio_args import FioArgs, FioArgsError
-from volume import VolumeId
+from helpers.fio_args import FioArgs, FioArgsError
+from volumes import VolumeId
 
 
 class HostTargetService(host_target_pb2_grpc.HostTargetServicer):
