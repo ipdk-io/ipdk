@@ -9,6 +9,7 @@ fio traffic by means of `host-target` container through a hot-plugged virtio-blk
 device.
 * [scale-out](./virtio-blk/scale-out.md) - similar to hot-plug recipe but describing
 how to hot-plug/hot-unplug 64 virtio-blk devices.
+* [qos](./virtio-blk/qos.md) - explains how to set QoS limits for exposed virtio-blk devices.
 
 ### NVMe recipes
 NVMe recipes are very similar to the ones for virtio-blk device.
@@ -20,6 +21,7 @@ device.
 * [scale-out](./nvme/scale-out.md) - similar to hot-plug recipe but describing
 how to hot-plug/hot-unplug 64 NVMe devices and attaching 32 volumes to a single
 NVMe device.
+* [qos](./nvme/qos.md) - explains how to set QoS limits for exposed NVMe devices and volumes attached to it.
 
 
 In all cases host target platform is implied as KVM.
