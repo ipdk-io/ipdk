@@ -13,7 +13,7 @@ IFS=' ' read -ra sock_path_line_content <<< "$(grep 'sock_path:' < /sma_config.y
 sock_path=${sock_path_line_content[1]}
 
 if [ -n "$sock_path" ]; then
-    export SPDK_ARGS=" -S $sock_path "
+    export SPDK_ARGS="$SPDK_ARGS -S $sock_path "
 fi
 
 # SPDK consumes many file descriptors if we create vhost user devices

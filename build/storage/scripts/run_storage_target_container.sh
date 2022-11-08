@@ -40,6 +40,7 @@ export IMAGE_NAME="storage-target"
 ARGS=()
 ARGS+=("-e" "SPDK_IP_ADDR=${SPDK_IP_ADDR}")
 ARGS+=("-e" "SPDK_PORT=${SPDK_PORT}")
+ARGS+=("-e" "SPDK_ARGS=${SPDK_ARGS}")
 
 # shellcheck source=./scripts/run_container.sh
 # shellcheck disable=SC1091,SC1090
