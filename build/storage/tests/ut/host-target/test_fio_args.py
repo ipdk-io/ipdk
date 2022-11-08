@@ -74,13 +74,10 @@ class FioArgsTests(unittest.TestCase):
         fio_args = FioArgs('{"name":"test"}')
         devices = ["/dev/nvme0n1", "/dev/nvme0n3"]
         fio_args.add_volumes_to_exercise(set(devices))
-        config_lines = []
+        content = ""
         with fio_args.create_config_file() as config:
             with open(config.file_name) as file:
-                config_lines = file.readlines()
+                content = file.read()
 
-        for line in config_lines:
-            if "filename" in line:
-                self.assertTrue(":".join(set(devices)) in line)
-                return
-        self.fail("No devices in fio config file")
+        self.assertTrue(f"[job ({devices[0]})]\nfilename={devices[0]}" in content)
+        self.assertTrue(f"[job ({devices[1]})]\nfilename={devices[1]}" in content)
