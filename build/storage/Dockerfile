@@ -212,6 +212,8 @@ ENTRYPOINT ["/bin/bash"]
 ################################################################################
 FROM cmd-sender-base AS test-driver
 
+COPY tests/it/test-drivers/test-max-qos /test-max-qos
+
 ENTRYPOINT ["/init"]
 
 

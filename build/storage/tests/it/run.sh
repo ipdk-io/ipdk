@@ -53,7 +53,7 @@ provide_hugepages
 
 test_cases=(hot-plug.virtio-blk hot-plug.nvme fio.virtio-blk fio.nvme)
 if [ "${BASE_TESTS_ONLY}" != "true" ]; then
-    test_cases+=(scale-out.virtio-blk scale-out.nvme)
+    test_cases+=(scale-out.virtio-blk scale-out.nvme qos.virtio-blk)
 fi
 
 "$scripts_dir"/build_container.sh storage-target
