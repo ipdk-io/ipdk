@@ -34,7 +34,11 @@ class FioArgs:
         def _dump_owner_to_file(self, file: typing.TextIO) -> None:
             file.write("[global]\n")
             for arg_key in self._owner._fio_args:
-                if arg_key != self._owner._volume_to_exercise_option:
+                if (
+                    arg_key != self._owner._volume_to_exercise_option
+                    and arg_key
+                    not in self._owner._args_applicable_only_as_cmd_line_args
+                ):
                     file.write(
                         arg_key + "=" + str(self._owner._fio_args[arg_key]) + "\n"
                     )
@@ -52,6 +56,7 @@ class FioArgs:
 
     def __init__(self, fio_args_str: str) -> None:
         self._volume_to_exercise_option = "filename"
+        self._args_applicable_only_as_cmd_line_args = ["output-format"]
         try:
             self._fio_args = json.loads(fio_args_str)
             if self._volume_to_exercise_option in self._fio_args:
@@ -73,6 +78,14 @@ class FioArgs:
 
     def create_config_file(self) -> Config:
         return FioArgs.Config(self)
+
+    def get_args_applicable_only_as_cmd_line_args(self):
+        cmd_line_args = ""
+        for cmd_line_only_arg_key in self._args_applicable_only_as_cmd_line_args:
+            if cmd_line_only_arg_key in self._fio_args:
+                cmd_line_args += f"--{cmd_line_only_arg_key}={self._fio_args[cmd_line_only_arg_key]} "
+
+        return cmd_line_args.rstrip()
 
     def __str__(self) -> str:
         return json.dumps(self._fio_args)
