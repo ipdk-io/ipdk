@@ -12,7 +12,11 @@ from tests.steps.initial_steps import (
     RunIPUStorageContainer,
     RunStorageTargetContainer,
 )
-from system_tools.test_platform import HostTargetPlatform, IPUStoragePlatform, StorageTargetPlatform
+from system_tools.test_platform import (
+    HostTargetPlatform,
+    IPUStoragePlatform,
+    StorageTargetPlatform,
+)
 from test_connection import BaseTerminalMixin
 
 

@@ -96,17 +96,17 @@ class BaseTestPlatform:
     def check_system_setup(self):
         """Overwrite this method in specific platform if you don't want check all setup"""
         if not self._is_virtualization():
-            raise Exception('Virtualization is not setting properly')
+            raise Exception("Virtualization is not setting properly")
         if not self._is_kvm():
-            raise Exception('KVM is not setting properly')
+            raise Exception("KVM is not setting properly")
         if not self.pms:
-            raise Exception('Packet manager is not setting properly')
+            raise Exception("Packet manager is not setting properly")
         if not self._is_qemu():
-            raise Exception('QUEMU is not setting properly')
+            raise Exception("QUEMU is not setting properly")
         if not self._set_security_policies():
-            raise Exception('Security polices is not setting properly')
+            raise Exception("Security polices is not setting properly")
         if not self._is_docker():
-            raise Exception('Docker is not setting properly')
+            raise Exception("Docker is not setting properly")
 
     # TODO: after testing restore settings
     def set_system_setup(self):
@@ -117,7 +117,6 @@ class BaseTestPlatform:
 
 
 class StorageTargetPlatform(BaseTestPlatform):
-
     def __init__(self):
         config = StorageTargetConfig()
         terminal = SSHTerminal(config)
@@ -129,11 +128,10 @@ class StorageTargetPlatform(BaseTestPlatform):
 
     # TODO add implementation
     def create_ramdrive(self):
-        return 'Guid'
+        return "Guid"
 
 
 class IPUStoragePlatform(BaseTestPlatform):
-
     def __init__(self):
         config = IPUStorageConfig()
         terminal = SSHTerminal(config)
@@ -141,11 +139,10 @@ class IPUStoragePlatform(BaseTestPlatform):
 
     # TODO add implementation
     def create_virtio_blk_device(self):
-        return 'VirtioBlkDevice'
+        return "VirtioBlkDevice"
 
 
 class HostTargetPlatform(BaseTestPlatform):
-
     def __init__(self):
         config = HostTargetConfig()
         terminal = SSHTerminal(config)
@@ -153,8 +150,8 @@ class HostTargetPlatform(BaseTestPlatform):
 
     # TODO add implementation
     def run_fio(self):
-        return 'FioOutput'
+        return "FioOutput"
 
     # TODO add implementation
     def check_number_of_virtio_blks(self):
-        return 'int'
+        return "int"

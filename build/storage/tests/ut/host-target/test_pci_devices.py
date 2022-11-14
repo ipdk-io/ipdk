@@ -5,7 +5,7 @@
 #
 
 from volumes import *
-from pci  import PciAddress, InvalidPciAddress
+from pci import PciAddress, InvalidPciAddress
 from volumes import VolumeId, VolumeError
 from pyfakefs.fake_filesystem_unittest import TestCase
 

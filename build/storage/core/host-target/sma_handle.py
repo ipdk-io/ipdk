@@ -2,7 +2,8 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 
-from pci  import PciAddress
+from pci import PciAddress
+
 
 class SmaHandleError(ValueError):
     pass
