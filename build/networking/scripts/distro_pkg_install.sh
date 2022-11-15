@@ -184,18 +184,13 @@ ubuntu_install_build_pkgs() {
         coreutils \
         vim \
         numactl \
-        sudo
-
-    if [ "$BASE_IMG" = "ubuntu:18.04" ] ; then
-        apt-get -y install python-pip;
-    else
-        apt-get -y install pip;
-    fi
+        sudo \
+        "${PYTHON_PKG_NAME}"
 
     python3 -m pip install --no-cache-dir --upgrade pip
     python3 -m pip install --no-cache-dir grpcio
     python3 -m pip install --no-cache-dir ovspy \
-        protobuf==3.20.1 \
+        protobuf=="${PROTOBUF_VER}" \
         p4runtime \
         pyelftools \
         scapy \
@@ -217,7 +212,10 @@ ubuntu_install_deployment_pkgs() {
     apt-get install -y numactl \
         libedit-dev \
         libnl-route-3-dev python \
-        pip \
+        python3-setuptools \
+        python3-pip \
+        "${PYTHON_PKG_NAME}" \
+        "${EXTRA_PKGS}" \
         libunwind-dev \
         sudo \
         net-tools \
@@ -227,7 +225,7 @@ ubuntu_install_deployment_pkgs() {
     python3 -m pip install --no-cache-dir --upgrade pip
     python3 -m pip install --no-cache-dir grpcio
     python3 -m pip install --no-cache-dir ovspy \
-        protobuf==3.20.1 \
+        protobuf=="${PROTOBUF_VER}" \
         p4runtime
 
     # Cleanup
@@ -247,7 +245,10 @@ ubuntu_install_default_pkgs() {
         numactl \
         libedit-dev \
         libnl-route-3-dev python \
-        pip \
+        python3-setuptools \
+        python3-pip \
+        "${EXTRA_PKGS}" \
+        "${PYTHON_PKG_NAME}" \
         libunwind-dev \
         sudo \
         net-tools \
@@ -257,7 +258,7 @@ ubuntu_install_default_pkgs() {
     python3 -m pip install --no-cache-dir --upgrade pip
     python3 -m pip install --no-cache-dir grpcio
     python3 -m pip install --no-cache-dir ovspy \
-        protobuf==3.20.1 \
+        protobuf=="${PROTOBUF_VER}" \
         p4runtime
 
     # Cleanup
@@ -269,6 +270,16 @@ ubuntu_install_default_pkgs() {
 
 ubuntu_install_pkgs() {
     echo "Installing Ubuntu packages..."
+    if [ "$BASE_IMG" = "ubuntu:18.04" ] ; then
+        PROTOBUF_VER=3.19.4
+        PYTHON_PKG_NAME="python-pip"
+        EXTRA_PKGS="language-pack-en"
+    else
+        PROTOBUF_VER=3.20.1
+        PYTHON_PKG_NAME="pip"
+        EXTRA_PKGS=""
+    fi
+
     if [ "${INSTALL_DEVELOPMENT_PKGS}" == "y" ]
     then
         ubuntu_install_build_pkgs
