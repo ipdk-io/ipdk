@@ -9,7 +9,7 @@ import os
 
 from fio_runner import run_fio
 from fio_runner import FioExecutionError
-from fio_args import FioArgs
+from helpers.fio_args import FioArgs
 
 
 class FioRunner(unittest.TestCase):

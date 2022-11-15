@@ -5,7 +5,6 @@
 import json
 import tempfile
 import typing
-from volume import Volume
 
 
 class FioArgsError(ValueError):
@@ -33,19 +32,22 @@ class FioArgs:
             self._file.__exit__(exc_type, exc_val, exc_tb)
 
         def _dump_owner_to_file(self, file: typing.TextIO) -> None:
-            file.write("[job0]\n")
+            file.write("[global]\n")
             for arg_key in self._owner._fio_args:
-                if arg_key == self._owner._volume_to_exercise_option:
-                    file.write(
-                        arg_key
-                        + "="
-                        + ":".join(map(str, self._owner._fio_args[arg_key]))
-                        + "\n"
-                    )
-                else:
+                if arg_key != self._owner._volume_to_exercise_option:
                     file.write(
                         arg_key + "=" + str(self._owner._fio_args[arg_key]) + "\n"
                     )
+
+            if self._owner._volume_to_exercise_option in self._owner._fio_args:
+                for volume in self._owner._fio_args[
+                    self._owner._volume_to_exercise_option
+                ]:
+                    file.write(f"[job ({volume})]\n")
+                    file.write(
+                        self._owner._volume_to_exercise_option + "=" + volume + "\n"
+                    )
+
             file.flush()
 
     def __init__(self, fio_args_str: str) -> None:
@@ -59,7 +61,7 @@ class FioArgs:
         except (json.JSONDecodeError, TypeError) as err:
             raise FioArgsError(str(err))
 
-    def add_volumes_to_exercise(self, volumes_to_exercise: set[Volume]):
+    def add_volumes_to_exercise(self, volumes_to_exercise: set[str]):
         if self._volume_to_exercise_option not in self._fio_args:
             self._fio_args[self._volume_to_exercise_option] = []
         self._fio_args[self._volume_to_exercise_option] = list(

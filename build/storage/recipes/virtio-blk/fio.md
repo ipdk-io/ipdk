@@ -27,12 +27,12 @@ Expected output
 ```
 connecting to 192.168.53.76:50051
 Rpc succeeded with OK status
-fioOutput: "iops-test-job: (g=0): rw=randrw, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=256
+fioOutput: "job (/dev/vda): (g=0): rw=randrw, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=256
 ...
 fio-3.29
 Starting 4 processes
 
-iops-test-job: (groupid=0, jobs=4): err= 0: pid=58: Tue May 31 15:43:41 2022
+job (/dev/vda): (groupid=0, jobs=4): err= 0: pid=58: Tue May 31 15:43:41 2022
  read: IOPS=20.9k, BW=81.8MiB/s (85.8MB/s)(82.2MiB/1005msec)
  slat (nsec): min=789, max=12745k, avg=93034.77, stdev=440827.15
  clat (usec): min=2708, max=81274, avg=23768.74, stdev=7565.45

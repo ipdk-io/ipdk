@@ -120,22 +120,21 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-COPY core/host-target/requirements.txt /
 # hadolint ignore=DL3013
+WORKDIR /root
+COPY core/host-target/requirements.txt .
 RUN dnf install -y python fio python3-pip && dnf clean all && \
-    python -m pip install --no-cache-dir -r /requirements.txt
+    python -m pip install --no-cache-dir -r ./requirements.txt
+COPY core/host-target ./
+COPY core/host-target/host_target.proto ./host_target.proto
 
-COPY core/host-target/init /init
-COPY core/host-target/*.py /
-COPY core/host-target/host_target.proto /host_target.proto
+RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. \
+    ./host_target.proto
 
-RUN python -m grpc_tools.protoc -I/ --python_out=. --grpc_python_out=/ \
-    /host_target.proto
-
-ENV CUSTOMIZATION_DIR_IN_CONTAINER=/customizations
+ENV CUSTOMIZATION_DIR_IN_CONTAINER=./customizations
 COPY core/host-target/customizations $CUSTOMIZATION_DIR_IN_CONTAINER
 
-ENTRYPOINT [ "/init" ]
+ENTRYPOINT [ "./init" ]
 
 ################################################################################
 # traffic-generator
@@ -229,17 +228,9 @@ ARG NO_PROXY
 RUN dnf install -y python fio python3-pip && dnf clean all && python -m pip install --no-cache-dir grpcio-reflection pyfakefs
 
 COPY tests/ut/host-target /host-target/tests
-COPY --from=host-target fio_runner.py /host-target/src/
-COPY --from=host-target fio_args.py /host-target/src/
-COPY --from=host-target pci_devices.py /host-target/src/
-COPY --from=host-target device_exerciser_kvm.py /host-target/src/
-COPY --from=host-target device_exerciser_if.py /host-target/src/
-COPY --from=host-target device_exerciser_customization.py /host-target/src/
-COPY --from=host-target host_target_main.py /host-target/src/
-COPY --from=host-target host_target_grpc_server.py /host-target/src/
-COPY --from=host-target volume.py /host-target/src/
-COPY --from=host-target host_target_*pb2.py /host-target/generated/
-COPY --from=host-target host_target_*pb2_grpc.py /host-target/generated/
+COPY --from=host-target /root /host-target/src/
+COPY --from=host-target /root/host_target_*pb2.py /host-target/generated/
+COPY --from=host-target /root/host_target_*pb2_grpc.py /host-target/generated/
 
 COPY tests/ut/run_all_unit_tests.sh /
 
