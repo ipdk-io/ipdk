@@ -70,6 +70,8 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     run_customize+=(--run-command "test -s $vm_host_target_tar_path")
     run_customize+=(--run-command "test -f /usr/local/bin/$run_host_target_container_script")
     run_customize+=(--run-command "test -f /usr/local/bin/$run_container_script")
+    run_customize+=(--run-command "echo 'kernel.printk = 0 0 0 0' > /etc/sysctl.conf")
+
 
     "${run_customize[@]}"
     mv "${vm_tmp_file}" "${DRIVE_TO_BOOT}"
