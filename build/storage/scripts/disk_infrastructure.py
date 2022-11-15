@@ -277,10 +277,6 @@ def create_nvme_device(
     )
     device_handle = response["handle"]
     if device_handle:
-        # At this moment qemu produces errors for a couple of seconds and
-        # it cannot handle other operations properly until all of them are
-        # printed.
-        time.sleep(2)
         if (
             os.system(
                 f'env -i no_grpc_proxy="" grpc_cli call \
