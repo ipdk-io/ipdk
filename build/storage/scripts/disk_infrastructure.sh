@@ -228,6 +228,49 @@ if not disk_infrastructure.verify_expected_number_of_nvme_namespaces(
 ):
     sys.exit(1)
 EOF
-
 }
 
+function get_virtio_blk_qos_capabilities() {
+    python3 <<- EOF
+from scripts import disk_infrastructure
+capabilities = disk_infrastructure.get_virtio_blk_qos_capabilities(
+    ipu_storage_container_ip="$1",
+    sma_port=int("$2"),
+)
+print(str(capabilities))
+EOF
+}
+
+function get_nvme_qos_capabilities() {
+    python3 <<- EOF
+from scripts import disk_infrastructure
+capabilities = disk_infrastructure.get_nvme_qos_capabilities(
+    ipu_storage_container_ip="$1",
+    sma_port=int("$2"),
+)
+print(str(capabilities))
+EOF
+}
+
+
+
+function set_max_qos_limits() {
+    python3 <<- EOF
+from scripts import disk_infrastructure
+response=disk_infrastructure.set_qos_limits(
+    ipu_storage_container_ip="$1",
+    sma_port=int("$2"),
+    device_handle="$3",
+    volume_id="$4",
+    max_limits={
+            "rd_iops": $5,
+            "wr_iops": $6,
+            "rw_iops": $7,
+            "rd_bandwidth": $8,
+            "wr_bandwidth": $9,
+            "rw_bandwidth": ${10},
+        }
+    )
+print(str(response))
+EOF
+}

@@ -22,7 +22,7 @@ namespace exists in the vm(step 7)
 $ echo -e $(no_grpc_proxy="" grpc_cli call <host_ip_where_vm_is_run>:50051 \
         RunFio "diskToExercise: { deviceHandle: '$nvme0' volumeId: '$malloc0'} \
         fioArgs: '{\"rw\":\"randrw\",\"runtime\":5, \"numjobs\": 1, \
-            \"time_based\": 1, \"group_reporting\": 1 }'")
+            \"time_based\": 1 }'")
 ```
 
 Expected output
@@ -80,9 +80,8 @@ To exercise all volumes attached to a device, just leave `volumeId` argument in 
 ```
 $ echo -e $(no_grpc_proxy="" grpc_cli call <host_ip_where_vm_is_run>:50051 \
         RunFio "diskToExercise: { deviceHandle: '$nvme0' } \
-        fioArgs: '{\"rw\":\"randrw\",\"runtime\":10, \
-            \"time_based\": 1, \"iodepth\": 32, \
-            \"direct\": 1, \"ioengine\": \"libaio\" }'")
+        fioArgs: '{\"rw\":\"randrw\",\"runtime\":5, \"numjobs\": 1, \
+            \"time_based\": 1 }'")
 ```
 Expected output with 2 attached volumes
 ```
@@ -140,5 +139,62 @@ Run status group 0 (all jobs):
 Disk stats (read/write):
  nvme0n1: ios=66595/0, merge=0/0, ticks=315688/0, in_queue=315688, util=99.06%
  nvme0n2: ios=66597/0, merge=0/0, ticks=315684/0, in_queue=315683, util=99.06%
-"
+```
+
+If a report against the whole device is required, then `group_reporting` fio option can be specified, like
+```
+$ echo -e $(no_grpc_proxy="" grpc_cli call <host_ip_where_vm_is_run>:50051 \
+        RunFio "diskToExercise: { deviceHandle: '$nvme0' } \
+        fioArgs: '{\"rw\":\"randrw\",\"runtime\":5, \"numjobs\": 1, \
+            \"time_based\": 1, \"group_reporting\": 1 }'")
+```
+Exemplary output for a device with 2 attached volumes
+```
+connecting to 192.168.53.76:50051
+Rpc succeeded with OK status
+fioOutput: "job (/dev/nvme0n2): (g=0): rw=randrw, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=32
+job (/dev/nvme0n1): (g=0): rw=randrw, bs=(R) 4096B-4096B, (W) 4096B-4096B, (T) 4096B-4096B, ioengine=libaio, iodepth=32
+fio-3.29
+Starting 2 processes
+job (/dev/nvme0n2): (groupid=0, jobs=2): err= 0: pid=182: Tue Nov 8 11:37:05 2022
+ read: IOPS=10.8k, BW=42.4MiB/s (44.4MB/s)(424MiB/10010msec)
+ slat (nsec): min=788, max=73830, avg=4050.32, stdev=2573.01
+ clat (usec): min=601, max=31868, avg=2946.54, stdev=3844.62
+ lat (usec): min=630, max=31872, avg=2950.85, stdev=3844.56
+ clat percentiles (usec):
+ | 1.00th=[ 1090], 5.00th=[ 1237], 10.00th=[ 1270], 20.00th=[ 1450],
+ | 30.00th=[ 1500], 40.00th=[ 1516], 50.00th=[ 1532], 60.00th=[ 1565],
+ | 70.00th=[ 1745], 80.00th=[ 1778], 90.00th=[12780], 95.00th=[13173],
+ | 99.00th=[13566], 99.50th=[13698], 99.90th=[25035], 99.95th=[25297],
+ | 99.99th=[31589]
+ bw ( KiB/s): min=40760, max=45824, per=100.00%, avg=43421.70, stdev=571.20, samples=40
+ iops : min=10190, max=11456, avg=10855.40, stdev=142.81, samples=40
+ write: IOPS=10.9k, BW=42.4MiB/s (44.5MB/s)(424MiB/10010msec); 0 zone resets
+ slat (nsec): min=795, max=876119, avg=4282.56, stdev=3854.32
+ clat (usec): min=560, max=31825, avg=2939.27, stdev=3864.16
+ lat (usec): min=649, max=31829, avg=2943.81, stdev=3864.10
+ clat percentiles (usec):
+ | 1.00th=[ 1029], 5.00th=[ 1237], 10.00th=[ 1254], 20.00th=[ 1303],
+ | 30.00th=[ 1483], 40.00th=[ 1500], 50.00th=[ 1516], 60.00th=[ 1549],
+ | 70.00th=[ 1729], 80.00th=[ 1778], 90.00th=[12780], 95.00th=[13173],
+ | 99.00th=[13435], 99.50th=[13698], 99.90th=[24773], 99.95th=[25035],
+ | 99.99th=[31327]
+ bw ( KiB/s): min=41280, max=45008, per=100.00%, avg=43453.80, stdev=496.23, samples=40
+ iops : min=10320, max=11252, avg=10863.45, stdev=124.06, samples=40
+ lat (usec) : 750=0.01%, 1000=0.31%
+ lat (msec) : 2=85.19%, 4=2.26%, 10=0.30%, 20=11.80%, 50=0.15%
+ cpu : usr=2.73%, sys=5.45%, ctx=44028, majf=0, minf=26
+ IO depths : 1=0.1%, 2=0.1%, 4=0.1%, 8=0.1%, 16=0.1%, 32=100.0%, >=64=0.0%
+ submit : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.0%, 64=0.0%, >=64=0.0%
+ complete : 0=0.0%, 4=100.0%, 8=0.0%, 16=0.0%, 32=0.1%, 64=0.0%, >=64=0.0%
+ issued rwts: total=108578,108664,0,0 short=0,0,0,0 dropped=0,0,0,0
+ latency : target=0, window=0, percentile=100.00%, depth=32
+
+Run status group 0 (all jobs):
+ READ: bw=42.4MiB/s (44.4MB/s), 42.4MiB/s-42.4MiB/s (44.4MB/s-44.4MB/s), io=424MiB (445MB), run=10010-10010msec
+ WRITE: bw=42.4MiB/s (44.5MB/s), 42.4MiB/s-42.4MiB/s (44.5MB/s-44.5MB/s), io=424MiB (445MB), run=10010-10010msec
+
+Disk stats (read/write):
+ nvme0n2: ios=53828/53581, merge=0/0, ticks=156663/155730, in_queue=312393, util=99.64%
+ nvme0n1: ios=53701/53936, merge=0/0, ticks=156415/156078, in_queue=312494, util=99.78%
 ```
