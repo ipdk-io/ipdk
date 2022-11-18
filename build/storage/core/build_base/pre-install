@@ -24,6 +24,7 @@ dnf install -y rpm-build
 export CONFIG_SMA=y
 export CONFIG_VIRTIO=y
 export CONFIG_VFIO_USER=y
+export CONFIG_CRYPTO=y
 
 # Spice it a bit with supported sources
 "$spdk_repo/scripts/pkgdep.sh" -d
@@ -40,7 +41,8 @@ DEPS="no" LDFLAGS=" " "$spdk_repo/rpmbuild/rpm.sh" \
 	--with-vfio-user \
 	--with-virtio \
 	--with-sma \
-	--with-fio
+	--with-fio \
+	--with-crypto
 
 mv "$HOME/rpmbuild/rpm/x86_64/"*.rpm "/spdk-rpm/"
 mv "/usr/src/fio/fio" "/spdk-rpm/"

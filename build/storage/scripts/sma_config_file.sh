@@ -39,6 +39,10 @@ devices:
     buses:
     - name: '$IPDK_PCI_BRIDGE_0'
     - name: '$IPDK_PCI_BRIDGE_1'
+crypto:
+  name: 'bdev_crypto'
+  params:
+    driver: 'crypto_aesni_mb'
 EOF
     echo "$tmp_sma_config_file"
 }
