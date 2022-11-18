@@ -81,3 +81,13 @@ class FioArgsTests(unittest.TestCase):
 
         self.assertTrue(f"[job ({devices[0]})]\nfilename={devices[0]}" in content)
         self.assertTrue(f"[job ({devices[1]})]\nfilename={devices[1]}" in content)
+
+    def test_cmd_line_args_only(self):
+        fio_args = FioArgs('{"output-format":"json"}')
+        with fio_args.create_config_file() as config:
+            with open(config.file_name) as file:
+                content = file.read()
+        self.assertTrue("output-format" not in content)
+        self.assertEqual(
+            fio_args.get_args_applicable_only_as_cmd_line_args(), "--output-format=json"
+        )

@@ -14,7 +14,13 @@ def run_fio(fio_args: FioArgs):
     fio_cmd = []
     try:
         with fio_args.create_config_file() as config:
-            fio_cmd = ["fio", config.file_name]
+            fio_cmd = [
+                "fio",
+                config.file_name,
+            ]
+            cmd_line_args = fio_args.get_args_applicable_only_as_cmd_line_args()
+            if cmd_line_args:
+                fio_cmd.append(cmd_line_args)
             result = subprocess.run(
                 fio_cmd,
                 capture_output=True,

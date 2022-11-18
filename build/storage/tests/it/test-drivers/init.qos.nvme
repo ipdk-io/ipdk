@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+set -e
+[ "$DEBUG" == 'true' ] && set -x
+
+current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+declare vm_serial
+declare nqn
+declare storage_target_ip
+declare ipu_storage_container_ip
+declare port_to_expose
+declare host_target_ip
+# shellcheck disable=SC1091,SC1090
+source "${current_script_dir}"/test-helpers
+
+
+wait_until_port_on_ip_addr_open "${storage_target_ip}" "${DEFAULT_SPDK_PORT}"
+create_and_expose_sybsystem_over_tcp \
+	"${storage_target_ip}" "${nqn}" "${port_to_expose}"
+ramdrive_size_in_mb=16
+malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+	"${storage_target_ip}" Malloc0 "${ramdrive_size_in_mb}" "${nqn}")
+
+wait_until_vm_is_up "${vm_serial}"
+
+log_in_with_default_credentials "${vm_serial}"
+
+wait_until_host_target_is_up "${vm_serial}"
+
+physical_id=0
+virtual_id=0
+nvme=$(create_nvme_device "$ipu_storage_container_ip" \
+    "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+    "$physical_id" "$virtual_id")
+attach_volume "$ipu_storage_container_ip" "$nvme" "$malloc0" "$nqn" \
+    "$storage_target_ip"
+verify_expected_number_of_nvme_devices "${vm_serial}" 1
+
+
+qos_capabilities=$(get_nvme_qos_capabilities "$ipu_storage_container_ip" "$DEFAULT_SMA_PORT")
+echo "QoS capabilities: $qos_capabilities"
+
+if is_volume_qos_supported "$qos_capabilities"; then
+	export IPU_STORAGE_CONTAINER_IP="$ipu_storage_container_ip"
+	export HOST_TARGET_IP="$host_target_ip"
+	export QOS_CAPABILITIES="$qos_capabilities"
+	export DEVICE_HANDLE="$nvme"
+	export VOLUME="$malloc0"
+	bash "$current_script_dir/test-max-qos"
+elif is_device_qos_supported "$qos_capabilities"; then
+	export IPU_STORAGE_CONTAINER_IP="$ipu_storage_container_ip"
+	export HOST_TARGET_IP="$host_target_ip"
+	export QOS_CAPABILITIES="$qos_capabilities"
+	export DEVICE_HANDLE="$nvme"
+	export VOLUME=""
+	bash "$current_script_dir/test-max-qos"
+else
+	echo "NVMe device does not support QoS capabilities"
+fi
+
+delete_nvme_device "$ipu_storage_container_ip" \
+    "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+    "$nvme"
+
+echo "QoS NVMe test passed successfully"

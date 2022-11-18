@@ -1,0 +1,224 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+set -e
+[ "$DEBUG" == 'true' ] && set -x
+
+current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+# shellcheck disable=SC1091,SC1090
+source "${current_script_dir}"/test-helpers
+
+IPU_STORAGE_CONTAINER_IP=${IPU_STORAGE_CONTAINER_IP:?"Unset IPU_STORAGE_CONTAINER_IP"}
+HOST_TARGET_IP=${HOST_TARGET_IP:?"Unset HOST_TARGET_IP"}
+QOS_CAPABILITIES=${QOS_CAPABILITIES:?"Unset QOS_CAPABILITIES"}
+DEVICE_HANDLE=${DEVICE_HANDLE:?"Unset DEVICE_HANDLE"}
+VOLUME=${VOLUME:-""}
+
+set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" "$VOLUME" 0 0 0 0 0 0
+
+runtime=3
+rw_fio_args="{\"rw\":\"randrw\", \"direct\":1, \"bs\":\"4k\", \
+		\"iodepth\":256, \"ioengine\":\"libaio\", \"runtime\":$runtime, \"rwmixread\":70, \
+		\"name\":\"iops_test-job\", \"time_based\": 1, \"numjobs\": 1, \"output-format\":\"json\"}"
+
+rd_fio_args="{\"rw\":\"randread\", \"direct\":1, \"bs\":\"4k\", \
+		\"iodepth\":256, \"ioengine\":\"libaio\", \"runtime\":$runtime, \
+		\"name\":\"iops_test-job\", \"time_based\": 1, \"numjobs\": 1, \"output-format\":\"json\"}"
+
+wr_fio_args="{\"rw\":\"randwrite\", \"direct\":1, \"bs\":\"4k\", \
+		\"iodepth\":256, \"ioengine\":\"libaio\", \"runtime\":$runtime, \
+		\"name\":\"iops_test-job\", \"time_based\": 1, \"numjobs\": 1, \"output-format\":\"json\"}"
+
+fio_out=$(send_fio_cmd "$HOST_TARGET_IP" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+		"$DEVICE_HANDLE" "$rd_fio_args" "$VOLUME")
+fio_out=$(transform_fio_output_to_parsebale_form "$fio_out")
+mean_read_bandwidth=$(get_mean_read_bandwidth_from_fio_output "$fio_out")
+mean_read_iops=$(get_mean_read_iops_from_fio_output "$fio_out")
+
+fio_out=$(send_fio_cmd "$HOST_TARGET_IP" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+		"$DEVICE_HANDLE" "$wr_fio_args" "$VOLUME")
+fio_out=$(transform_fio_output_to_parsebale_form "$fio_out")
+mean_write_bandwidth=$(get_mean_write_bandwidth_from_fio_output "$fio_out")
+mean_write_iops=$(get_mean_write_iops_from_fio_output "$fio_out")
+echo "Mean read bandwidth '$mean_read_bandwidth'"
+echo "Mean write bandwidth '$mean_write_bandwidth'"
+echo "Mean read iops '$mean_read_iops'"
+echo "Mean write iops '$mean_write_iops'"
+
+bandwidth_limit_mbps=1
+iops_limit_kiops=1
+max_limited_bandwidth_kbps=1050
+max_limited_iops=1050
+
+if [ "$mean_read_bandwidth" -le "$max_limited_bandwidth_kbps" ] || \
+     [ "$mean_write_bandwidth" -le "$max_limited_bandwidth_kbps" ] ; then
+	echo "Bandwidth is too low to execute QoS test"
+	exit 1
+fi
+if [ "$mean_read_iops" -le "$max_limited_iops" ] || [ "$mean_write_iops" -le "$max_limited_iops" ] ; then
+	echo "Iops are too low to execute QoS test"
+	exit 1
+fi
+
+if [ -z "$VOLUME" ]; then
+    echo "Device level QoS test will be performed"
+    is_max_read_bandwidth_qos_supported=is_max_device_read_bandwidth_qos_supported
+    is_max_write_bandwidth_qos_supported=is_max_device_write_bandwidth_qos_supported
+    is_max_read_write_bandwidth_qos_supported=is_max_device_read_write_bandwidth_qos_supported
+    is_max_read_iops_qos_supported=is_max_device_read_iops_qos_supported
+    is_max_write_iops_qos_supported=is_max_device_write_iops_qos_supported
+    is_max_read_write_iops_qos_supported=is_max_device_read_write_iops_qos_supported
+else
+    echo "Volume level QoS test will be performed"
+    is_max_read_bandwidth_qos_supported=is_max_volume_read_bandwidth_qos_supported
+    is_max_write_bandwidth_qos_supported=is_max_volume_write_bandwidth_qos_supported
+    is_max_read_write_bandwidth_qos_supported=is_max_volume_read_write_bandwidth_qos_supported
+    is_max_read_iops_qos_supported=is_max_volume_read_iops_qos_supported
+    is_max_write_iops_qos_supported=is_max_volume_write_iops_qos_supported
+    is_max_read_write_iops_qos_supported=is_max_volume_read_write_iops_qos_supported
+fi
+
+echo ""
+echo "Bandwidth QoS tests"
+if "$is_max_read_bandwidth_qos_supported" "$QOS_CAPABILITIES" ; then
+	echo "max read bandwidth QoS is supported"
+	set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+        "$VOLUME" 0 0 0 "$bandwidth_limit_mbps" 0 0
+	fio_out=$(send_fio_cmd "$HOST_TARGET_IP" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+		"$DEVICE_HANDLE" "$rd_fio_args" "$VOLUME")
+	fio_out=$(transform_fio_output_to_parsebale_form "$fio_out")
+	new_mean_read_bandwidth=$(get_mean_read_bandwidth_from_fio_output "$fio_out")
+	echo "New mean read bandwidth '$new_mean_read_bandwidth'"
+	if [[ "$new_mean_read_bandwidth" -gt "$max_limited_bandwidth_kbps" ]] ; then
+		set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+            "$VOLUME" 0 0 0 0 0 0
+		echo "QoS limit is not meat."
+		exit 1
+	fi
+
+	fio_out=$(send_fio_cmd "$HOST_TARGET_IP" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+		"$DEVICE_HANDLE" "$wr_fio_args" "$VOLUME")
+	fio_out=$(transform_fio_output_to_parsebale_form "$fio_out")
+	new_mean_write_bandwidth=$(get_mean_write_bandwidth_from_fio_output "$fio_out")
+	echo "New mean write bandwidth '$new_mean_write_bandwidth'"
+	if [[ "$new_mean_write_bandwidth" -lt 1100 ]] ; then
+		echo "QoS limit changed unexpected throughput."
+		set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+            "$VOLUME" 0 0 0 0 0 0
+		exit 1
+	fi
+	set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+        "$VOLUME" 0 0 0 0 0 0
+else
+	echo "max read bandwidth QoS is not supported"
+fi
+
+echo ""
+if "$is_max_write_bandwidth_qos_supported" "$QOS_CAPABILITIES" ; then
+	echo "max write bandwidth QoS is supported"
+	set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+        "$VOLUME" 0 0 0 0 "$bandwidth_limit_mbps" 0
+
+	fio_out=$(send_fio_cmd "$HOST_TARGET_IP" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+		"$DEVICE_HANDLE" "$rd_fio_args" "$VOLUME")
+	fio_out=$(transform_fio_output_to_parsebale_form "$fio_out")
+	new_mean_read_bandwidth=$(get_mean_read_bandwidth_from_fio_output "$fio_out")
+	echo "New mean read bandwidth '$new_mean_read_bandwidth'"
+	if [[ "$new_mean_read_bandwidth" -lt 1100 ]] ; then
+		set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+            "$VOLUME" 0 0 0 0 0 0
+		echo "QoS limit changed unexpected throughput."
+		exit 1
+	fi
+
+	fio_out=$(send_fio_cmd "$HOST_TARGET_IP" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+		"$DEVICE_HANDLE" "$wr_fio_args" "$VOLUME")
+	fio_out=$(transform_fio_output_to_parsebale_form "$fio_out")
+	new_mean_write_bandwidth=$(get_mean_write_bandwidth_from_fio_output "$fio_out")
+	echo "New mean write bandwidth '$new_mean_write_bandwidth'"
+	if [[ "$new_mean_write_bandwidth" -gt "$max_limited_bandwidth_kbps" ]] ; then
+		echo "QoS limit is not meat."
+		set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+            "$VOLUME" 0 0 0 0 0 0
+		exit 1
+	fi
+	set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+        "$VOLUME" 0 0 0 0 0 0
+else
+	echo "max write bandwidth QoS is not supported"
+fi
+
+echo ""
+if "$is_max_read_write_bandwidth_qos_supported" "$QOS_CAPABILITIES" ; then
+	echo "max read/write bandwidth QoS is supported"
+	set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+        "$VOLUME" 0 0 0 0 0 "$bandwidth_limit_mbps"
+	fio_out=$(send_fio_cmd "$HOST_TARGET_IP" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+		"$DEVICE_HANDLE" "$rw_fio_args" "$VOLUME")
+	fio_out=$(transform_fio_output_to_parsebale_form "$fio_out")
+	new_mean_read_bandwidth=$(get_mean_read_bandwidth_from_fio_output "$fio_out")
+	new_mean_write_bandwidth=$(get_mean_write_bandwidth_from_fio_output "$fio_out")
+	echo "New mean read bandwidth '$new_mean_read_bandwidth'"
+	echo "New mean write bandwidth '$new_mean_write_bandwidth'"
+	set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+        "$VOLUME" 0 0 0 0 0 0
+	if [[ $((new_mean_read_bandwidth + new_mean_write_bandwidth)) -gt "$max_limited_bandwidth_kbps" ]] ; then
+		echo "QoS limit is not meat."
+		exit 1
+	fi
+	set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+        "$VOLUME" 0 0 0 0 0 0
+else
+	echo "max read/write bandwidth QoS is not supported"
+fi
+
+
+echo ""
+echo "IOPS QoS tests"
+if "$is_max_read_iops_qos_supported" "$QOS_CAPABILITIES" ; then
+	echo ""
+	echo "max read iops QoS is supported"
+	echo "Test cases are not provided"
+	exit 1
+else
+	echo "max read iops QoS is not supported"
+fi
+
+echo ""
+if "$is_max_write_iops_qos_supported" "$QOS_CAPABILITIES" ; then
+	echo "max write iops QoS is supported"
+	echo "Test cases are not provided"
+	exit 1
+else
+	echo "max write iops QoS is not supported"
+fi
+
+echo ""
+if "$is_max_read_write_iops_qos_supported" "$QOS_CAPABILITIES" ; then
+	echo "max read/write iops QoS is supported"
+	set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+        "$VOLUME" 0 0 "$iops_limit_kiops" 0 0 0
+	fio_out=$(send_fio_cmd "$HOST_TARGET_IP" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+		"$DEVICE_HANDLE" "$rw_fio_args" "$VOLUME")
+	fio_out=$(transform_fio_output_to_parsebale_form "$fio_out")
+	new_mean_read_iops=$(get_mean_read_iops_from_fio_output "$fio_out")
+	new_mean_write_iops=$(get_mean_write_iops_from_fio_output "$fio_out")
+	echo "New mean read iops '$new_mean_read_iops'"
+	echo "New mean write iops '$new_mean_write_iops'"
+	set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+        "$VOLUME" 0 0 0 0 0 0
+	if [[ $((new_mean_read_iops + new_mean_write_iops)) -gt "$max_limited_iops" ]] ; then
+		echo "QoS limit is not meat."
+		exit 1
+	fi
+else
+	echo "max read/write iops QoS is not supported"
+fi
+
+
+set_max_qos_limits "$IPU_STORAGE_CONTAINER_IP" "$DEFAULT_SMA_PORT" "$DEVICE_HANDLE" \
+    "$VOLUME" 0 0 0 0 0 0
+

@@ -114,6 +114,128 @@ function hostname_to_ip() {
 	getent hosts "${1}" | awk '{ print $1 }'
 }
 
+function _is_max_limit_qos_supported() {
+    local qos_capabilities="$1"
+    local limit_type="$2"
+    local limit_level_type="$3"
+    local limit_type_support=""
+    local limit_type_support=""
+	limit_type_support=$(echo "$qos_capabilities" | jq -r ".$limit_level_type.$limit_type")
+    if [[ -n "$limit_type_support" && "$limit_type_support" == "true" ]]; then
+        return 0
+    fi
+    return 1
+}
+
+function _is_max_volume_limit_qos_supported() {
+	_is_max_limit_qos_supported "$@" "max_volume_caps"
+    return $?
+}
+
+function is_max_volume_read_write_bandwidth_qos_supported() {
+    _is_max_volume_limit_qos_supported "$@" "rw_bandwidth"
+    return $?
+}
+
+function is_max_volume_read_bandwidth_qos_supported() {
+    _is_max_volume_limit_qos_supported "$@" "rd_bandwidth"
+    return $?
+}
+
+function is_max_volume_write_bandwidth_qos_supported() {
+    _is_max_volume_limit_qos_supported "$@" "wr_bandwidth"
+    return $?
+}
+
+function is_max_volume_read_write_iops_qos_supported() {
+    _is_max_volume_limit_qos_supported "$@" "rw_iops"
+    return $?
+}
+
+function is_max_volume_read_iops_qos_supported() {
+    _is_max_volume_limit_qos_supported "$@" "rd_iops"
+    return $?
+}
+
+function is_max_volume_write_iops_qos_supported() {
+    _is_max_volume_limit_qos_supported "$@" "wr_iops"
+    return $?
+}
+
+function _is_max_device_limit_qos_supported() {
+	_is_max_limit_qos_supported "$@" "max_device_caps"
+    return $?
+}
+
+function is_max_device_read_write_bandwidth_qos_supported() {
+    _is_max_device_limit_qos_supported "$@" "rw_bandwidth"
+    return $?
+}
+
+function is_max_device_read_bandwidth_qos_supported() {
+    _is_max_device_limit_qos_supported "$@" "rd_bandwidth"
+    return $?
+}
+
+function is_max_device_write_bandwidth_qos_supported() {
+    _is_max_device_limit_qos_supported "$@" "wr_bandwidth"
+    return $?
+}
+
+function is_max_device_read_write_iops_qos_supported() {
+    _is_max_device_limit_qos_supported "$@" "rw_iops"
+    return $?
+}
+
+function is_max_device_read_iops_qos_supported() {
+    _is_max_device_limit_qos_supported "$@" "rd_iops"
+    return $?
+}
+
+function is_max_device_write_iops_qos_supported() {
+    _is_max_device_limit_qos_supported "$@" "wr_iops"
+    return $?
+}
+
+function is_device_qos_supported() {
+    local qos_capabilities="$1"
+	echo "$qos_capabilities" | jq -e .max_device_caps
+	return $?
+}
+
+function is_volume_qos_supported() {
+    local qos_capabilities="$1"
+	echo "$qos_capabilities" | jq -e .max_volume_caps
+	return $?
+}
+
+function get_mean_read_bandwidth_from_fio_output() {
+	local fio_output="$1"
+	echo "${fio_output}" | jq -r '.fioOutput' | jq -r '.jobs[].read.bw'
+}
+
+function get_mean_write_bandwidth_from_fio_output() {
+	local fio_output="$1"
+	echo "${fio_output}" | jq -r '.fioOutput' | jq -r '.jobs[].write.bw'
+}
+
+function get_mean_read_iops_from_fio_output() {
+	local fio_output="$1"
+	printf "%.0f" "$(echo "${fio_output}" | jq -r '.fioOutput' | jq -r '.jobs[].read.iops')"
+}
+
+function get_mean_write_iops_from_fio_output() {
+	local fio_output="$1"
+	printf "%.0f" "$(echo "${fio_output}" | jq -r '.fioOutput' | jq -r '.jobs[].write.iops')"
+}
+
+function transform_fio_output_to_parsebale_form() {
+	local fio_out="$1"
+	fio_out="{ $fio_out }"
+	fio_out=$(echo "$fio_out" | sed -r 's/\"/"/g' | sed -r 's/fioOutput/"fioOutput"/g')
+	echo "$fio_out"
+}
+
 storage_target_ip=${STORAGE_TARGET_IP:-"$(hostname_to_ip storage-target)"}
 export storage_target_ip="${storage_target_ip}"
 ipu_storage_container_ip=${IPU_STORAGE_CONTAINER_IP:-"$(hostname_to_ip ipu-storage-container)"}
