@@ -182,9 +182,90 @@ disk_infrastructure.attach_volume(
     traddr="$5",
     trsvcid="${6:-"$DEFAULT_NVME_PORT"}",
     sma_port=int("${7:-"$DEFAULT_SMA_PORT"}"),
+    cipher=None,
+    key="",
+    key2="",
 )
 EOF
 }
+
+function attach_crypto_volume_with_aes_cbc_cipher() {
+    python3 <<- EOF
+import sys
+from scripts import disk_infrastructure
+
+disk_infrastructure.attach_volume(
+    ipu_storage_container_ip="$1",
+    device_handle="$2",
+    volume_id="$3",
+    nqn="$4",
+    traddr="$5",
+    cipher=disk_infrastructure.VolumeCipher.AES_CBC,
+    key="$6",
+    key2="",
+    trsvcid="${7:-"$DEFAULT_NVME_PORT"}",
+    sma_port=int("${8:-"$DEFAULT_SMA_PORT"}"),
+)
+EOF
+}
+
+function attach_crypto_volume_with_aes_xts_cipher() {
+    python3 <<- EOF
+import sys
+from scripts import disk_infrastructure
+
+disk_infrastructure.attach_volume(
+    ipu_storage_container_ip="$1",
+    device_handle="$2",
+    volume_id="$3",
+    nqn="$4",
+    traddr="$5",
+    cipher=disk_infrastructure.VolumeCipher.AES_XTS,
+    key="$6",
+    key2="$7",
+    trsvcid="${8:-"$DEFAULT_NVME_PORT"}",
+    sma_port=int("${9:-"$DEFAULT_SMA_PORT"}"),
+)
+EOF
+}
+
+function detach_volume() {
+    python3 <<- EOF
+import sys
+from scripts import disk_infrastructure
+
+disk_infrastructure.detach_volume(
+    ipu_storage_container_ip="$1",
+    device_handle="$2",
+    volume_id="$3",
+    sma_port=int("${4:-"$DEFAULT_SMA_PORT"}"),
+)
+EOF
+}
+
+function delete_nvme_device() {
+    _delete_sma_device "$@"
+}
+
+
+function attach_volume_with_aes_xts_cipher() {
+    python3 <<- EOF
+import sys
+from scripts import disk_infrastructure
+
+disk_infrastructure.attach_volume(
+    ipu_storage_container_ip="$1",
+    device_handle="$2",
+    volume_id="$3",
+    nqn="$4",
+    traddr="$5",
+    trsvcid="${6:-"$DEFAULT_NVME_PORT"}",
+    sma_port=int("${7:-"$DEFAULT_SMA_PORT"}"),
+)
+EOF
+}
+
+
 
 function detach_volume() {
     python3 <<- EOF
