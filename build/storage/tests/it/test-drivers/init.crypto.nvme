@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+#
+# Copyright (C) 2022 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+
+set -e
+[ "$DEBUG" == 'true' ] && set -x
+
+current_script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+declare vm_serial
+declare nqn
+declare storage_target_ip
+declare ipu_storage_container_ip
+declare port_to_expose
+declare traffic_generator_ip
+declare host_target_ip
+# shellcheck disable=SC1091,SC1090
+source "${current_script_dir}"/test-helpers
+
+wait_until_port_on_ip_addr_open "$storage_target_ip" "$DEFAULT_SPDK_PORT"
+create_and_expose_sybsystem_over_tcp \
+	"$storage_target_ip" "$nqn" "$port_to_expose"
+
+wait_until_vm_is_up "$vm_serial"
+
+log_in_with_default_credentials "$vm_serial"
+
+wait_until_host_target_is_up "$vm_serial"
+
+ramdrive_size_in_mb=16
+malloc0=$(create_ramdrive_and_attach_as_ns_to_subsystem \
+    "$storage_target_ip" "Malloc0" \
+    "$ramdrive_size_in_mb" "$nqn")
+
+physical_id=0
+echo "Cretae NVME device with attached crypto namespaces"
+nvme=$(create_nvme_device "$ipu_storage_container_ip" \
+    "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+    "$physical_id" "0")
+
+cipher_key="1234567890abcdef1234567890abcdef"
+wrong_cipher_key="1234567890abcdef1234567890abcdee"
+attach_crypto_volume_with_aes_cbc_cipher "$ipu_storage_container_ip" "$nvme" \
+    "$malloc0" "$nqn" "$storage_target_ip" "$cipher_key"
+
+pattern="0x$(tr -dc 'A-F0-9' < /dev/urandom | head -c8)"
+wrong_pattern=$((pattern + 1))
+wrong_pattern=$(printf '0x%X' "$((wrong_pattern & 0xFFFFFFFF ))")
+
+
+echo ""
+echo "Fill in volume with pattern '$pattern'"
+fio_fill_in_with_pattern_cmd="{\"rw\":\"write\", \"verify_pattern\": \"$pattern\" }"
+send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+                "$nvme" "$fio_fill_in_with_pattern_cmd" || exit 1
+
+
+echo ""
+echo "Verify volume filled in with pattern '$pattern'"
+fio_verify_pattern_cmd="{\"verify_pattern\": \"$pattern\", \"verify_only\": 1  }"
+send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+                "$nvme" "$fio_verify_pattern_cmd" || exit 1
+
+
+echo ""
+echo "Verify fio fail on wrong pattern '$wrong_pattern'"
+fio_verify_wrong_pattern_cmd="{\"verify_pattern\": \"$wrong_pattern\", \"verify_only\": 1  }"
+! send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+                "$nvme" "$fio_verify_wrong_pattern_cmd" || exit 1
+
+
+echo ""
+echo "Re-attach volume without crypto and check data cannot be read"
+detach_volume "$ipu_storage_container_ip" "$nvme" "$malloc0"
+attach_volume "$ipu_storage_container_ip" "$nvme" "$malloc0" "$nqn" "$storage_target_ip"
+! send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+                "$nvme" "$fio_verify_pattern_cmd" || exit 1
+
+
+echo ""
+echo "Re-attach crypto volume with wrong key and verify failure"
+detach_volume "$ipu_storage_container_ip" "$nvme" "$malloc0"
+attach_crypto_volume_with_aes_cbc_cipher "$ipu_storage_container_ip" "$nvme" \
+    "$malloc0" "$nqn" "$storage_target_ip" "$wrong_cipher_key"
+! send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+                "$nvme" "$fio_verify_pattern_cmd" || exit 1
+
+
+echo ""
+echo "Re-attach crypto volume with correct key"
+detach_volume "$ipu_storage_container_ip" "$nvme" "$malloc0"
+attach_crypto_volume_with_aes_cbc_cipher "$ipu_storage_container_ip" "$nvme" \
+    "$malloc0" "$nqn" "$storage_target_ip" "$cipher_key"
+send_fio_cmd "$traffic_generator_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+                "$nvme" "$fio_verify_pattern_cmd" || exit 1
+
+
+detach_volume "$ipu_storage_container_ip" "$nvme" "$malloc0"
+delete_nvme_device "$ipu_storage_container_ip" \
+    "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
+    "$nvme"
+
+echo "Crypto NVMe test passed successfully"

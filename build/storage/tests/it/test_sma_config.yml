@@ -17,3 +17,7 @@ devices:
     buses:
     - name: 'pci.ipdk.0'
     - name: 'pci.ipdk.1'
+crypto:
+  name: 'bdev_crypto'
+  params:
+    driver: 'crypto_aesni_mb'
