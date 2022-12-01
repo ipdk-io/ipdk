@@ -134,7 +134,7 @@ EOF
 }
 
 function delete_virtio_blk() {
-	_delete_sma_device "$@"
+    _delete_sma_device "$@"
 }
 
 function wait_until_port_on_ip_addr_open() {
@@ -153,35 +153,35 @@ EOF
 }
 
 function create_nvme_device() {
-	python3 <<- EOF
+    python3 <<- EOF
 import sys
 from scripts import disk_infrastructure
 
 device_handle=disk_infrastructure.create_nvme_device(
-	ipu_storage_container_ip="$1",
-	sma_port=int("$2"),
-	host_target_ip="$3",
-	host_target_service_port=int("$4"),
-	physical_id="$5",
-	virtual_id="$6",
+    ipu_storage_container_ip="$1",
+    sma_port=int("$2"),
+    host_target_ip="$3",
+    host_target_service_port=int("$4"),
+    physical_id="$5",
+    virtual_id="$6",
 )
 print(device_handle)
 EOF
 }
 
 function attach_volume() {
-	python3 <<- EOF
+    python3 <<- EOF
 import sys
 from scripts import disk_infrastructure
 
 disk_infrastructure.attach_volume(
-	ipu_storage_container_ip="$1",
-	device_handle="$2",
-	volume_id="$3",
-	nqn="$4",
-	traddr="$5",
-	trsvcid="${6:-"$DEFAULT_NVME_PORT"}",
-	sma_port=int("${7:-"$DEFAULT_SMA_PORT"}"),
+    ipu_storage_container_ip="$1",
+    device_handle="$2",
+    volume_id="$3",
+    nqn="$4",
+    traddr="$5",
+    trsvcid="${6:-"$DEFAULT_NVME_PORT"}",
+    sma_port=int("${7:-"$DEFAULT_SMA_PORT"}"),
 )
 EOF
 }
@@ -192,16 +192,16 @@ import sys
 from scripts import disk_infrastructure
 
 disk_infrastructure.detach_volume(
-	ipu_storage_container_ip="$1",
-	device_handle="$2",
-	volume_id="$3",
-	sma_port=int("${4:-"$DEFAULT_SMA_PORT"}"),
+    ipu_storage_container_ip="$1",
+    device_handle="$2",
+    volume_id="$3",
+    sma_port=int("${4:-"$DEFAULT_SMA_PORT"}"),
 )
 EOF
 }
 
 function delete_nvme_device() {
-	_delete_sma_device "$@"
+    _delete_sma_device "$@"
 }
 
 function verify_expected_number_of_nvme_devices() {
