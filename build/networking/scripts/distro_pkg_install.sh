@@ -195,9 +195,9 @@ ubuntu_install_build_pkgs() {
         pyelftools \
         scapy \
         six \
-        cmake>=3.15.0 \
+        "cmake>=3.15.0" \
         meson==0.59.4 \
-        ninja>=1.8.2
+        "ninja>=1.8.2"
 
     # Cleanup
     apt-get -y clean all
