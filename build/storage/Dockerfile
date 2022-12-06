@@ -227,7 +227,8 @@ ARG HTTPS_PROXY
 ARG NO_PROXY
 
 # hadolint ignore=DL3013
-RUN dnf install -y python fio python3-pip && dnf clean all && python -m pip install --no-cache-dir grpcio-reflection pyfakefs
+RUN dnf install -y python fio python3-pip && dnf clean all && python -m pip install \
+    --no-cache-dir protobuf==3.20.2 grpcio-reflection pyfakefs
 
 COPY tests/ut/host-target /host-target/tests
 COPY --from=host-target /root /host-target/src/
