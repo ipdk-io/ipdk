@@ -165,8 +165,16 @@ def create_ramdrive_and_attach_as_ns_to_subsystem(
     return device_uuid
 
 
+def bytes2base64(b: bytes) -> str:
+    return base64.b64encode(b).decode()
+
+
 def uuid2base64(device_uuid: str) -> str:
-    return base64.b64encode(uuid.UUID(device_uuid).bytes).decode()
+    return bytes2base64(uuid.UUID(device_uuid).bytes)
+
+
+def key2base64(key: str) -> str:
+    return bytes2base64(key.encode())
 
 
 def create_virtio_blk(
@@ -296,6 +304,11 @@ def create_nvme_device(
     return ""
 
 
+class VolumeCipher(Enum):
+    AES_CBC = 0
+    AES_XTS = 1
+
+
 def attach_volume(
     ipu_storage_container_ip: str,
     sma_port: int,
@@ -304,6 +317,9 @@ def attach_volume(
     nqn: str,
     traddr: str,
     trsvcid: str,
+    cipher: VolumeCipher,
+    key: str,
+    key2: str,
 ) -> None:
     request = {
         "method": "AttachVolume",
@@ -322,6 +338,13 @@ def attach_volume(
             },
         },
     }
+
+    if cipher:
+        request["params"]["volume"]["crypto"] = {
+            "cipher": cipher.value,
+            "key": key2base64(key),
+            "key2": key2base64(key2),
+        }
     send_sma_request(request=request, addr=ipu_storage_container_ip, port=sma_port)
     wait_for_volume_in_os()
 
