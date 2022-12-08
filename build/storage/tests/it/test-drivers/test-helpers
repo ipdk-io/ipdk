@@ -95,7 +95,9 @@ function send_fio_cmd() {
 		"$traffic_generator_ip:$host_target_service_port" \
 		RunFio "diskToExercise: { deviceHandle: '$device_handle' $volume_argument} \
 		fioArgs: '$fio_args'")
+	result="$?"
 	echo "$out"
+	return "$result"
 }
 
 function log_in() {
