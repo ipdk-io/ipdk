@@ -22,7 +22,7 @@ device.
 how to hot-plug/hot-unplug 64 NVMe devices and attaching 32 volumes to a single
 NVMe device.
 * [qos](./nvme/qos.md) - explains how to set QoS limits for exposed NVMe devices and volumes attached to it.
-
+* [crypto](./nvme/crypto.md) - shows how to apply crypto capabilities.
 
 In all cases host target platform is implied as KVM.
 
