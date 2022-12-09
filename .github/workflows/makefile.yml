@@ -47,7 +47,7 @@ jobs:
     - name: Get processor architecture
       id: system 
       run: |
-        echo ::set-output name=arch::$(uname -m)
+        echo "arch=$(uname -m)" >> $GITHUB_OUTPUT
 
     - name: Set up QEMU        
       uses: docker/setup-qemu-action@v2
