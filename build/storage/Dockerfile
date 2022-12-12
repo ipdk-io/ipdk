@@ -169,17 +169,13 @@ RUN /scripts/vm/prepare_vm.sh
 FROM traffic-generator-env-vars AS traffic-generator
 
 RUN dnf install -y git glib2-devel libfdt-devel pixman-devel zlib-devel bzip2 \
-    ninja-build python3 make gcc diffutils && dnf clean all
-RUN git clone https://github.com/oracle/qemu /qemu-orcl
-WORKDIR /qemu-orcl
-RUN git checkout 46bb039c31e92ae84cf7fe1f64119c1a78e0d101 && \
-    git submodule update --init --recursive
-RUN ./configure --enable-multiprocess && make -j && make install
-WORKDIR /
-RUN rm -rf ./qemu-orcl
+    ninja-build python3 make gcc diffutils libaio-devel numactl-devel && \
+    dnf clean all
 COPY tests/it/traffic-generator/init /init
 COPY --from=traffic-generator-base $DRIVE_TO_BOOT $DRIVE_TO_BOOT
 COPY /scripts /scripts
+COPY /spdk/test/common/config/pkgdep/git /spdk/test/common/config/pkgdep/git
+RUN /scripts/vm/install_qemu.sh
 ENV SHARED_VOLUME=/ipdk-shared
 ENV UNIX_SERIAL=vm_socket
 ENTRYPOINT ["/init"]
