@@ -33,19 +33,24 @@ class ServiceAddress:
 
 
 class IpuStorageDevice:
+    def __init__(
+        self,
+        device_handle,
+        ipu_platform,
+    ):
+        self._device_handle = device_handle
+        self._ipu_platform = ipu_platform
+
     def run_fio(self, platform):
 
 
-        cmd = f"""docker exec {cmd_sender_id} grpc_cli call {platform.get_ip_address()}:50051 RunFio""" \
+        cmd = f"""docker exec {platform.cmd_sender} grpc_cli call {platform.get_ip_address()}:50051 RunFio""" \
               f""" "diskToExercise: {{ deviceHandle: '{devices_handles[0]._device_handle}' }} fioArgs: """ \
               f"""'{{\\"rw\\":\\"randrw\\", \\"runtime\\":1, \\"numjobs\\": 1, \\"time_based\\": 1, """ \
               f"""\\"group_reporting\\": 1 }}'" """
         x = platform.terminal.execute(cmd)
         print(x)
         return x
-
-
-
 
 class VirtioBlkDevice(IpuStorageDevice):
     def __init__(
@@ -55,9 +60,8 @@ class VirtioBlkDevice(IpuStorageDevice):
         ipu_platform,
         host_target_address_service,
     ):
-        self._device_handle = device_handle
+        super().__init__(device_handle, ipu_platform)
         self._remote_nvme_storage = remote_nvme_storage
-        self._ipu_platform = ipu_platform
         self._host_target_address_service = host_target_address_service
 
     def delete(self, cmd_sender):
