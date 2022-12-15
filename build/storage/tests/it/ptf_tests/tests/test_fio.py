@@ -54,10 +54,9 @@ class Fio(BaseTest):
             )
         )
 
-        # for device in devices_handles:
-        #     device.run_fio(self.ipu_storage_platform)
-
-        devices_handles[0].run_fio(self.ipu_storage_platform)
+        for device in devices_handles:
+            device.run_fio(self.ipu_storage_platform)
+        # devices_handles[0].run_fio(self.ipu_storage_platform)
         # cmd_sender_id = self.ipu_storage_platform.cmd_sender.id
         # cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self.ipu_storage_platform.get_ip_address()}:50051 RunFio""" \
         #       f""" "diskToExercise: {{ deviceHandle: '{devices_handles[0]._device_handle}' }} fioArgs: """ \
