@@ -55,7 +55,7 @@ class Fio(BaseTest):
         )
 
         for device in devices_handles:
-            device.run_fio(self.ipu_storage_platform)
+            device.run_fio()
 
         # devices_handles[0].run_fio(self.ipu_storage_platform)
         # cmd_sender_id = self.ipu_storage_platform.cmd_sender.id
