@@ -7,7 +7,6 @@
 [ "$DEBUG" == 'true' ] && set -x
 
 export IMAGE_NAME="cmd-sender"
-export BUILD_IMAGE="true"
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
 # shellcheck source=./scripts/run_container.sh

@@ -58,7 +58,6 @@ function cleanup() {
 trap 'cleanup' EXIT
 
 export ALLOCATE_HUGEPAGES="true"
-export BUILD_IMAGE="true"
 export IMAGE_NAME="ipu-storage-container"
 ARGS=()
 ARGS+=("-v" "${SHARED_VOLUME}:/${SHARED_VOLUME}")
