@@ -8,7 +8,8 @@
 
 set -e
 
-scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)/..
+script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+scripts_dir="$script_dir/.."
 # shellcheck disable=SC1091,SC1090
 source "$scripts_dir"/vm/vm_default_variables.sh
 
@@ -27,7 +28,7 @@ export HOST_TARGET_SERVICE_PORT_IN_VM
 "${scripts_dir}"/vm/prepare_vm.sh
 "${scripts_dir}"/allocate_hugepages.sh
 
-run_vm="sudo qemu-system-x86_64 \
+run_vm="sudo $QEMU_BINARY \
   ${qemu_serial} \
   --enable-kvm \
   -cpu host \
