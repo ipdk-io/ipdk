@@ -42,17 +42,13 @@ class IpuStorageDevice:
         self._ipu_platform = ipu_platform
 
     def run_fio(self):
-
-        cmd_sender_id = self._ipu_platform.get_ip_address.id
-
+        cmd_sender_id = self._ipu_platform.cmd_sender.id
         cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
               f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """ \
               f"""'{{\\"rw\\":\\"randrw\\", \\"runtime\\":1, \\"numjobs\\": 1, \\"time_based\\": 1, """ \
               f"""\\"group_reporting\\": 1 }}'" """
+        return self._ipu_platform.terminal.execute(cmd)
 
-        x = platform.terminal.execute(cmd)
-        print(x)
-        return x
 
 class VirtioBlkDevice(IpuStorageDevice):
     def __init__(
