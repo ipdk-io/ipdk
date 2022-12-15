@@ -42,7 +42,10 @@ class IpuStorageDevice:
         self._ipu_platform = ipu_platform
 
     def run_fio(self):
-        cmd = f"""docker exec {self._device_handle.cmd_sender.ip} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
+
+        cmd_sender_id = self._ipu_platform.get_ip_address.ip
+
+        cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
               f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """ \
               f"""'{{\\"rw\\":\\"randrw\\", \\"runtime\\":1, \\"numjobs\\": 1, \\"time_based\\": 1, """ \
               f"""\\"group_reporting\\": 1 }}'" """
