@@ -7,7 +7,7 @@ stty -echoctl # hide ctrl-c
 usage() {
     echo ""
     echo "Usage:"
-    echo "rundemo.sh: -s|--scripts-dir --deps-install-dir --nr-install-dir --sde-install-dir -w|--workdir -h|--help"
+    echo "rundemo_TAP_IO.sh: -s|--scripts-dir --deps-install-dir --nr-install-dir --sde-install-dir -w|--workdir -h|--help"
     echo ""
     echo "  --deps-install-dir: Networking-recipe dependencies install path. [Default: ${workdir}/networking-recipe/deps_install"
     echo "  -h|--help: Displays help"
@@ -67,19 +67,6 @@ while true ; do
     esac
 done
 
-# Exit function
-exit_function()
-{
-    echo "Exiting cleanly"
-    pushd /root || exit
-    rm -f network-config-v1.yaml meta-data user-data
-    pkill qemu
-    rm -rf /tmp/vhost-user-*
-    rm -f vm1.qcow2 vm2.qcow2
-    popd || exit
-    exit
-}
-
 # Display argument data after parsing commandline arguments
 echo ""
 echo "WORKING_DIR: ${WORKING_DIR}"
@@ -94,10 +81,9 @@ echo ""
 echo "Cleaning from previous run"
 echo ""
 
-pkill qemu
-rm -rf /tmp/vhost-user-*
-killall ovsdb-server
-killall ovs-vswitchd
+ip netns del VM0
+ip netns del VM1
+
 killall infrap4d
 
 
@@ -132,12 +118,10 @@ pushd "${WORKING_DIR}" || exit
 # Wait for networking-recipe processes to start gRPC server and open ports for clients to connect.
 sleep 1
 
-gnmi-ctl set "device:virtual-device,name:net_vhost0,host-name:host1,\
-    device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-0,\
-    port-type:LINK"
-gnmi-ctl set "device:virtual-device,name:net_vhost1,host-name:host2,\
-    device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-1,\
-    port-type:LINK"
+gnmi-ctl set "device:virtual-device,name:TAP0,pipeline-name:pipe,\
+    mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+gnmi-ctl set "device:virtual-device,name:TAP1,pipeline-name:pipe,\
+    mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
 popd || exit
 
 echo ""
@@ -148,66 +132,50 @@ export OUTPUT_DIR="${WORKING_DIR}"/examples/simple_l3/
 p4c --arch psa --target dpdk --output "${OUTPUT_DIR}"/pipe --p4runtime-files \
     "${OUTPUT_DIR}"/p4Info.txt --bf-rt-schema "${OUTPUT_DIR}"/bf-rt.json \
     --context "${OUTPUT_DIR}"/pipe/context.json "${OUTPUT_DIR}"/simple_l3.p4
-
 pushd "${WORKING_DIR}"/examples/simple_l3 || exit
 tdi_pipeline_builder --p4c_conf_file=simple_l3.conf \
     --bf_pipeline_config_binary_file=simple_l3.pb.bin
 popd || exit
 
 echo ""
-echo "Starting VM1_TAP_DEV"
+echo "Create two Namespaces"
 echo ""
 
-pushd "${WORKING_DIR}" || exit
-    #-object memory-backend-file,id=mem,size=1024M,mem-path=/hugetlbfs1,share=on \
-kvm -smp 1 -m 256M \
-    -boot c -cpu host --enable-kvm -nographic \
-    -name VM1_TAP_DEV \
-    -hda ./vm1.qcow2 \
-    -drive file=seed1.img,id=seed,if=none,format=raw,index=1 \
-    -device virtio-blk,drive=seed \
-    -object memory-backend-file,id=mem,size=256M,mem-path=/mnt/huge,share=on \
-    -numa node,memdev=mem \
-    -mem-prealloc \
-    -chardev socket,id=char1,path=/tmp/vhost-user-0 \
-    -netdev type=vhost-user,id=netdev0,chardev=char1,vhostforce \
-    -device virtio-net-pci,mac=52:54:00:34:12:aa,netdev=netdev0 \
-    -serial telnet::6551,server,nowait &
-
-sleep 5
-echo ""
-echo "Waiting 10 seconds before starting second VM"
-echo ""
-for i in {1..10}
-do
-    sleep 1
-    echo -n "."
-    if [ "$(( i % 30 ))" == "0" ]
-    then
-        echo ""
-    fi
-done
-echo ""
-echo "Starting VM2_TAP_DEV"
-echo ""
-
-kvm -smp 1 -m 256M \
-    -boot c -cpu host --enable-kvm -nographic \
-    -name VM2_TAP_DEV \
-    -hda ./vm2.qcow2 \
-    -drive file=seed2.img,id=seed,if=none,format=raw,index=1 \
-    -device virtio-blk,drive=seed \
-    -object memory-backend-file,id=mem,size=256M,mem-path=/mnt/huge,share=on \
-    -numa node,memdev=mem \
-    -mem-prealloc \
-    -chardev socket,id=char2,path=/tmp/vhost-user-1 \
-    -netdev type=vhost-user,id=netdev1,chardev=char2,vhostforce \
-    -device virtio-net-pci,mac=52:54:00:34:12:bb,netdev=netdev1 \
-    -serial telnet::6552,server,nowait &
-popd || exit
+ip netns add VM0
+ip netns add VM1
 
 echo ""
-echo "Programming P4-OVS pipelines"
+echo "Move TAP ports to respective namespaces and bringup the ports"
+echo ""
+
+ip link set TAP0 netns VM0
+ip netns exec VM0 ip link set dev TAP0 up
+ip link set TAP1 netns VM1
+ip netns exec VM1 ip link set dev TAP1 up
+
+echo ""
+echo "Assign IP addresses to the TAP ports"
+echo ""
+
+ip netns exec VM0 ip addr add 1.1.1.1/24 dev TAP0
+ip netns exec VM1 ip addr add 2.2.2.2/24 dev TAP1
+
+echo ""
+echo "Add ARP table for neighbor TAP port"
+echo ""
+
+ip netns exec VM0 ip neigh add 2.2.2.2 dev TAP0 lladdr $(ip netns exec VM1 ip -o link show TAP1 | awk -F" " '{print $17}')
+ip netns exec VM1 ip neigh add 1.1.1.1 dev TAP1 lladdr $(ip netns exec VM0 ip -o link show TAP0 | awk -F" " '{print $17}')
+
+echo ""
+echo "Add Route to reach neighbor TAP port"
+echo ""
+
+ip netns exec VM0 ip route add 2.2.2.0/24 via 1.1.1.1 dev TAP0
+ip netns exec VM1 ip route add 1.1.1.0/24 via 2.2.2.2 dev TAP1
+
+echo ""
+echo "Programming P4 pipeline"
 echo ""
 
 p4rt-ctl set-pipe br0 "${WORKING_DIR}"/examples/simple_l3/simple_l3.pb.bin \
@@ -216,3 +184,9 @@ p4rt-ctl add-entry br0 ingress.ipv4_host \
     "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
 p4rt-ctl add-entry br0 ingress.ipv4_host \
     "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
+
+echo ""
+echo "Ping from TAP0 port to TAP1 port"
+echo ""
+ip netns exec VM0 ping 2.2.2.2 -c 5
+ip netns exec VM1 ping 1.1.1.1 -c 5

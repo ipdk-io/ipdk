@@ -6,7 +6,10 @@
 initialize_env() {
 	pushd /root/scripts > /dev/null  || exit
 		# shellcheck source=/dev/null
-		. p4ovs_env_setup.sh /root/p4-sde/install /root/p4ovs/P4OVS_DEPS_INSTALL > /dev/null
+		. initialize_env.sh --sde-install-dir=/root/p4-sde/install \
+          --nr-install-dir=/root/networking-recipe/install \
+          --deps-install-dir=/root/networking-recipe/deps_install \
+          --p4c-install-dir=/root/p4c/install > /dev/null
 	popd > /dev/null || exit
 }
 
@@ -15,7 +18,7 @@ rundaemon() {
 	echo "Start as long running process."
 	initialize_env
 	/root/scripts/set_hugepages.sh 10
-	/root/scripts/run_ovs.sh /root/p4ovs/P4OVS_DEPS_INSTALL
+  /root/scripts/run_infrap4d.sh --nr-install-dir=/root/networking-recipe/install
 	# TODO() Following doesn't work :-(
 	# PIDFile="/var/run/openvswitch/ovs-vswitchd.pid"
 	# wait $(<"$PIDFile")

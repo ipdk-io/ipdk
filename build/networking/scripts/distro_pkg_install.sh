@@ -1,27 +1,8 @@
 #!/bin/bash
-#Copyright (C) 2022 Intel Corporation
+#Copyright (C) 2023 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 #
 # Version 0.1.0
-
-# shellcheck source=networking/scripts/os_ver_details.sh
-SCRIPTS_DIR=/root/scripts
-source "${SCRIPTS_DIR}/os_ver_details.sh"
-get_os_ver_details
-
-usage() {
-    echo ""
-    echo "Usage:"
-    echo "distro_pkg_install.sh: -b -d"
-    echo ""
-    echo "  -b: Development - Installs all packages needed for development"
-    echo "  -d: Deployment - Installs minimal packages needed for runtime"
-    echo ""
-}
-
-# Default settings
-INSTALL_DEVELOPMENT_PKGS=n
-INSTALL_DEPLOYMENT_PKGS=n
 
 # Fedora distro packages instll methods
 fedora_install_build_pkgs() {
@@ -66,12 +47,15 @@ fedora_install_build_pkgs() {
         connect-proxy \
         coreutils \
         numactl-devel \
+        openssl-devel \
+        libatomic \
+        libnl3-devel \
         which
 
     python -m pip install --upgrade pip
     python -m pip install grpcio
     python -m pip install ovspy
-    python -m pip install protobuf==3.20.1
+    python -m pip install protobuf==3.20.3
     python -m pip install p4runtime
     pip3 install pyelftools
     pip3 install scapy
@@ -101,7 +85,7 @@ fedora_install_deployment_pkgs() {
     python -m pip install --upgrade pip
     python -m pip install grpcio
     python -m pip install ovspy
-    python -m pip install protobuf==3.20.1
+    python -m pip install protobuf==3.20.3
     python -m pip install p4runtime
 
     # Cleanup
@@ -125,12 +109,14 @@ fedora_install_default_pkgs() {
         procps-ng \
         iproute \
         net-tools \
-        iputils
+        libatomic \
+        iputils \
+        psmisc
 
     python -m pip install --upgrade pip
     python -m pip install grpcio
     python -m pip install ovspy
-    python -m pip install protobuf==3.20.1
+    python -m pip install protobuf==3.20.3
     python -m pip install p4runtime
 
     # Cleanup
@@ -182,6 +168,11 @@ ubuntu_install_build_pkgs() {
         curl \
         connect-proxy \
         coreutils \
+        libssl-dev \
+        libnl-route-3-dev \
+        libatomic1 \
+        libunwind-dev \
+        wget \
         vim \
         numactl \
         sudo \
@@ -253,7 +244,9 @@ ubuntu_install_default_pkgs() {
         sudo \
         net-tools \
         iproute2 \
-        vim
+        vim \
+        iputils-ping \
+        psmisc
 
     python3 -m pip install --no-cache-dir --upgrade pip
     python3 -m pip install --no-cache-dir grpcio
@@ -275,7 +268,7 @@ ubuntu_install_pkgs() {
         PYTHON_PKG_NAME="python-pip"
         EXTRA_PKGS="language-pack-en"
     else
-        PROTOBUF_VER=3.20.1
+        PROTOBUF_VER=3.20.3
         PYTHON_PKG_NAME="pip"
         EXTRA_PKGS=""
     fi
@@ -305,22 +298,65 @@ fedora_install_pkgs() {
 }
 
 # Main script
-# Process commandline arguments
-while getopts bd flag
-do
-    case "${flag}" in
-        b)
-            INSTALL_DEVELOPMENT_PKGS=y
-            ;;
-        d)
-            INSTALL_DEPLOYMENT_PKGS=y
-            ;;
-        *)
-            usage
-            exit
-            ;;
+usage() {
+    echo ""
+    echo "Usage:"
+    echo "distro_pkg_install.sh: [--install-dev-pkgs] [--install-deployment-pkgs] -s|--scripts-dir"
+    echo ""
+    echo "  --install-dev-pkgs: Installs packages required for development"
+    echo "  --install-deployment-pkgs: Installs packages required for deployment"
+    echo "  -h|--help: Displays help"
+    echo "  -s|--scripts-dir: Directory path where all utility scripts copied. [Default: /root/scripts]"
+    echo "  Default: Installs packages required for running the modules"
+    echo ""
+}
+
+# Parse command-line options.
+SHORTOPTS=":h,s:"
+LONGOPTS=help,install-dev-pkgs,install-deployment-pkgs,scripts-dir:
+
+GETOPTS=$(getopt -o ${SHORTOPTS} --long ${LONGOPTS} -- "$@")
+eval set -- "${GETOPTS}"
+
+# Set defaults.
+INSTALL_DEVELOPMENT_PKGS=n
+INSTALL_DEPLOYMENT_PKGS=n
+SCRIPTS_DIR=/root/scripts
+
+# Process command-line options.
+while true ; do
+    case "${1}" in
+    --install-dev-pkgs)
+        INSTALL_DEVELOPMENT_PKGS=y
+        shift ;;
+    --install-deployment-pkgs)
+        INSTALL_DEPLOYMENT_PKGS=y
+        shift ;;
+    -h|--help)
+        usage
+        exit 1 ;;
+    -s|--scripts-dir)
+        SCRIPTS_DIR="${2}"
+        shift 2 ;;
+    --)
+        shift
+        break ;;
+    *)
+        echo "Internal error!"
+        exit 1 ;;
     esac
 done
+
+# Display argument data after parsing commandline arguments
+echo ""
+echo "INSTALL_DEVELOPMENT_PKGS: ${INSTALL_DEVELOPMENT_PKGS}"
+echo "INSTALL_DEPLOYMENT_PKGS: ${INSTALL_DEPLOYMENT_PKGS}"
+echo "SCRIPTS_DIR: ${SCRIPTS_DIR}"
+echo ""
+
+# shellcheck source=networking/scripts/os_ver_details.sh
+. "${SCRIPTS_DIR}"/os_ver_details.sh
+get_os_ver_details
 
 if [ "${OS}" = "Ubuntu" ]
 then

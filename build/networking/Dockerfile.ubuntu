@@ -7,7 +7,7 @@
 ARG BASE_IMG=${BASE_IMG}
 
 FROM ${BASE_IMG} AS base
-LABEL maintainer="neha1.singh@intel.com"
+LABEL maintainer="venkata.suresh.kumar.p@intel.com"
 ARG PROXY
 ARG BASE_IMG
 ARG KEEP_SOURCE_CODE
@@ -19,12 +19,12 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 WORKDIR /root
 COPY ./scripts scripts
 COPY ./examples /root/examples
-COPY ./start_p4ovs.sh /root/start_p4ovs.sh
+COPY ./install_nr_modules.sh /root/scripts/install_nr_modules.sh
 COPY ./run_ovs_cmds /root/run_ovs_cmds
 COPY ./patches /root/patches
-RUN /root/scripts/distro_pkg_install.sh -b && \
-    /root/start_p4ovs.sh /root && \
-    /root/scripts/run_cleanup.sh /root ${KEEP_SOURCE_CODE} ${DEPLOYMENT_IMAGE}
+RUN /root/scripts/distro_pkg_install.sh --install-dev-pkgs --scripts-dir=/root/scripts && \
+    /root/scripts/install_cmake_3.20.2.sh && \
+    /root/scripts/install_nr_modules.sh --workdir=/root
 
 #..Final Container With Packages And Dependent Libraries..#
 FROM ${BASE_IMG} AS p4-ovs-container
@@ -36,17 +36,23 @@ COPY --from=base /root/scripts /root/scripts
 COPY --from=base /root/examples /root/examples
 COPY --from=base /root/p4c /root/p4c
 COPY --from=base /root/p4-sde/install /root/p4-sde/install
-COPY --from=base /root/p4ovs /root/p4ovs
-COPY --from=base /root/source_code /root/source_code
+COPY --from=base /root/networking-recipe/install /root/networking-recipe/install
+COPY --from=base /root/networking-recipe/deps_install /root/networking-recipe/deps_install
+#COPY --from=base /root/source_code /root/source_code
+
 # Configuration Files
-COPY --from=base /root/configs/tofino_skip_p4_no_bsp.conf \
-     /usr/share/stratum/target_skip_p4_no_bsp.conf
-COPY --from=base /root/configs/dpdk_port_config.pb.txt /usr/share/stratum/dpdk_port_config.pb.txt
 COPY --from=base /root/p4-sde/install/share/target_sys/zlog-cfg /usr/share/target_sys/zlog-cfg
+COPY --from=base \
+    /root/networking-recipe/install/share/stratum/dpdk/dpdk_skip_p4.conf \
+    /usr/share/stratum/dpdk/dpdk_skip_p4.conf
+COPY --from=base \
+    /root/networking-recipe/install/share/stratum/dpdk/dpdk_port_config.pb.txt \
+    /usr/share/stratum/dpdk/dpdk_port_config.pb.txt
 
 RUN if [ "${DEPLOYMENT_IMAGE}" = "YES" ]; then \
-        /root/scripts/distro_pkg_install.sh -d; \
+        /root/scripts/distro_pkg_install.sh --install-deployment-pkgs --scripts-dir=/root/scripts; \
     else \
-        /root/scripts/distro_pkg_install.sh; \
+        /root/scripts/distro_pkg_install.sh --scripts-dir=/root/scripts; \
     fi && \
+    mkdir -p /var/log/stratum && \
     mkdir /etc/stratum && touch /etc/stratum/pipeline_cfg.pb.txt

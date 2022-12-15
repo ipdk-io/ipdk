@@ -55,10 +55,13 @@ apt-get install -y apt-utils \
         telnet \
         qemu-kvm
 
+apt-get --allow-downgrades install -y libssl1.1="1.1.1f-1ubuntu2.16" \
+        libssl-dev
+
 pip install --upgrade pip
 pip install grpcio \
             ovspy \
-            protobuf \
+            protobuf==3.20.3 \
             p4runtime \
             pyelftools \
             scapy \
