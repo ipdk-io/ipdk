@@ -346,29 +346,29 @@ docker_execute() {
 }
 
 #
-# Execute gnmi-cli command on host
-# $1 = COMMAND gnmi-cli command
-# $2 = PARAMETER gnmi-cli command parameter
+# Execute gnmi-ctl command on host
+# $1 = COMMAND gnmi-ctl command
+# $2 = PARAMETER gnmi-ctl command parameter
 #
 gnmi_cli_local() {
 	local COMMAND=$1
 	local PARAMETER=$2
 
-	gnmi-cli "$COMMAND" "$PARAMETER"
+	gnmi-ctl "$COMMAND" "$PARAMETER"
 }
 
 #
-# Execute gnmi-cli command on running IPDK docker container
+# Execute gnmi-ctl command on running IPDK docker container
 # $1 = CONTAINER_NAME container name to run in
-# $2 = COMMAND gnmi-cli command
-# $3 = PARAMETER gnmi-cli cammand parameter
+# $2 = COMMAND gnmi-ctl command
+# $3 = PARAMETER gnmi-ctl cammand parameter
 #
 gnmi_cli_docker() {
 	local CONTAINER_NAME=$1
 	local COMMAND=$2
 	local PARAMETER=$3
 
-	docker_execute "${CONTAINER_NAME}" /root gnmi-cli "$COMMAND" "$PARAMETER"
+	docker_execute "${CONTAINER_NAME}" /root gnmi-ctl "$COMMAND" "$PARAMETER"
 }
 
 #
@@ -379,14 +379,14 @@ gnmi_cli_docker() {
 generate_pipeline_files_local() {
 	local SOURCE=$1
 
-	print_banner "Generating pipeline files from P4C and OVS pipeline builder"
+	print_banner "Generating pipeline files from P4C and TDI pipeline builder"
 
 	p4c --arch psa --target dpdk --output "$SOURCE/pipe" --p4runtime-files \
 		"$SOURCE/p4Info.txt" --bf-rt-schema "$SOURCE/bf-rt.json" \
 		--context "$SOURCE/pipe/context.json" "$SOURCE/simple_l3.p4"
 
 	pushd "$SOURCE" || exit
-		ovs_pipeline_builder --p4c_conf_file=simple_l3.conf \
+		tdi_pipeline_builder --p4c_conf_file=simple_l3.conf \
 			--bf_pipeline_config_binary_file=simple_l3.pb.bin
 	popd || exit
 }
@@ -402,16 +402,16 @@ generate_pipeline_files_docker() {
 
 	docker_execute "${CONTAINER_NAME}" "${SOURCE}" p4c --arch psa --target dpdk --output "$SOURCE/pipe" --p4runtime-files "$SOURCE/p4Info.txt" --bf-rt-schema "$SOURCE/bf-rt.json" --context "$SOURCE/pipe/context.json" "$SOURCE/simple_l3.p4"
 
-	docker_execute "${CONTAINER_NAME}" "${SOURCE}" ovs_pipeline_builder --p4c_conf_file=simple_l3.conf --bf_pipeline_config_binary_file=simple_l3.pb.bin
+	docker_execute "${CONTAINER_NAME}" "${SOURCE}" tdi_pipeline_builder --p4c_conf_file=simple_l3.conf --bf_pipeline_config_binary_file=simple_l3.pb.bin
 }
 
 #
 # Add the created forwarding pipeline programm
 #
 program_pipeline_local() {
-	print_banner "Programming P4-OVS pipeline"
+	print_banner "Programming Networking-Recipe pipeline"
 
-	ovs-p4ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin \
+	p4rt-ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin \
 		/root/examples/simple_l3/p4Info.txt
 }
 
@@ -422,31 +422,31 @@ program_pipeline_local() {
 program_pipeline_docker() {
 	local CONTAINER_NAME=$1
 
-	docker_execute "${CONTAINER_NAME}" /root ovs-p4ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin /root/examples/simple_l3/p4Info.txt
+	docker_execute "${CONTAINER_NAME}" /root p4rt-ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin /root/examples/simple_l3/p4Info.txt
 }
 
 #
-# add the table rules using local ovs-p4ctl
+# add the table rules using local p4rt-ctl
 #
 add_table_rules_local() {
 	print_banner "Add table rules to the pipeline"
 
-	ovs-p4ctl add-entry br0 ingress.ipv4_host \
+	p4rt-ctl add-entry br0 ingress.ipv4_host \
 		"hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
-	ovs-p4ctl add-entry br0 ingress.ipv4_host \
+	p4rt-ctl add-entry br0 ingress.ipv4_host \
 		"hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
 }
 
 #
-# add the table rules using docker ovs-p4ctl
+# add the table rules using docker p4rt-ctl
 # $1 = CONTAINER_NAME container name to run in
 #
 add_table_rules_docker() {
 	local CONTAINER_NAME=$1
 
-	docker_execute "${CONTAINER_NAME}" /root ovs-p4ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
+	docker_execute "${CONTAINER_NAME}" /root p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
 
-	docker_execute "${CONTAINER_NAME}" /root ovs-p4ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
+	docker_execute "${CONTAINER_NAME}" /root p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
 }
 
 #
@@ -470,8 +470,8 @@ start_host_demo() {
 
 	print_banner "Creating vhost-user ports"
 
-	gnmi_cli_local set "device:virtual-device,name:net_vhost0,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:$INTF_LOCATION/vhost-user-0,port-type:LINK"
-	gnmi_cli_local set "device:virtual-device,name:net_vhost1,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:$INTF_LOCATION/vhost-user-1,port-type:LINK"
+	gnmi_cli_local set "device:virtual-device,name:net_vhost0,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:$INTF_LOCATION/vhost-user-0,port-type:LINK"
+	gnmi_cli_local set "device:virtual-device,name:net_vhost1,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:$INTF_LOCATION/vhost-user-1,port-type:LINK"
 
 	generate_pipeline_files_local "$PIPE_LOCATION" "/root/examples/simple_l3/"
 
@@ -507,13 +507,13 @@ start_docker_demo() {
 	"$SCRIPT_DIR"/set_hugepages.sh
 
 	print_banner "Creating vhost-user ports"
-	gnmi_cli_docker "$CONTAINER_NAME" set "device:virtual-device,name:net_vhost0,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:$INTF_LOCATION/vhost-user-0,port-type:LINK"
-	gnmi_cli_docker "$CONTAINER_NAME" set "device:virtual-device,name:net_vhost1,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:$INTF_LOCATION/vhost-user-1,port-type:LINK"
+	gnmi_cli_docker "$CONTAINER_NAME" set "device:virtual-device,name:net_vhost0,host-name:host1, device-type:VIRTIO_NET,queues:1,socket-path:$INTF_LOCATION/vhost-user-0,port-type:LINK"
+	gnmi_cli_docker "$CONTAINER_NAME" set "device:virtual-device,name:net_vhost1,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:$INTF_LOCATION/vhost-user-1,port-type:LINK"
 
-	print_banner "Generating simple_l3 pipeline package with P4C and OVS pipeline builder"
+	print_banner "Generating simple_l3 pipeline package with P4C and TDI pipeline builder"
 	generate_pipeline_files_docker "$CONTAINER_NAME" "$PIPE_LOCATION" "/root/examples/simple_l3"
 
-	print_banner "Programming P4-OVS pipeline"
+	print_banner "Programming Networking-Recipe pipeline"
 	program_pipeline_docker "$CONTAINER_NAME" 
 
 	print_banner "Add table rules to the pipeline"
