@@ -60,6 +60,8 @@ class Fio(BaseTest):
             # self.assertIn("min", fio)
             # self.assertIn("max", fio)
             self.assertIn("err= 0", fio)
+            self.assertIn("err= 0", fio)
+            self.assertIn("err= 0", fio)
 
 
     def tearDown(self):
