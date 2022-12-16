@@ -59,8 +59,8 @@ class Fio(BaseTest):
             print(fio)
             # self.assertIn("min", fio)
             # self.assertIn("max", fio)
-            self.assertIn("err= 0", fio)
-            self.assertIn("err= 0", fio)
+            self.assertIn("err= 1", fio)
+            self.assertIn("err= 2", fio)
             self.assertIn("err= 0", fio)
 
 
