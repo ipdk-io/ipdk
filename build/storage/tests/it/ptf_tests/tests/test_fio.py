@@ -54,13 +54,20 @@ class Fio(BaseTest):
             )
         )
 
-        for device in devices_handles:
-            fio = device.run_fio()
-            fio_with_params = device.run_fio_with_params(mode="randrw", runtime=1, numjobs=1, time_based=1,
-                                                         group_reporting=1)
-            print(fio)
-            print("now with params")
+        fio_modes = ['randrw', 'randread', 'write', 'readwrite', 'randwrite', 'read', 'trim']
+
+        x = devices_handles[0]
+        for mode in fio_modes:
+            fio_with_params = x.run_fio_with_params(mode=mode, runtime=1, numjobs=1, time_based=1, group_reporting=1)
             print(fio_with_params)
+            self.assertIn("err =0", fio_with_params)
+        # for device in devices_handles:
+        #     fio = device.run_fio()
+        #     fio_with_params = device.run_fio_with_params(mode="randrw", runtime=1, numjobs=1, time_based=1,
+        #                                                  group_reporting=1)
+        #     print(fio)
+        #     print("now with params")
+        #     print(fio_with_params)
             # self.assertIn("err= 0", fio)
 
             self.assertIn("err= 0", fio_with_params)
