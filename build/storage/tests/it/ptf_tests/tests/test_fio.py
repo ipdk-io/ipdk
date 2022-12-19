@@ -63,6 +63,8 @@ class Fio(BaseTest):
             print(fio_with_params)
             self.assertIn("err= 0", fio)
 
+            self.assertIn("err= 0", fio_with_params)
+
     def tearDown(self):
         self.ipu_storage_platform.clean()
         self.storage_target_platform.clean()
