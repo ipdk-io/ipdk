@@ -56,13 +56,12 @@ class Fio(BaseTest):
 
         for device in devices_handles:
             fio = device.run_fio()
+            fio_with_params = device.run_fio_with_params(mode="randrw", runtime=1, numjobs=1, time_based=1,
+                                                         group_reporting=1)
             print(fio)
-            # self.assertIn("min", fio)
-            # self.assertIn("max", fio)
-            self.assertIn("err= 1", fio)
-            self.assertIn("err= 2", fio)
+            print("now with params")
+            print(fio_with_params)
             self.assertIn("err= 0", fio)
-
 
     def tearDown(self):
         self.ipu_storage_platform.clean()
