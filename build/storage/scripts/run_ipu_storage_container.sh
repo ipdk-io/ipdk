@@ -63,6 +63,10 @@ ARGS=()
 ARGS+=("-v" "${SHARED_VOLUME}:/${SHARED_VOLUME}")
 ARGS+=("-v" "${tmp_sma_config_file}:/sma_config.yml")
 ARGS+=("-e" "SPDK_ARGS=${SPDK_ARGS}")
+if [ "$OPTIMIZED_SPDK" == "true" ]; then
+    export BUILD_IMAGE=true
+    export SPDK_TARGET_ARCH=native
+fi
 
 # shellcheck source=./scripts/run_container.sh
 # shellcheck disable=SC1091,SC1090

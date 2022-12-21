@@ -5,6 +5,7 @@
 #
 
 [ "$DEBUG" == 'true' ] && set -x
+set -e
 
 declare https_proxy
 declare http_proxy
