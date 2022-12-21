@@ -16,6 +16,7 @@ class Fio(BaseTest):
         )
         self.ipu_storage_platform = self.platforms_factory.create_ipu_storage_platform()
         self.host_target_platform = self.platforms_factory.create_host_target_platform()
+        self.result = []
 
     def runTest(self):
 
