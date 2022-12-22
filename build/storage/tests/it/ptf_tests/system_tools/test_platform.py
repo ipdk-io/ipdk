@@ -62,7 +62,7 @@ class IpuStorageDevice:
               f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} """ \
               f""" fioArgs: """
 
-        cmd += """"rw":"randrw" "runtime":"1" "numjobs":"1" "timebased":"1" """
+        cmd += """\'"rw":"randrw" "runtime":"1" "numjobs":"1" "timebased":"1"\' """
         # for key, value in fio_params.items():
         #     add = ("\"" + key + "\":\"" + value+"\" ")
         #
