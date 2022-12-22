@@ -62,11 +62,12 @@ class IpuStorageDevice:
               f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} """ \
               f""" fioArgs: """
 
-        for key, value in fio_params.items():
-            add = ("\"" + key + "\":\"" + value+"\" ")
-
-            cmd += add
-        cmd += "\""
+        cmd += """"rw":"randrw" "runtime":"1" "numjobs":"1" "timebased":"1" """
+        # for key, value in fio_params.items():
+        #     add = ("\"" + key + "\":\"" + value+"\" ")
+        #
+        #     cmd += add
+        # cmd += "\""
         print(cmd)
         return self._ipu_platform.terminal.execute(cmd)
 
