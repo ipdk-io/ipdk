@@ -16,10 +16,8 @@ class Fio(BaseTest):
         )
         self.ipu_storage_platform = self.platforms_factory.create_ipu_storage_platform()
         self.host_target_platform = self.platforms_factory.create_host_target_platform()
-        self.result = []
 
     def runTest(self):
-
         self.storage_target_platform.create_subsystem(
             self.tests_config.nqn,
             self.tests_config.nvme_port,
@@ -40,25 +38,14 @@ class Fio(BaseTest):
             )
         )
 
-        fio_modes = ['randrw', 'randread', 'write', 'readwrite', 'randwrite', 'read', 'trim']
+        for device in devices_handles:
+            fio = device.run_fio_dict()
+            print(fio)
+            self.assertIn("err= 0", fio)
 
-        x = devices_handles[0]
-        for mode in fio_modes:
-            fio_with_params = x.run_fio_with_params(mode=mode, runtime=1, numjobs=1, time_based=1, group_reporting=1)
-            print("FIO: "+mode + "\n")
-            print(fio_with_params)
-            self.result[mode] = fio_with_params
-        # for device in devices_handles:
-        #     fio = device.run_fio()
-        #     fio_with_params = device.run_fio_with_params(mode="randrw", runtime=1, numjobs=1, time_based=1,
-        #                                                  group_reporting=1)
-        #     print(fio)
-        #     print("now with params")
-        #     print(fio_with_params)
-            # self.assertIn("err= 0", fio)
+        # fio_modes = ['randrw', 'randread', 'write', 'readwrite', 'randwrite', 'read', 'trim']
 
-        assert "read" in self.result["randrw"]
-
+        # assert "read" in self.result["randrw"]
 
     def tearDown(self):
         self.ipu_storage_platform.clean()
