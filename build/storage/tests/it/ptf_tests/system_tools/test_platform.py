@@ -64,6 +64,7 @@ class IpuStorageDevice:
             add = ("\"" + key + "\":\"" + value+"\" ")
 
             cmd += add
+        cmd += "\""
         print(cmd)
         return self._ipu_platform.terminal.execute(cmd)
 
