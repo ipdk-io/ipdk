@@ -59,7 +59,7 @@ class IpuStorageDevice:
         }
         cmd_sender_id = self._ipu_platform.cmd_sender.id
         cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
-              f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: '"""
+              f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """
         for key, value in fio_params.items():
             cmd += f""""{key}":"{value}", """
         print(cmd)
