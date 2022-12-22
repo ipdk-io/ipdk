@@ -63,7 +63,6 @@ class IpuStorageDevice:
         for key, value in fio_params.items():
             cmd += f""""{key}":"{value}", """
 
-        cmd += "'"
         return self._ipu_platform.terminal.execute(cmd)
 
     # def run_fio_with_params(self, mode, runtime, numjobs, time_based, group_reporting):
