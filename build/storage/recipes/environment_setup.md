@@ -123,6 +123,12 @@ scripts/run_ipu_storage_container.sh
 `SHARED_VOLUME` points to a directory where vhost storage devices
 will be exposed.
 
+**Note:** By default, images for `storage-target` and `ipu-storage-container`
+will be pulled from IPDK public registry for the scripts in the main branch.
+However, those images are not optimized for a local CPU and if such an
+optimization is required, then `OPTIMIZED_SPDK=true` environment variable should
+be exported before running the scripts above.
+
 It is also possible for `storage-target` to specify ip addresses and ports where
 spdk service is exposed on by specifying `SPDK_IP_ADDR` and `SPDK_PORT`
 environment variables.

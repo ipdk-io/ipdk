@@ -40,6 +40,10 @@ ARGS=()
 ARGS+=("-e" "SPDK_IP_ADDR=${SPDK_IP_ADDR}")
 ARGS+=("-e" "SPDK_PORT=${SPDK_PORT}")
 ARGS+=("-e" "SPDK_ARGS=${SPDK_ARGS}")
+if [ "$OPTIMIZE_SPDK" == "true" ]; then
+    export BUILD_IMAGE=true
+    export SPDK_TARGET_ARCH=native
+fi
 
 # shellcheck source=./scripts/run_container.sh
 # shellcheck disable=SC1091,SC1090
