@@ -41,13 +41,13 @@ class IpuStorageDevice:
         self._device_handle = device_handle
         self._ipu_platform = ipu_platform
 
-    # def run_fio(self):
-    #     cmd_sender_id = self._ipu_platform.cmd_sender.id
-    #     cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
-    #           f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """ \
-    #           f"""'{{\\"rw\\":\\"randrw\\", \\"runtime\\":1, \\"numjobs\\": 1, \\"time_based\\": 1, """ \
-    #           f"""\\"group_reporting\\": 1 }}'" """
-    #     return self._ipu_platform.terminal.execute(cmd)
+    def run_fio(self):
+        cmd_sender_id = self._ipu_platform.cmd_sender.id
+        cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
+              f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """ \
+              f"""'{{\\"rw\\":\\"randrw\\", \\"runtime\\":1, \\"numjobs\\": 1, \\"time_based\\": 1, """ \
+              f"""\\"group_reporting\\": 1 }}'" """
+        return self._ipu_platform.terminal.execute(cmd)
 
     def run_fio_dict(self):
         fio_params = {
@@ -62,7 +62,7 @@ class IpuStorageDevice:
               f""" diskToExercise: {{ deviceHandle: '{self._device_handle}' }} """ \
               f" fioArgs: "
 
-        cmd += f'\"{{"rw":"randrw" "runtime":"1" "numjobs":"1" "timebased":"1"}}\" '
+        cmd += f"""\'{{"rw":"randrw" "runtime":"1" "numjobs":"1" "timebased":"1"}}\'"""
         # for key, value in fio_params.items():
         #     add = ("\"" + key + "\":\"" + value+"\" ")
         #
