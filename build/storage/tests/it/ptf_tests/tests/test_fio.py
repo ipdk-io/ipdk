@@ -47,7 +47,7 @@ class Fio(BaseTest):
 
         # assert "read" in self.result["randrw"]
 
-    def tearDown(self):
-        self.ipu_storage_platform.clean()
-        self.storage_target_platform.clean()
-        self.host_target_platform.clean()
+    #def tearDown(self):
+    #    self.ipu_storage_platform.clean()
+    #    self.storage_target_platform.clean()
+    #    self.host_target_platform.clean()
