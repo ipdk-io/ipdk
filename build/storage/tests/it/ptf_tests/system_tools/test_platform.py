@@ -47,6 +47,7 @@ class IpuStorageDevice:
               f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """ \
               f"""'{{\\"rw\\":\\"randrw\\", \\"runtime\\":1, \\"numjobs\\": 1, \\"time_based\\": 1, """ \
               f"""\\"group_reporting\\": 1 }}'" """
+        print(cmd)
         return self._ipu_platform.terminal.execute(cmd)
 
     def run_fio_dict(self):
