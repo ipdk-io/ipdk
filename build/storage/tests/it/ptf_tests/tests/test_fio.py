@@ -39,8 +39,8 @@ class Fio(BaseTest):
         )
 
         for device in devices_handles:
-            fiox = device.run_fio()
-            print(fiox)
+            # fiox = device.run_fio()
+            # print(fiox)
             fio = device.run_fio_dict()
             print(fio)
             self.assertIn("err= 0", fio)
