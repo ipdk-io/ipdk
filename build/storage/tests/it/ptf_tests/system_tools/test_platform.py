@@ -52,7 +52,7 @@ class IpuStorageDevice:
 
     def run_fio_dict(self):
         x = '\\"rw\\"'
-        y = '\\randrw\\"'
+        y = '\\"randrw\\"'
         fio_params = {
             '\\"rw\\"': "randrw",
             "runtime": 1,
