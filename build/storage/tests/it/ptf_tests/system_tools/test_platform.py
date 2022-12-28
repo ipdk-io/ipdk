@@ -64,7 +64,7 @@ class IpuStorageDevice:
         cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio """ \
               f"""\"diskToExercise: {{deviceHandle:'{self._device_handle}'}} """ \
               f"fioArgs: " \
-              f"""\'{{{x}:{y}, \\"runtime\\":1, \\"numjobs\\":1, \\"time_based\\":1}}\'\""""
+              f"""\'{{{x}:{y}, \\"runtime\\":\\"1\\", \\"numjobs\\":\\"1\\", \\"time_based\\":\\"1\\"}}\'\""""
 
         # cmd += f"""\'{{"rw":"randrw", "runtime":"1", "numjobs":"1", "timebased":"1"}}\'\""""
         # for key, value in fio_params.items():
@@ -74,14 +74,6 @@ class IpuStorageDevice:
         # cmd += "\""
         print(cmd)
         return self._ipu_platform.terminal.execute(cmd)
-
-    # def run_fio_with_params(self, mode, runtime, numjobs, time_based, group_reporting):
-    #     cmd_sender_id = self._ipu_platform.cmd_sender.id
-    #     cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
-    #           f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """ \
-    #           f"""'{{\\"rw\\":\\"{mode}\\", \\"runtime\\":{runtime}, \\"numjobs\\": {numjobs}, \\"time_based\\": {time_based}, """ \
-    #           f"""\\"group_reporting\\": {group_reporting} }}'" """
-    #     return self._ipu_platform.terminal.execute(cmd)
 
 
 class VirtioBlkDevice(IpuStorageDevice):
