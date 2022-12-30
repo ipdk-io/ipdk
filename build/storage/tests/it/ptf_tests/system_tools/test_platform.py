@@ -50,7 +50,7 @@ class IpuStorageDevice:
         x = '\\"rw\\"'
         y = '\\"randrw\\"'
         fio_params = {
-            '\\"rw\\"': "randrw",
+            "rw": "randrw",
             "runtime": 1,
             "numjobs": 1,
             "time_based": 1,
