@@ -43,14 +43,10 @@ class IpuStorageDevice:
 
     # def run_fio(self):
     #     cmd_sender_id = self._ipu_platform.cmd_sender.id
-    #     cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
-    #           f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """ \
-    #           f"""'{{\\"rw\\":\\"randrw\\", \\"runtime\\":1, \\"numjobs\\": 1, \\"time_based\\": 1, """ \
-    #           f"""\\"group_reporting\\": 1 }}'" """
-    #     print(cmd)
     #     return self._ipu_platform.terminal.execute(cmd)
 
     def run_fio_dict(self):
+
         x = '\\"rw\\"'
         y = '\\"randrw\\"'
         fio_params = {
@@ -60,18 +56,24 @@ class IpuStorageDevice:
             "time_based": 1,
             "group_reporting": 1
         }
+
         cmd_sender_id = self._ipu_platform.cmd_sender.id
         cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio """ \
               f"""\"diskToExercise: {{deviceHandle:'{self._device_handle}'}} """ \
               f"fioArgs: " \
-              # f"""\'{{{x}:{y}, \\"runtime\\":\\"1\\", \\"numjobs\\":\\"1\\", \\"time_based\\":\\"1\\"}}\'\""""
+            # f"""\'{{{x}:{y}, \\"runtime\\":\\"1\\", \\"numjobs\\":\\"1\\", \\"time_based\\":\\"1\\"}}\'\""""
         for key, value in fio_params.items():
-            cmd += f""" \\"{key}\\":\\"{value}\\" """
+            cmd += f"""\\"{key}\\":\\"{value}\\""""
 
 
         # cmd += f"""\'{{"rw":"randrw", "runtime":"1", "numjobs":"1", "timebased":"1"}}\'\""""
         # cmd += "\""
         print(cmd)
+        cmd1 = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
+               f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """ \
+               f"""'{{\\"rw\\":\\"randrw\\", \\"runtime\\":1, \\"numjobs\\": 1, \\"time_based\\": 1, """ \
+               f"""\\"group_reporting\\": 1 }}'" """
+        print(cmd1)
         return self._ipu_platform.terminal.execute(cmd)
 
 
