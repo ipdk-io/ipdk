@@ -41,14 +41,7 @@ class IpuStorageDevice:
         self._device_handle = device_handle
         self._ipu_platform = ipu_platform
 
-    # def run_fio(self):
-    #     cmd_sender_id = self._ipu_platform.cmd_sender.id
-    #     return self._ipu_platform.terminal.execute(cmd)
-
     def run_fio_dict(self):
-
-        x = '\\"rw\\"'
-        y = '\\"randrw\\"'
         fio_params = {
             "rw": "randrw",
             "runtime": 1,
@@ -60,23 +53,26 @@ class IpuStorageDevice:
         cmd_sender_id = self._ipu_platform.cmd_sender.id
         cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio """ \
               f"""\"diskToExercise: {{deviceHandle:'{self._device_handle}'}} """ \
-              f"fioArgs: '{{" \
-            # f"""\'{{{x}:{y}, \\"runtime\\":\\"1\\", \\"numjobs\\":\\"1\\", \\"time_based\\":\\"1\\"}}\'\""""
+              f"fioArgs: '{{"
         for key, value in fio_params.items():
             cmd += f'\\"{key}\\":\\"{value}\\", '
-
         cmd = cmd[:-2]
         cmd += f"}}'\""
-        # cmd += f"""\'{{"rw":"randrw", "runtime":"1", "numjobs":"1", "timebased":"1"}}\'\""""
-        # cmd += "\""
         print(cmd)
-        cmd1 = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio""" \
-               f""" "diskToExercise: {{ deviceHandle: '{self._device_handle}' }} fioArgs: """ \
-               f"""'{{\\"rw\\":\\"randrw\\", \\"runtime\\":1, \\"numjobs\\": 1, \\"time_based\\": 1, """ \
-               f"""\\"group_reporting\\": 1 }}'" """
-        print(cmd1)
         return self._ipu_platform.terminal.execute(cmd)
 
+    def run_fio_dictionary(self, fio_params):
+    
+        cmd_sender_id = self._ipu_platform.cmd_sender.id
+        cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio """ \
+              f"""\"diskToExercise: {{deviceHandle:'{self._device_handle}'}} """ \
+              f"fioArgs: '{{"
+        for key, value in fio_params.items():
+            cmd += f'\\"{key}\\":\\"{value}\\", '
+        cmd = cmd[:-2]
+        cmd += f"}}'\""
+        print(cmd)
+        return self._ipu_platform.terminal.execute(cmd)
 
 class VirtioBlkDevice(IpuStorageDevice):
     def __init__(

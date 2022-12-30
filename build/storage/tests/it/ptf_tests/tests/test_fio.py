@@ -38,12 +38,19 @@ class Fio(BaseTest):
             )
         )
 
+        fio_params = {
+            "rw": "randrw",
+            "runtime": 1,
+            "numjobs": 1,
+            "time_based": 1,
+            "group_reporting": 1
+        }
+
         for device in devices_handles:
-            # fiox = device.run_fio()
-            # print(fiox)
-            fio = device.run_fio_dict()
-            print(fio)
-            self.assertIn("err= 0", fio)
+            fiox = device.run_fio_dictionary(fio_params)
+            # fio = device.run_fio_dict()
+            print(fiox)
+            self.assertIn("err= 0", fiox)
 
         # fio_modes = ['randrw', 'randread', 'write', 'readwrite', 'randwrite', 'read', 'trim']
 
