@@ -63,7 +63,7 @@ class IpuStorageDevice:
               f"fioArgs: " \
             # f"""\'{{{x}:{y}, \\"runtime\\":\\"1\\", \\"numjobs\\":\\"1\\", \\"time_based\\":\\"1\\"}}\'\""""
         for key, value in fio_params.items():
-            cmd += f"""\\"{key}\\":\\"{value}\\""""
+            cmd += f'\\"{key}\\":\\"{value}\\"'
 
 
         # cmd += f"""\'{{"rw":"randrw", "runtime":"1", "numjobs":"1", "timebased":"1"}}\'\""""
