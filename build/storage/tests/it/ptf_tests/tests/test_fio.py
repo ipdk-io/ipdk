@@ -45,7 +45,7 @@ class Fio(BaseTest):
             fio_randread = device.run_fio_dictionary(FIO_RANDREAD)
             print(fio_randread)
             self.assertIn("err= 0", fio_randread)
-            fio_write = device.run_fio_dictionary(fio_write)
+            fio_write = device.run_fio_dictionary(FIO_WRITE)
             print(fio_write)
             self.assertIn("err= 0", fio_write)
             fio_readwrite = device.run_fio_dictionary(FIO_READWRITE)
