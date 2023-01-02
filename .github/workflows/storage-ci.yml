@@ -60,7 +60,7 @@ jobs:
     - name: 'Checkout'
       uses: actions/checkout@v3
     - name: 'Run Bandit Test'
-      uses: tj-actions/bandit@v5.1
+      uses: tj-actions/bandit@v5.3
       with:
         targets: |  # or a single string "."
           ./build/storage/core/host-target/
