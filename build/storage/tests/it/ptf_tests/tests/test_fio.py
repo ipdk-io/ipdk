@@ -1,7 +1,7 @@
 # Copyright (C) 2022 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
-
+from system_tools.const import FIO_WRITE, FIO_RANDREAD, FIO_READWRITE, FIO_RANDRW, FIO_READ, FIO_TRIM, FIO_RANDWRITE
 from ptf.base_tests import BaseTest
 from system_tools.config import TestConfig
 from system_tools.test_platform import PlatformFactory
@@ -38,23 +38,13 @@ class Fio(BaseTest):
             )
         )
 
-        fio_params = {
-            "rw": "randrw",
-            "runtime": 1,
-            "numjobs": 1,
-            "time_based": 1,
-            "group_reporting": 1
-        }
-
         for device in devices_handles:
-            fiox = device.run_fio_dictionary(fio_params)
-            # fio = device.run_fio_dict()
-            print(fiox)
-            self.assertIn("err= 0", fiox)
-
-        # fio_modes = ['randrw', 'randread', 'write', 'readwrite', 'randwrite', 'read', 'trim']
-
-        # assert "read" in self.result["randrw"]
+            fio_trim = device.run_fio_dictionary(FIO_TRIM)
+            print(fio_trim)
+            self.assertIn("err= 0", fio_trim)
+            fio_randrw = device.run_fio_dictionary(FIO_RANDRW)
+            print(fio_randrw)
+            self.assertIn("err= 0", fio_randrw)
 
     def tearDown(self):
         self.ipu_storage_platform.clean()

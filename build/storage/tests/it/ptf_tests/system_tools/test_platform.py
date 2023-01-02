@@ -34,9 +34,9 @@ class ServiceAddress:
 
 class IpuStorageDevice:
     def __init__(
-        self,
-        device_handle,
-        ipu_platform,
+            self,
+            device_handle,
+            ipu_platform,
     ):
         self._device_handle = device_handle
         self._ipu_platform = ipu_platform
@@ -62,7 +62,7 @@ class IpuStorageDevice:
         return self._ipu_platform.terminal.execute(cmd)
 
     def run_fio_dictionary(self, fio_params):
-    
+
         cmd_sender_id = self._ipu_platform.cmd_sender.id
         cmd = f"""docker exec {cmd_sender_id} grpc_cli call {self._ipu_platform.get_ip_address()}:50051 RunFio """ \
               f"""\"diskToExercise: {{deviceHandle:'{self._device_handle}'}} """ \
@@ -74,13 +74,14 @@ class IpuStorageDevice:
         print(cmd)
         return self._ipu_platform.terminal.execute(cmd)
 
+
 class VirtioBlkDevice(IpuStorageDevice):
     def __init__(
-        self,
-        device_handle,
-        remote_nvme_storage,
-        ipu_platform,
-        host_target_address_service,
+            self,
+            device_handle,
+            remote_nvme_storage,
+            ipu_platform,
+            host_target_address_service,
     ):
         super().__init__(device_handle, ipu_platform)
         self._remote_nvme_storage = remote_nvme_storage
@@ -180,7 +181,7 @@ class BaseTestPlatform:
         )
         _, stdout, stderr = self.terminal.client.exec_command(cmd)
         return (
-            "disabled" in stdout.read().decode() or "disabled" in stderr.read().decode()
+                "disabled" in stdout.read().decode() or "disabled" in stderr.read().decode()
         )
 
     # TODO add implementation
@@ -264,10 +265,10 @@ class IPUStoragePlatform(BaseTestPlatform):
         return self.config.sma_port
 
     def create_virtio_blk_devices(
-        self,
-        host_target_address_service,
-        volumes,
-        physical_ids,
+            self,
+            host_target_address_service,
+            volumes,
+            physical_ids,
     ):
         device_handles = []
         for volume, physical_id in zip(volumes, physical_ids):
@@ -291,9 +292,9 @@ class IPUStoragePlatform(BaseTestPlatform):
         return device_handles
 
     def create_virtio_blk_devices_sequentially(
-        self,
-        host_target_address_service,
-        volumes,
+            self,
+            host_target_address_service,
+            volumes,
     ):
         return self.create_virtio_blk_devices(
             host_target_address_service,
