@@ -1,10 +1,10 @@
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
-from system_tools.const import FIO_WRITE, FIO_RANDREAD, FIO_READWRITE, FIO_RANDRW, FIO_READ, FIO_TRIM, FIO_RANDWRITE
 from ptf.base_tests import BaseTest
 from system_tools.config import TestConfig
 from system_tools.test_platform import PlatformFactory
+from system_tools.const import FIO_WRITE, FIO_RANDREAD, FIO_READWRITE, FIO_RANDRW, FIO_READ, FIO_TRIM, FIO_RANDWRITE
 
 
 class Fio(BaseTest):
