@@ -5,12 +5,22 @@
 #
 
 [ "$DEBUG" == 'true' ] && set -x
+set -e
 
 declare https_proxy
 declare http_proxy
 declare no_proxy
 
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+
+function find_latest_commit_with_changes_in_storage_dir() {
+    branch="$(git rev-parse HEAD)"
+    commit="$(git log --format=format:%h -n 1 -- "$scripts_dir/..")"
+    (git rev-list --format=format:%h "$commit".."$branch" --ancestry-path | \
+        cat -n; git rev-list --format=format:%h "$commit".."$branch" --first-parent | cat -n) \
+        | sort -k2 -s | uniq -f1 -d | sort -n | tail -1 | cut -f2
+}
+
 
 if [[ -n "${SPDK_CONFIG_FILE}" ]] ; then
     SPDK_CONFIG_FILE=$(realpath "${SPDK_CONFIG_FILE}")
@@ -22,8 +32,37 @@ if [ "$ALLOCATE_HUGEPAGES" == "true" ] ; then
     ARGS+=("-v" "/dev/hugepages:/dev/hugepages")
 fi
 
-if [ "$BUILD_IMAGE" == "true" ] ; then
-    bash "${scripts_dir}"/build_container.sh "$IMAGE_NAME"
+if [ "$DO_NOT_FETCH_OR_BUILD_IMAGE" == "true" ] ; then
+    echo "Image will not be fetched from remote registry or built locally."
+else
+    if [ "$BUILD_IMAGE" != "true" ] ; then
+        branch=$(git rev-parse --abbrev-ref HEAD)
+        if [ "$branch" == "main" ] ; then
+            echo "Image '$IMAGE_NAME' will be fetched from public registry."
+            commit_sha_with_changes_in_storage=$(find_latest_commit_with_changes_in_storage_dir)
+            arch=$(uname -m)
+            fetch_image_name="ghcr.io/ipdk-io/storage/$IMAGE_NAME-kvm-$arch:sha-$commit_sha_with_changes_in_storage"
+            if docker pull "$fetch_image_name" ; then
+                IMAGE_NAME="$fetch_image_name"
+            else
+                echo "Failed to fetch '$IMAGE_NAME' image."
+                BUILD_IMAGE="true"
+            fi
+        else
+            echo "Pre-built image fetch is available only for main branch versions."
+            BUILD_IMAGE="true"
+        fi
+    fi
+
+    if [ "$BUILD_IMAGE" == "true" ] ; then
+        echo "Building image '$IMAGE_NAME' locally."
+        if bash "${scripts_dir}"/build_container.sh "$IMAGE_NAME" ; then
+            echo "Image $IMAGE_NAME was built locally."
+        else
+            echo "Failed to build '$IMAGE_NAME' from local repo."
+            exit 1
+        fi
+    fi
 fi
 
 if [ "$AS_DAEMON" == "true" ] ; then

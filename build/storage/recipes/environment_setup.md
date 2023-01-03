@@ -73,14 +73,21 @@ $ sudo chmod +r /boot/vmlinuz-*
 ```
 
 ### oracle/qemu
+Install required tools.
 ```
-$ git clone https://github.com/oracle/qemu qemu-orcl
-$ cd qemu-orcl
-$ git checkout 46bb039c31e92ae84cf7fe1f64119c1a78e0d101
-$ git submodule update --init --recursive
-$ ./configure --enable-multiprocess
-$ make
-$ make install
+$ dnf install -y git glib2-devel libfdt-devel pixman-devel zlib-devel bzip2 \
+    ninja-build python3 make gcc diffutils libaio-devel numactl-devel
+```
+or
+```
+$ apt install -y git libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev \
+    ninja-build python3 make gcc libaio-dev libnuma-dev
+```
+
+Run the following script to install corresponding qemu version
+```
+$ scripts/prepare_to_build.sh
+$ scripts/vm/install_qemu.sh
 ```
 
 ## Setting security policies
@@ -115,6 +122,12 @@ scripts/run_ipu_storage_container.sh
 
 `SHARED_VOLUME` points to a directory where vhost storage devices
 will be exposed.
+
+**Note:** By default, images for `storage-target` and `ipu-storage-container`
+will be pulled from IPDK public registry for the scripts in the main branch.
+However, those images are not optimized for a local CPU and if such an
+optimization is required, then `OPTIMIZED_SPDK=true` environment variable should
+be exported before running the scripts above.
 
 It is also possible for `storage-target` to specify ip addresses and ports where
 spdk service is exposed on by specifying `SPDK_IP_ADDR` and `SPDK_PORT`

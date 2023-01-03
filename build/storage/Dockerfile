@@ -5,7 +5,7 @@
 # WITH THE APACHE 2.0 LICENSE FROM THE ORIGINAL WORK
 #
 ################################################################################
-# build_base
+# base
 #
 # This image is used to provide environment for spdk build and get it in the
 # form of spdk packages
@@ -16,22 +16,25 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 ARG SPDK_VERSION
+ARG SPDK_TARGET_ARCH
 
-RUN dnf install -y git && dnf clean all
 COPY spdk/ /spdk
-RUN mkdir /spdk-rpm
-COPY core/build_base/pre-install /install
-RUN chmod +x /install && /install
+RUN rm -rf /spdk/build && \
+    mkdir /spdk-rpm && \
+    dnf install -y rpm-build && dnf clean all && \
+    /spdk/scripts/pkgdep.sh -d
+RUN DEPS="no" /spdk/rpmbuild/rpm.sh --with-vfio-user --with-virtio \
+        --with-sma --with-crypto \
+        --target-arch=${SPDK_TARGET_ARCH} && \
+    mv ~/rpmbuild/rpm/x86_64/*.rpm /spdk-rpm/
 
 ################################################################################
 # spdk
 #
-# Contains installed SPDK from build_base rpm packages.
+# Contains installed SPDK from base rpm packages.
 # Does not contain dependencies required to build SPDK
 ################################################################################
 FROM fedora:36 AS spdk
-
-LABEL maintainer=spdk.io
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
@@ -42,15 +45,19 @@ ARG NO_PROXY
 # which are only required to perform build.
 RUN mkdir /spdk-rpm
 COPY --from=base /spdk-rpm/*.rpm /spdk-rpm/
-COPY --from=base /spdk-rpm/fio /spdk-rpm/
 
 # hadolint ignore=DL3013
-RUN dnf install -y python python3-pip && dnf clean all && \
-    python -m pip install --no-cache-dir grpcio grpcio-tools protobuf==3.20.2
-
-# Wrap up the image
-COPY core/build_base/post-install /install
-RUN chmod +x /install && /install
+RUN dnf install -y python python3-pip /spdk-rpm/*.rpm && dnf clean all && \
+    python -m pip install --no-cache-dir grpcio grpcio-tools protobuf==3.20.2 && \
+    rm -f /tmp/*.rpm && \
+    for f in /usr/local/bin/*; do ln -sf "$f" /usr/bin ; done && \
+    ln -s /usr/libexec/spdk/scripts/rpc.py /usr/bin && \
+    ln -s /usr/libexec/spdk/scripts/rpc_http_proxy.py /usr/bin && \
+    ln -s /usr/libexec/spdk/scripts/setup.sh /usr/bin && \
+    ln -s /usr/libexec/spdk/include/spdk /usr/include && \
+    ln -s /usr/libexec/spdk/scripts/ /usr && \
+    ln -s /usr/libexec/spdk/scripts/sma.py /usr/bin && \
+    ln -s /usr/libexec/spdk/scripts/sma-client.py /usr/bin
 
 
 ################################################################################
@@ -169,17 +176,13 @@ RUN /scripts/vm/prepare_vm.sh
 FROM traffic-generator-env-vars AS traffic-generator
 
 RUN dnf install -y git glib2-devel libfdt-devel pixman-devel zlib-devel bzip2 \
-    ninja-build python3 make gcc diffutils && dnf clean all
-RUN git clone https://github.com/oracle/qemu /qemu-orcl
-WORKDIR /qemu-orcl
-RUN git checkout 46bb039c31e92ae84cf7fe1f64119c1a78e0d101 && \
-    git submodule update --init --recursive
-RUN ./configure --enable-multiprocess && make -j && make install
-WORKDIR /
-RUN rm -rf ./qemu-orcl
+    ninja-build python3 make gcc diffutils libaio-devel numactl-devel && \
+    dnf clean all
 COPY tests/it/traffic-generator/init /init
 COPY --from=traffic-generator-base $DRIVE_TO_BOOT $DRIVE_TO_BOOT
 COPY /scripts /scripts
+COPY /spdk/test/common/config/pkgdep/git /spdk/test/common/config/pkgdep/git
+RUN /scripts/vm/install_qemu.sh
 ENV SHARED_VOLUME=/ipdk-shared
 ENV UNIX_SERIAL=vm_socket
 ENTRYPOINT ["/init"]

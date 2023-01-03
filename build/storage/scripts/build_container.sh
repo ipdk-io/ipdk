@@ -13,25 +13,27 @@ root_dir="${script_dir}/.."
 source "${script_dir}"/spdk_version.sh
 "${script_dir}"/prepare_to_build.sh
 
+host_target_image_tar="$script_dir/host-target.tar"
 DOCKER_BUILDKIT=${DOCKER_BUILDKIT:-1}
+export DOCKER_BUILDKIT="${DOCKER_BUILDKIT}"
 
-build_proxies="--build-arg HTTP_PROXY=${HTTP_PROXY} \
-    --build-arg HTTPS_PROXY=${HTTPS_PROXY} \
-    --build-arg NO_PROXY=${NO_PROXY}"
-spdk_version_build_arg="--build-arg SPDK_VERSION=$(get_spdk_version)"
+ARGS=()
+ARGS+=("--build-arg" "HTTP_PROXY=${HTTP_PROXY}")
+ARGS+=("--build-arg" "HTTPS_PROXY=${HTTPS_PROXY}")
+ARGS+=("--build-arg" "NO_PROXY=${NO_PROXY}")
+ARGS+=("--build-arg" "SPDK_VERSION=$(get_spdk_version)")
+ARGS+=("--build-arg" "SPDK_TARGET_ARCH=${SPDK_TARGET_ARCH:-x86-64-v2}")
 
 function join_by() {
-  local d=${1-} f=${2-}
-  if shift 2; then
-    printf %s "$f" "${@/#/$d}"
-  fi
+    local d=${1-} f=${2-}
+    if shift 2; then
+        printf %s "$f" "${@/#/$d}"
+    fi
 }
-
-host_target_image_tar="$script_dir/host-target.tar"
 
 function save_host_target_image_to_file() {
     local host_target_image_tar="$1"
-    FORCE_BUILD="true" "${script_dir}"/build_container.sh "host-target"
+    BUILD_IMAGE="true" "${script_dir}"/build_container.sh "host-target"
     docker save -o "$host_target_image_tar" host-target
 }
 
@@ -40,21 +42,19 @@ function traffic_generator_build_cleanup() {
 }
 
 container_to_build="${1}"
+ARGS+=("--target" "$container_to_build")
+ARGS+=("--tag" "$container_to_build")
 
 possible_containers=("storage-target" "ipu-storage-container" \
-  "host-target" "traffic-generator" "test-driver" "ipdk-unit-tests" \
-  "cmd-sender")
+    "host-target" "traffic-generator" "test-driver" "ipdk-unit-tests" \
+    "cmd-sender")
 if [[ " ${possible_containers[*]} " =~ ${container_to_build} ]]; then
-    export DOCKER_BUILDKIT="${DOCKER_BUILDKIT}"
     if [ "$container_to_build" == "traffic-generator" ]; then
-      trap 'traffic_generator_build_cleanup' EXIT
-      save_host_target_image_to_file "$host_target_image_tar"
+        trap 'traffic_generator_build_cleanup' EXIT
+        save_host_target_image_to_file "$host_target_image_tar"
     fi
 
-    docker_build="docker build ${build_proxies} \
-        ${spdk_version_build_arg} \
-        -t ${container_to_build} --target ${container_to_build} ${root_dir}"
-    $docker_build
+    docker build "${ARGS[@]}" "${root_dir}"
 else
     echo "Unknown container '${container_to_build}'"
     possible_containers_as_string=$(join_by ", " "${possible_containers[@]}")
