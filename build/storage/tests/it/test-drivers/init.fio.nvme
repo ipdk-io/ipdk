@@ -41,7 +41,7 @@ malloc1=$(create_ramdrive_and_attach_as_ns_to_subsystem \
     "$ramdrive_size_in_mb" "$nqn")
 
 physical_id=0
-echo "Cretae NVME device with attached namespaces"
+echo "Create NVME device with attached namespaces"
 nvme=$(create_nvme_device "$ipu_storage_container_ip" \
     "$DEFAULT_SMA_PORT" "$host_target_ip" "$DEFAULT_HOST_TARGET_SERVICE_PORT" \
     "$physical_id" "0")
