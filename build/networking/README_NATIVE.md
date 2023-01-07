@@ -1,7 +1,7 @@
 # Native Install
 
 This method is supportd for either installing and using IPDK in a VM or on a
-host natively. Networking Recipewill run natively on the host or inside of a VM, which
+host natively. Networking Recipe will run natively on the host or inside of a VM, which
 is different than the containerized version of IPDK, which runs networking
 recipe as a container.
 

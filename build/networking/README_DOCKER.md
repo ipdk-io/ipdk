@@ -98,7 +98,9 @@ sudo ./root/scripts/set_hugepages.sh
 
 ### Export all environment variables to sudo user
 
+```
 alias sudo='sudo PATH="$PATH" HOME="$HOME" LD_LIBRARY_PATH="$LD_LIBRARY_PATH" SDE_INSTALL="$SDE_INSTALL"'
+```
 
 ### Run the infrap4d daemon
 
