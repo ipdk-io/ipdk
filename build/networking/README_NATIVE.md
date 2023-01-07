@@ -1,9 +1,9 @@
 # Native Install
 
 This method is supportd for either installing and using IPDK in a VM or on a
-host natively. P4OVS will run natively on the host or inside of a VM, which
-is different than the containerized version of IPDK, which runs P4OVS as a
-container.
+host natively. Networking Recipewill run natively on the host or inside of a VM, which
+is different than the containerized version of IPDK, which runs networking
+recipe as a container.
 
 ## Steps To Install
 
@@ -69,91 +69,100 @@ root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build
 Note: To skip installing and building dependencies in the future, add a `-s`
 flag to the host_install.sh script.
 
-### Run the rundemo.sh script
+### Install all networking recipe modules 
 
-```
-root@ubuntu2004:~$ /git/ipdk/build/networking/scripts/rundemo.sh
-```
+root@ubuntu2004:~#./install_networking_recipe_all_modules.sh /root
 
-Or, if your source is checked out somewhere else, such as `/opt/src/ipdk`:
+### Set environment variables
 
-```
-root@ubuntu2004:~$ /git/ipdk/build/networking/scripts/rundemo.sh -d /opt/src/ipdk
-```
+export SDE_INSTALL=/root/p4-sde/install
+export IPDK_RECIPE=/root/networking-recipe
+export DEPEND_INSTALL=/root/networking-recipe/install
+export PKG_CONFIG_PATH=${SDE_INSTALL}/lib64/pkgconfig
 
-5. Verify OVS is running:
+### Run Networking Recipe
 
-```
-root@ubuntu2004:~/P4-OVS# ovs-vsctl show
-bc71e3b7-45a7-4bc8-9706-88dab5002526
-root@ubuntu2004:~/P4-OVS#
-```
+#### Set up the environment required by infrap4d
 
-### Connect to the guest VMs serial consoles
+cd $IPDK_RECIPE
+source ./scripts/dpdk/setup_env.sh $IPDK_RECIPE $SDE_INSTALL $DEPEND_INSTALL
+sudo ./scripts/dpdk/copy_config_files.sh $IPDK_RECIPE $SDE_INSTALL
 
-You will need two login windows, one for each VM:
+#### Set hugepages required for DPDK
 
-```
-$ vagrant ssh
-vagrant@ubuntu2004:~$ telnet localhost 6551
-```
+sudo ./scripts/dpdk/set_hugepages.sh
 
-And in another window:
+#### Export all environment variables to sudo user
 
-```
-$ vagrant ssh
-vagrant@ubuntu2004:~$ telnet localhost 6552
-```
+alias sudo='sudo PATH="$PATH" HOME="$HOME" LD_LIBRARY_PATH="$LD_LIBRARY_PATH" SDE_INSTALL="$SDE_INSTALL"'
 
-### Verify guest is finished booting
+#### Run the infrap4d daemon
 
-It may take 6-9 minutes for both guest VMs to finish booting. You can
-watch each VM boot over the serial console.
+cd $IPDK_RECIPE
+sudo ./install/sbin/infrap4d
 
-```
-[  307.519991] cloud-init[1249]: Cloud-init v. 21.4-0ubuntu1~20.04.1 running 'modules:config' at Thu, 06 Jan 2022 15:27:13 +0000. Up 297.85 seconds.
-[  OK  ] Finished Apply the settings specified in cloud-config.
-         Starting Execute cloud user/final scripts...
-ci-info: no authorized SSH keys fingerprints found for user ubuntu.
-<14>Jan  6 15:27:31 cloud-init: #############################################################
-<14>Jan  6 15:27:31 cloud-init: -----BEGIN SSH HOST KEY FINGERPRINTS-----
-<14>Jan  6 15:27:31 cloud-init: 1024 SHA256:XtiIx3+4O9dXfAapcvgVy9bTY0AadTx67JgIirP8fDU root@vm1 (DSA)
-<14>Jan  6 15:27:31 cloud-init: 256 SHA256:8KKnft4X6/5ANZjy4c9Pf8nLPghM25r2h7KQCcmMWJQ root@vm1 (ECDSA)
-<14>Jan  6 15:27:31 cloud-init: 256 SHA256:BOyEUuM4iXqSIlaoCcp+wOsLB3w+ZBZLPxxNdEY7WkQ root@vm1 (ED25519)
-<14>Jan  6 15:27:32 cloud-init: 3072 SHA256:GYvOtfpGNz7ILw0XZPkKOVZZZ/rRmafsDE1vcq5vptA root@vm1 (RSA)
-<14>Jan  6 15:27:32 cloud-init: -----END SSH HOST KEY FINGERPRINTS-----
-<14>Jan  6 15:27:32 cloud-init: #############################################################
------BEGIN SSH HOST KEY KEYS-----
-ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHN14OCnYTeMh09qRzmWhtXsCgMOQu5S4WLksyBkQsNFil50MPdN8EoE0hh4dw70UzctiMXmQW/vStGeeyLv7OA= root@vm1
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHtOReNwl7HPAz5EUR/6mRdACoNszPBcSS9tCUeot7CE root@vm1
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4yha3xcGv+ISubnNDJvnunNXR1RgG2wCUzBz8Cry7DABZ3ykBsAl86y7tmbKa8/OcOl/rwMEQw9UzNU4zFxbB+m8V7hyEcIqdIMrkjwWg2rLZP9LIN+ia7xIm0SjRjH7D4TuGdGp31
------END SSH HOST KEY KEYS-----
-[  317.197933] cloud-init[1278]: Cloud-init v. 21.4-0ubuntu1~20.04.1 running 'modules:final' at Thu, 06 Jan 2022 15:27:29 +0000. Up 313.74 seconds.
-[  317.254438] cloud-init[1278]: ci-info: no authorized SSH keys fingerprints found for user ubuntu.
-[  317.296920] cloud-init[1278]: Cloud-init v. 21.4-0ubuntu1~20.04.1 finished at Thu, 06 Jan 2022 15:27:32 +0000. Datasource DataSourceNoCloud [seed=/dev/vda][dsmode=net].  Up s
-[  OK  ] Finished Execute cloud user/final scripts.
-[  OK  ] Reached target Cloud-init target.
-```
+### Run a sample program
 
-### Ping across VMs
+cd $IPDK_RECIPE
+source ./scripts/setup_env.sh $IPDK_RECIPE $SDE_INSTALL $DEPEND_INSTALL
+./scripts/copy_config_files.sh $IPDK_RECIPE $SDE_INSTALL
+alias sudo='sudo PATH="$PATH" HOME="$HOME" LD_LIBRARY_PATH="$LD_LIBRARY_PATH" SDE_INSTALL="$SDE_INSTALL"'
 
-Once you reach the following, you can login as the user `ubuntu` with the
-defined password `IPDK`. Then you can ping from vm1 to vm2, and P4-OVS will
-be used for networking traffic:
+#### Create 2 TAP ports
 
-```
-$ vagrant ssh
-vagrant@ubuntu2004:~$ telnet localhost 6551
-ubuntu@vm1:~$ ping -c 5 2.2.2.2
-PING 2.2.2.2 (2.2.2.2) 56(84) bytes of data.
-64 bytes from 2.2.2.2: icmp_seq=1 ttl=64 time=0.317 ms
-64 bytes from 2.2.2.2: icmp_seq=2 ttl=64 time=0.309 ms
-64 bytes from 2.2.2.2: icmp_seq=3 ttl=64 time=0.779 ms
-64 bytes from 2.2.2.2: icmp_seq=4 ttl=64 time=0.317 ms
-64 bytes from 2.2.2.2: icmp_seq=5 ttl=64 time=0.310 ms
+cd $IPDK_RECIPE
+sudo ./install/bin/gnmi-ctl set "device:virtual-device,name:TAP0,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+sudo ./install/bin/gnmi-ctl set "device:virtual-device,name:TAP1,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+ifconfig TAP0 up
+ifconfig TAP1 up
 
---- 2.2.2.2 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4011ms
-rtt min/avg/max/mdev = 0.309/0.406/0.779/0.186 ms
-ubuntu@vm1:~$
-```
+Note: See gnmi-ctl Readme for more information on the gnmi-ctl utility.
+
+
+### Create P4 artifacts
+
+export OUTPUT_DIR=/root/examples/simple_l3
+mkdir $OUTPUT_DIR/pipe
+
+/root/p4c/install/bin/p4c-dpdk --arch pna --target dpdk \
+    --p4runtime-files $OUTPUT_DIR/p4Info.txt \
+    --bf-rt-schema $OUTPUT_DIR/bf-rt.json \
+    --context $OUTPUT_DIR/pipe/context.json \
+    -o $OUTPUT_DIR/pipe/simple_l3.spec $OUTPUT_DIR/simple_l3.p4
+
+Note: The above commands will generate three files (p4Info.txt, bf-rt.json, and context.json).
+
+#### Modify the conf file
+
+Modify simple_l3.conf file to provide the below paths for bfrt-config, context, and config and their respective places in the conf file:
+      - "bfrt-config": "/root/examples/simple_l3/bf-rt.json"
+      - "context": "/root/examples/simple_l3/pipe/context.json"
+      - "config": "/root/examples/simple_l3/pipe/simple_l3.spec"
+
+#### TDI pipeline builder
+
+TDI pipeline builder combines the artifacts generated by p4c compiler to generate a single bin file to be pushed from the controller. Generate binary executable using tdi-pipeline builder command below:
+
+cd $IPDK_RECIPE
+./install/bin/tdi_pipeline_builder \
+    --p4c_conf_file=$OUTPUT_DIR/simple_l3.conf \
+    --bf_pipeline_config_binary_file=$OUTPUT_DIR/simple_l3.pb.bin
+
+### Set forwarding pipeline
+
+cd $IPDK_RECIPE
+sudo ./install/bin/p4rt-ctl set-pipe br0 $OUTPUT_DIR/simple_l3.pb.bin $OUTPUT_DIR/p4Info.txt
+
+### Configure forwarding rules
+
+cd $IPDK_RECIPE
+sudo  ./install/bin/p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
+sudo  ./install/bin/p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
+
+Note: See p4rt-ctl Readme for more information on p4rt-ctl utility.
+
+### Test traffic between TAP0 and TAP1
+
+Send packet from TAP 0 to TAP1 using scapy and listen on TAP1 using tcpdump.
+
+sendp(Ether(dst="00:00:00:00:03:14", src="a6:c0:aa:27:c8:2b")/IP(src="192.168.1.10", dst="2.2.2.2")/UDP()/Raw(load="0"*50), iface='TAP0')

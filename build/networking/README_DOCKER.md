@@ -4,14 +4,12 @@
 The IPDK Container is a Virtual Networking Infrastructure Container and is
 built with the following components:
 
-1. [OvS with P4 Support](https://github.com/ipdk-io/ovs/tree/ovs-with-p4)
-2. [P4_DPDK_target library](https://github.com/p4lang/p4-dpdk-target)
-3. [P4-DPDK](https://github.com/DPDK/dpdk)
-4. [P4C P4 reference compiler with DPDK, eBPF target support](https://github.com/p4lang/p4c)
-5. OVS pipeline builder program
-6. P4 Pipeline program examples
+1. [IPDK Networking Recipe](https://github.com/ipdk-io/networking-recipe)
+2. [P4-DPDK](https://github.com/DPDK/dpdk)
+3. [P4C P4 reference compiler with DPDK, eBPF target support](https://github.com/p4lang/p4c)
+4. P4 Pipeline program examples
 
-The IPDK container dockerfile builds all the five components and their dependencies
+The IPDK container dockerfile builds all the components and their dependencies
 and integrates them providing a P4 based virtual networking switch, P4
 compiler + builder and example p4 pipeline code within the container. Following
 sections decribe the steps on how to bring up and run this container and use
@@ -19,9 +17,9 @@ the example P4 pipeline programs.
 
 ## Optional Vagrant Setup
 
-To ease usage of the IPDK P4OVS container, a Vagrant environment is provided
+To ease usage of the IPDK Networking Recipe container, a Vagrant environment is provided
 which will spinup an Ubuntu VM with Docker already installed, allowing for a
-quick way to play with the containerized version of P4OVS.
+quick way to play with the containerized version of Networking Recipe.
 
 ### Supported Vagrant + Virtualbox Setups
 
@@ -77,226 +75,100 @@ container up and running, and should see the container prompt like below:
 
 `c5efb1a949ad` is your container id as displayed in command `docker ps -a`
 
-As your P4-OvS should be up and running, you could see the ovsdb-server
-and ovs-vswitchd process with the `ps -ef | grep ovs` command.
+## Run Networking Recipe
+Below commands will help you setup the environment for Networking recipe and
+start the infrap4d
 
-## Section 2: Running example setup ( VM1 <-> IPDK Container <-> VM2 )
-Below commands will help you setup traffic between 2 VMs on your host with the
-IPDK container as a P4 program enabled vswitch switching traffic between them.
+### Set up the environment required by infrap4d
 
-Pre-requisite:
-- Container in Section 1 should be up and with OvS running
-- If you are running in a VM then make sure you have nested virtualization
-  enabled on your guest VM
-- QEMU and KVM should be installed and running
+export IPDK_RECIPE=/root/networking-recipe
+export DEPEND_INSTALL=/root/networking-recipe/deps_install
+export SDE_INSTALL=/root/p4-sde/install
+export LD_LIBRARY_PATH=$IPDK_RECIPE/install/lib/:$IPDK_RECIPE/install/lib64/:$SDE_INSTALL/lib:$SDE_INSTALL/lib64:$DEPEND_INSTALL/lib:$DEPEND_INSTALL/lib64:$SDE_INSTALL/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH
 
-### Example description
+### Set hugepages required for DPDK
 
-The demo environment is easily setup. The command below will set the environment up and allow for simple testing using the P4OVS container:
+Run the hugepages script.
 
-```
-ipdk demo
-```
+sudo ./root/scripts/set_hugepages.sh
 
-When executed go to the 'Connect to the test VMs serial consoles' paragraph
-below.
+### Export all environment variables to sudo user
 
-### Step-by-step commands to setup the example scenario
+alias sudo='sudo PATH="$PATH" HOME="$HOME" LD_LIBRARY_PATH="$LD_LIBRARY_PATH" SDE_INSTALL="$SDE_INSTALL"'
 
-If you want to execute each command yourself instead of using the pre-written
-demo script, do the following steps:
+### Run the infrap4d daemon
 
-1) Create 2 vhost ports using GNMI CLI commands through the `ipdk execute` CLI:
+cd $IPDK_RECIPE
+sudo ./install/sbin/infrap4d
 
-```
-ipdk execute --- gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-0,port-type:LINK"
+By default, infrap4d runs in detached mode. If you want to run infrap4d in attached mode, use the --nodetach option.
 
-ipdk execute --- gnmi-cli set "device:virtual-device,name:net_vhost1,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-1,port-type:LINK"
-```
+  - All infrap4d logs are by default logged under /var/log/stratum.
+  - All P4SDE logs are logged in p4_driver.log under $IPDK_RECIPE.
+  - All OVS logs are logged under /tmp/ovs-vswitchd.log.
 
-2) On your host, create two Ubuntu demo VM images with accompanying cloud-init images:
+As your infrap4d should be up and running, you could see the infrap4d  process with the ps -ef | grep infrap4d command.
 
-```
-ipdk createvms
-```
+### Run a sample program
 
-3) Those two created VM images can at any moment be started with:
+Make sure that all the environmental variables are set correctly.
 
-```
-ipdk startvms
-```
+#### Create 2 TAP ports
 
-4) Create a forwarding pipeline program by compiling and package the vSwitch consumable
-pipeline binary package by using the pipeline builder:
+cd $IPDK_RECIPE
 
-```
+sudo ./install/bin/gnmi-ctl set "device:virtual-device,name:TAP0,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+sudo ./install/bin/gnmi-ctl set "device:virtual-device,name:TAP1,pipeline-name:pipe,mempool-name:MEMPOOL0,mtu:1500,port-type:TAP"
+ifconfig TAP0 up
+ifconfig TAP1 up
+
+Note: See gnmi-ctl Readme for more information on the gnmi-ctl utility.
+
+### Create P4 artifacts
+
 export OUTPUT_DIR=/root/examples/simple_l3
-ipdk execute --- p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
 
-ipdk execute /root/examples/simple_l3 --- ovs_pipeline_builder --p4c_conf_file=simple_l3.conf --bf_pipeline_config_binary_file=simple_l3.pb.bin
-```
+#### Generate the artifacts using the p4c compiler installed in the previous step
 
-5) Add the created pipeline binary package to the running IPDK container P4-OVS switch:
+mkdir $OUTPUT_DIR/pipe
+cd /root/p4c/install/bin
 
-```
-ipdk execute --- ovs-p4ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin /root/examples/simple_l3/p4Info.txt
-```
+./p4c-dpdk --arch pna --target dpdk \
+    --p4runtime-files $OUTPUT_DIR/p4Info.txt \
+    --bf-rt-schema $OUTPUT_DIR/bf-rt.json \
+    --context $OUTPUT_DIR/pipe/context.json \
+    -o $OUTPUT_DIR/pipe/simple_l3.spec $OUTPUT_DIR/simple_l3.p4
 
-6) Add pipeline table rules:
+Note: The above commands will generate three files (p4Info.txt, bf-rt.json, and context.json).
 
-```
-ipdk execute --- ovs-p4ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
+  - Modify simple_l3.conf file to provide correct paths for bfrt-config, context, and config.
 
-ipdk execute --- ovs-p4ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
-```
+  - TDI pipeline builder combines the artifacts generated by p4c compiler to generate a single bin file to be pushed from the controller. Generate binary executable using tdi-pipeline builder command below:
 
-From this step you can connect to the test VMs and do some ping tests as described below!
+       cd $IPDK_RECIPE
+       ./install/bin/tdi_pipeline_builder \
+           --p4c_conf_file=$OUTPUT_DIR/simple_l3.conf \
+           --bf_pipeline_config_binary_file=$OUTPUT_DIR/simple_l3.pb.bin
 
-### Connect to the test VMs serial consoles
+### Set forwarding pipeline
 
-You will need two login windows, one for each VM:
+cd $IPDK_RECIPE
+sudo ./install/bin/p4rt-ctl set-pipe br0 $OUTPUT_DIR/simple_l3.pb.bin $OUTPUT_DIR/p4Info.txt
 
-```
-telnet localhost 6551
-```
+### Configure forwarding rules
 
-And in another window:
+sudo  ./install/bin/p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
+sudo  ./install/bin/p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
 
-```
-telnet localhost 6552
-```
+Note: See p4rt-ctl Readme for more information on p4rt-ctl utility.
 
-You can stop the terminal session anytime by sending `CTRL+]` en then typing `quit[ENTER]`
+### Test traffic between TAP0 and TAP1
 
-### Verify guest is finished booting
+Send packet from TAP 0 to TAP1 using scapy and listen on TAP1 using tcpdump.
 
-It may take 6-9 minutes for both guest VMs to finish booting. You can
-watch each VM boot over the serial console.
+sendp(Ether(dst="00:00:00:00:03:14", src="a6:c0:aa:27:c8:2b")/IP(src="192.168.1.10", dst="2.2.2.2")/UDP()/Raw(load="0"*50), iface='TAP0')
 
-```
-[  307.519991] cloud-init[1249]: Cloud-init v. 21.4-0ubuntu1~20.04.1 running 'modules:config' at Thu, 06 Jan 2022 15:27:13 +0000. Up 297.85 seconds.
-[  OK  ] Finished Apply the settings specified in cloud-config.
-         Starting Execute cloud user/final scripts...
-ci-info: no authorized SSH keys fingerprints found for user ubuntu.
-<14>Jan  6 15:27:31 cloud-init: #############################################################
-<14>Jan  6 15:27:31 cloud-init: -----BEGIN SSH HOST KEY FINGERPRINTS-----
-<14>Jan  6 15:27:31 cloud-init: 1024 SHA256:XtiIx3+4O9dXfAapcvgVy9bTY0AadTx67JgIirP8fDU root@vm1 (DSA)
-<14>Jan  6 15:27:31 cloud-init: 256 SHA256:8KKnft4X6/5ANZjy4c9Pf8nLPghM25r2h7KQCcmMWJQ root@vm1 (ECDSA)
-<14>Jan  6 15:27:31 cloud-init: 256 SHA256:BOyEUuM4iXqSIlaoCcp+wOsLB3w+ZBZLPxxNdEY7WkQ root@vm1 (ED25519)
-<14>Jan  6 15:27:32 cloud-init: 3072 SHA256:GYvOtfpGNz7ILw0XZPkKOVZZZ/rRmafsDE1vcq5vptA root@vm1 (RSA)
-<14>Jan  6 15:27:32 cloud-init: -----END SSH HOST KEY FINGERPRINTS-----
-<14>Jan  6 15:27:32 cloud-init: #############################################################
------BEGIN SSH HOST KEY KEYS-----
-ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHN14OCnYTeMh09qRzmWhtXsCgMOQu5S4WLksyBkQsNFil50MPdN8EoE0hh4dw70UzctiMXmQW/vStGeeyLv7OA= root@vm1
-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIHtOReNwl7HPAz5EUR/6mRdACoNszPBcSS9tCUeot7CE root@vm1
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4yha3xcGv+ISubnNDJvnunNXR1RgG2wCUzBz8Cry7DABZ3ykBsAl86y7tmbKa8/OcOl/rwMEQw9UzNU4zFxbB+m8V7hyEcIqdIMrkjwWg2rLZP9LIN+ia7xIm0SjRjH7D4TuGdGp31
------END SSH HOST KEY KEYS-----
-[  317.197933] cloud-init[1278]: Cloud-init v. 21.4-0ubuntu1~20.04.1 running 'modules:final' at Thu, 06 Jan 2022 15:27:29 +0000. Up 313.74 seconds.
-[  317.254438] cloud-init[1278]: ci-info: no authorized SSH keys fingerprints found for user ubuntu.
-[  317.296920] cloud-init[1278]: Cloud-init v. 21.4-0ubuntu1~20.04.1 finished at Thu, 06 Jan 2022 15:27:32 +0000. Datasource DataSourceNoCloud [seed=/dev/vda][dsmode=net].  Up s
-[  OK  ] Finished Execute cloud user/final scripts.
-[  OK  ] Reached target Cloud-init target.
-```
-
-### Ping across VMs
-
-Once you reach the following, you can login as the user `ubuntu` with the
-defined password `IPDK`. Then you can ping from vm1 to vm2, and P4-OVS will
-be used for networking traffic:
-
-```
-vagrant@ubuntu2004:~$ telnet localhost 6551
-ubuntu@vm1:~$ ping -c 5 2.2.2.2
-PING 2.2.2.2 (2.2.2.2) 56(84) bytes of data.
-64 bytes from 2.2.2.2: icmp_seq=1 ttl=64 time=0.317 ms
-64 bytes from 2.2.2.2: icmp_seq=2 ttl=64 time=0.309 ms
-64 bytes from 2.2.2.2: icmp_seq=3 ttl=64 time=0.779 ms
-64 bytes from 2.2.2.2: icmp_seq=4 ttl=64 time=0.317 ms
-64 bytes from 2.2.2.2: icmp_seq=5 ttl=64 time=0.310 ms
-
---- 2.2.2.2 ping statistics ---
-5 packets transmitted, 5 received, 0% packet loss, time 4011ms
-rtt min/avg/max/mdev = 0.309/0.406/0.779/0.186 ms
-ubuntu@vm1:~$
-```
-
-# Section 3: Generating dependent files from P4C and OVS pipeline builder:
-
-TODO: change this whole section to ipdk script + explaining in more depth then demo text above
-
-An open-sourced p4lang P4 compiler is integrated as part of the IPDK container.
-1) the p4c executable is used to generate dependent files.
-   You can execute all these commands on container.
-    a. export OUTPUT_DIR=/root/examples/simple_l3/
-    b. p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files \
-    $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context \
-    $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
-
-2) Steps to generate pipeline binary file:
-Use ovs_pipeline_builder utility to generate pipeline binary file.
-    a. cd /root/examples/simple_l3/
-    b. ovs_pipeline_builder --p4c_conf_file=simple_l3.conf \
-    --bf_pipeline_config_binary_file=simple_l3.pb.bin
-
-Note: As of today <program>.conf is not generated by compiler, in that case
-need to manually update this conf file.
-
-## Using and compiling included P4 Example pipelines
-Example P4 pipeline implementations included on the IPDK container:
-
-```
-    /root/examples/simple_l3/simple_l3.conf
-    /root/examples/simple_l3/simple_l3.p4
-```
-
-They can be compiled, put through the pipeline builder and made available on
-the host in `~/.ipdk/examples`, by executing:
-
-```
-    ipdk [options] examples
-```
-
-# Section 4: IPDK CLI inner workings
-
-TODO: Add all specific things about how the IPDK container and cli works.
-
-## [IPDK CLI Configuration settings](#CLI-configuration-settings)
-
-### Configuration files
-
-TODO: Explain how configuration files work (default settings, user settings, execution settings)
-
-### Available settings
-
-TODO: add all configuration options and their working!
-
-KEEP_SOURCE_CODE:
-
-1) If `KEEP_SOURCE_CODE=false` which is a default value then, complete source
-code for P4-OVS, p4-driver and P4C will be removed.
-
-2) `KEEP_SOURCE_CODE=true` then, source code for P4-OVS, p4-driver and P4C will
-be retained but temporary files generated after building these repositories
-will be removed.
-
-DEPLOYMENT_IMAGE:
-
-1) If `DEPLOYMENT_IMAGE=false` which is a default value then,  all libraries
-and binaries of modules P4-OVS, p4-driver and P4C are retained without removing
-any files generated by the build process.
-
-2) If `DEPLOYMENT_IMAGE=true` then, all libraries and binaries of modules
-P4-OVS and p4-driver required for bringing up the stack are retained.
-
-# Section 4: Helpful references:
-
-1. /root/OVS-WITH-P4/Documentation/howto/ovs-with-p4-executables.rst
-2. /root/OVS-WITH-P4/OVS-WITH-P4-BUILD-README
-3. ipdk/build/networking/README.md
-4. ipdk/build/networking/examples/vhost-vhost/README
-5. ipdk/build/networking/examples/simple_l3
-
-# Section 6: Copyright
+# Copyright
 
 Copyright (C) 2021 Intel Corporation
 
