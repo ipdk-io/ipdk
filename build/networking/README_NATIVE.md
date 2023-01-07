@@ -150,12 +150,12 @@ mkdir $OUTPUT_DIR/pipe
 
 Note: The above commands will generate three files (p4Info.txt, bf-rt.json, and context.json).
 
-#### Modify the conf file
+#### Modify the simple l3 configuration file
 
-Modify simple_l3.conf file to provide the below paths for bfrt-config, context, and config and their respective places in the conf file:
-      - "bfrt-config": "/root/examples/simple_l3/bf-rt.json"
-      - "context": "/root/examples/simple_l3/pipe/context.json"
-      - "config": "/root/examples/simple_l3/pipe/simple_l3.spec"
+Modify simple_l3.conf file to provide the below paths for bfrt-config, context, and config and their respective places in the configuration file:
+  1. "bfrt-config": "/root/examples/simple_l3/bf-rt.json"
+  2. "context": "/root/examples/simple_l3/pipe/context.json"
+  3. "config": "/root/examples/simple_l3/pipe/simple_l3.spec"
 
 #### TDI pipeline builder
 
