@@ -62,7 +62,7 @@ function expose_spdk() {
 	local ip_addr="$1"
 	local port="$2"
 	local socket="$3"
-	if ! wait_until_socket_file_exists "$spdk_socket"; then
+	if ! wait_until_socket_file_exists "$socket"; then
 		echo "SPDK unix socket is not created" >&2
 		exit 1
 	fi
@@ -72,16 +72,26 @@ function expose_spdk() {
 		exit 1
 	fi
 	socat TCP-LISTEN:"$port",reuseaddr,bind="$ip_addr",fork \
-		UNIX-CLIENT:"$spdk_socket"
+		UNIX-CLIENT:"$socket"
 }
 
+function run_spdk() {
+	local app="$1"
+	local args=("${@:2}")
+	$app "${args[@]}"
+}
 
 spdk_socket="/var/tmp/spdk.sock"
+spdk_pid_file="/spdk_pid"
+args+=("-r" "$spdk_socket")
+args+=("-f" "$spdk_pid_file")
+rm -f "$spdk_pid_file"
 EXPOSE_SPDK="${EXPOSE_SPDK:-"true"}"
+
 if [ "$EXPOSE_SPDK" == "true" ]; then
-	expose_spdk "$SPDK_IP_ADDR" "$SPDK_PORT" "$spdk_socket" &
+	run_spdk "$app" "${args[@]}" &
+	expose_spdk "$SPDK_IP_ADDR" "$SPDK_PORT" "$spdk_socket"
+else
+	run_spdk "$app" "${args[@]}"
 fi
 
-spdk_pid_file="/spdk_pid"
-rm -f "$spdk_pid_file"
-$app "${args[@]}" -r "$spdk_socket" -f "$spdk_pid_file"
