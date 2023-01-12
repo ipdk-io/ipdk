@@ -93,6 +93,9 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
+HEALTHCHECK --interval=15s --timeout=3s CMD rpc.py \
+    -s ${SPDK_IP_ADDR} -p ${SPDK_PORT} spdk_get_version || exit 1
+
 ################################################################################
 # ipu-storage-container
 #
@@ -111,6 +114,8 @@ RUN dnf install -y socat && dnf clean all && pip install --no-cache-dir pyyaml
 
 COPY core/ipu-storage-container/init /init
 COPY --from=spdk-app /init /init_spdk
+
+HEALTHCHECK --interval=15s --timeout=3s CMD rpc.py spdk_get_version || exit 1
 
 ENTRYPOINT [ "/init" ]
 
@@ -141,6 +146,8 @@ RUN python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. \
 
 ENV CUSTOMIZATION_DIR_IN_CONTAINER=./customizations
 COPY core/host-target/customizations $CUSTOMIZATION_DIR_IN_CONTAINER
+
+HEALTHCHECK --interval=15s --timeout=3s CMD echo > /dev/tcp/${IP_ADDR}/${PORT} || exit 1
 
 ENTRYPOINT [ "./init" ]
 
