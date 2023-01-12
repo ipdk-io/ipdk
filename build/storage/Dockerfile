@@ -40,16 +40,23 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
+WORKDIR /
+
 # Copy SPDK's RPMs built during pre-install step.
 # This allows to reduce final image size since we won't have any dependencies
 # which are only required to perform build.
 RUN mkdir /spdk-rpm
 COPY --from=base /spdk-rpm/*.rpm /spdk-rpm/
 
-# hadolint ignore=DL3013
-RUN dnf install -y python python3-pip /spdk-rpm/*.rpm && dnf clean all && \
+# hadolint ignore=DL3041
+RUN dnf install -y python-unversioned-command-3.10.9-1.fc36 \
+    python3-pip-21.3.1-4.fc36 /spdk-rpm/*.rpm && \
+    dnf clean all && \
     python -m pip install --no-cache-dir \
-    grpcio==1.51.1 grpcio-tools==1.48.2 protobuf==3.20.2 setuptools==65.5.1 && \
+    grpcio==1.51.1 \
+    grpcio-tools==1.48.2 \
+    protobuf==3.20.2 \
+    setuptools==65.5.1 && \
     rm -f /tmp/*.rpm && \
     for f in /usr/local/bin/*; do ln -sf "$f" /usr/bin ; done && \
     ln -s /usr/libexec/spdk/scripts/rpc.py /usr/bin && \
@@ -74,7 +81,7 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y socat && dnf clean all
+RUN dnf install -y socat-1.7.4.2-2.fc36 && dnf clean all
 COPY core/spdk-app/init /init
 
 ENTRYPOINT ["/init"]
@@ -106,8 +113,7 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-# hadolint ignore=DL3013
-RUN dnf install -y socat && dnf clean all && pip install --no-cache-dir pyyaml
+RUN pip install --no-cache-dir pyyaml==5.4
 
 COPY core/ipu-storage-container/init /init
 COPY --from=spdk-app /init /init_spdk
@@ -128,10 +134,12 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-# hadolint ignore=DL3013
 WORKDIR /root
 COPY core/host-target/requirements.txt .
-RUN dnf install -y python fio python3-pip && dnf clean all && \
+RUN dnf install -y python-unversioned-command-3.10.9-1.fc36 \
+    fio-3.29-1.fc36 \
+    python3-pip-21.3.1-4.fc36 && \
+    dnf clean all && \
     python -m pip install --no-cache-dir -r ./requirements.txt
 COPY core/host-target ./
 COPY core/host-target/host_target.proto ./host_target.proto
@@ -166,7 +174,9 @@ ENV no_proxy=$NO_PROXY
 
 FROM traffic-generator-env-vars as traffic-generator-base
 
-RUN dnf install -y wget && dnf install -y libguestfs-tools-c && dnf clean all
+RUN dnf install -y wget-1.21.3-1.fc36 \
+    guestfs-tools-1.48.2-3.fc36 && \
+    dnf clean all
 
 COPY scripts/vm/prepare_vm.sh /scripts/vm/prepare_vm.sh
 COPY scripts/run_host_target_container.sh /scripts/run_host_target_container.sh
@@ -176,8 +186,19 @@ RUN /scripts/vm/prepare_vm.sh
 
 FROM traffic-generator-env-vars AS traffic-generator
 
-RUN dnf install -y git glib2-devel libfdt-devel pixman-devel zlib-devel bzip2 \
-    ninja-build python3 make gcc diffutils libaio-devel numactl-devel && \
+RUN dnf install -y git-2.39.0-1.fc36 \
+    glib2-devel-2.72.3-1.fc36 \
+    libfdt-devel-1.6.1-4.fc36 \
+    pixman-devel-0.40.0-5.fc36 \
+    zlib-devel-1.2.11-33.fc36 \
+    bzip2-1.0.8-11.fc36 \
+    ninja-build.x86_64 \
+    python3-3.10.4-1.fc36 \
+    make-1:4.3-7.fc36 \
+    gcc-12.2.1-4.fc36 \
+    diffutils-3.8-2.fc36 \
+    libaio-devel-0.3.111-13.fc36 \
+    numactl-devel-2.0.14-5.fc36 && \
     dnf clean all
 COPY tests/it/traffic-generator/init /init
 COPY --from=traffic-generator-base $DRIVE_TO_BOOT $DRIVE_TO_BOOT
@@ -199,7 +220,10 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-RUN dnf install -y socat grpc-cli jq && dnf clean all
+RUN dnf install -y socat-1.7.4.2-2.fc36 \
+    grpc-cli-1.41.1-21.fc36 \
+    jq-1.6-13.fc36 && \
+    dnf clean all
 
 COPY tests/it/test-drivers/test-helpers /test-helpers
 COPY scripts/ /scripts
@@ -230,9 +254,16 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
-# hadolint ignore=DL3013
-RUN dnf install -y python fio python3-pip && dnf clean all && python -m pip install \
-    --no-cache-dir protobuf==3.20.2 grpcio-reflection pyfakefs
+WORKDIR /
+
+RUN dnf install -y python-unversioned-command-3.10.9-1.fc36 \
+    fio-3.29-1.fc36 \
+    python3-pip-21.3.1-4.fc36 && \
+    dnf clean all && \
+    python -m pip install --no-cache-dir \
+    protobuf==3.20.2 \
+    grpcio-reflection==1.48.2 \
+    pyfakefs==4.6.3
 
 COPY tests/ut/host-target /host-target/tests
 COPY --from=host-target /root /host-target/src/
