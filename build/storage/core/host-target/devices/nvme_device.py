@@ -48,7 +48,8 @@ class NvmePfDevice(NvmeDevice):
 
     def unplug(self) -> None:
         if self._sriov_driver.are_vfs_enabled(self._pci_addr):
-            raise DeviceError(f"Cannot delete pf {self._pci_addr} with bound vfs")
+            logging.error(f"Cannot delete pf {self._pci_addr} with bound vfs")
+            raise DeviceError(f"Cannot delete pf with bound vfs")
 
         if self._sriov_driver.is_sriov_supported(
             self._pci_addr

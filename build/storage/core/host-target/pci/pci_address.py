@@ -30,7 +30,7 @@ class PciAddress:
 
     def __init__(self, pci_address: str) -> None:
         if not pci_address or not PciAddress._validate_pci_address(pci_address):
-            raise InvalidPciAddress(str(pci_address) + " is invalid")
+            raise InvalidPciAddress("Pci address is invalid")
         (
             self.domain,
             self.bus,

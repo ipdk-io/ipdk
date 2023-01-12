@@ -3,6 +3,7 @@
 
 # subprocess is needed to run fio
 import subprocess  # nosec
+import logging
 from helpers.fio_args import FioArgs
 
 
@@ -30,13 +31,14 @@ def run_fio(fio_args: FioArgs):
                 shell=False,  # nosec
             )
             if result.returncode != 0:
-                raise FioExecutionError(
+                logging.error(
                     "fio execution error: '"
                     + str(result.stdout)
                     + "' | '"
                     + str(result.stderr)
                     + "' "
                 )
+                raise FioExecutionError("Fio failed")
             return result.stdout
     except AttributeError as ex:
         raise FioExecutionError("Invalid input argument '" + str(fio_args) + "'")

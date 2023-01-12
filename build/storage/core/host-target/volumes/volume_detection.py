@@ -39,32 +39,38 @@ def get_virtio_blk_volume(
     )
     block_device_matches = get_all_files_by_pattern(block_directory_pattern)
     if len(block_device_matches) == 0:
-        raise FailedVolumeDetection(
-            "No devices found for pattern " + block_directory_pattern
-        )
+        logging.error("No devices found for pattern " + block_directory_pattern)
+        raise FailedVolumeDetection("No devices found")
     elif len(block_device_matches) > 1:
-        raise FailedVolumeDetection(
+        logging.error(
             "Found more than one device for pattern"
             + block_directory_pattern
             + " : "
             + str(block_device_matches)
         )
+        raise FailedVolumeDetection(
+            "Multiple devices are detected for expected single match."
+        )
     devices = get_directories(block_device_matches[0])
     if not devices or len(devices) == 0:
-        raise FailedVolumeDetection(
+        logging.error(
             "No device exist under "
             + block_directory_pattern
             + " for pci device '"
             + str(addr)
             + "'"
         )
+        raise FailedVolumeDetection("No devices found")
     elif len(devices) > 1:
-        raise FailedVolumeDetection(
+        logging.error(
             "Multiple devices are detected "
             + str(devices)
             + " for pci address '"
             + str(addr)
             + "'"
+        )
+        raise FailedVolumeDetection(
+            "Multiple devices are detected for expected single match."
         )
     device_path = os.path.join("/dev", devices[0])
     return {Volume(device_path)}
@@ -118,9 +124,8 @@ def _find_namespaces_in_dev(namespaces_in_sysfs: list[str]) -> set[Volume]:
                 namespace_dev_path = os.path.join("/dev", namespace)
 
         if not os.path.exists(namespace_dev_path):
-            raise VolumeError(
-                f"Couldn't find device to exercise for: {namespace_dev_path}"
-            )
+            logging.error(f"Couldn't find device to exercise for: {namespace_dev_path}")
+            raise VolumeError("Couldn't find device to exercise")
 
         namespace_dev_paths.add(Volume(namespace_dev_path))
     return namespace_dev_paths
