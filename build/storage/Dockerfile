@@ -48,7 +48,8 @@ COPY --from=base /spdk-rpm/*.rpm /spdk-rpm/
 
 # hadolint ignore=DL3013
 RUN dnf install -y python python3-pip /spdk-rpm/*.rpm && dnf clean all && \
-    python -m pip install --no-cache-dir grpcio grpcio-tools protobuf==3.20.2 && \
+    python -m pip install --no-cache-dir \
+    grpcio==1.51.1 grpcio-tools==1.48.2 protobuf==3.20.2 setuptools==65.5.1 && \
     rm -f /tmp/*.rpm && \
     for f in /usr/local/bin/*; do ln -sf "$f" /usr/bin ; done && \
     ln -s /usr/libexec/spdk/scripts/rpc.py /usr/bin && \
