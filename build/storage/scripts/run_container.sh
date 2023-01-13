@@ -87,4 +87,5 @@ docker run \
     --network host \
     --pids-limit="$PIDS_LIMIT" \
     --cpu-shares="$CPU_SHARES" \
+    --security-opt=no-new-privileges \
     "$IMAGE_NAME"
