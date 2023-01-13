@@ -24,6 +24,9 @@ import rpc
 logging.root.setLevel(logging.CRITICAL)
 
 
+TCP_TRANSPORT_TYPE = "TCP"
+
+
 def get_number_of_virtio_blk(sock: str) -> int:
     return _get_number_of_devices(sock, "vd[a-z]+\\b")
 
@@ -95,11 +98,23 @@ def verify_expected_number_of_nvme_namespaces(
     )
 
 
+def is_tcp_transport_created(ip_addr: str, storage_target_port: int) -> bool:
+    response = send_rpc_request(
+        request={"method": "nvmf_get_transports"},
+        addr=ip_addr,
+        port=storage_target_port,
+    )
+    for transport in response:
+        if transport["trtype"] == TCP_TRANSPORT_TYPE:
+            return True
+    return False
+
+
 def create_and_expose_subsystem_over_tcp(
     ip_addr: str, nqn: str, port_to_expose: str, storage_target_port: int
 ) -> None:
-    requests = [
-        {
+    send_rpc_request(
+        request={
             "method": "nvmf_create_subsystem",
             "params": {
                 "nqn": nqn,
@@ -108,29 +123,45 @@ def create_and_expose_subsystem_over_tcp(
                 "max_namespaces": 1024,
             },
         },
-        {
-            "method": "nvmf_create_transport",
-            "params": {"trtype": "TCP", "io_unit_size": 8192},
-        },
-        {
-            "method": "nvmf_subsystem_add_listener",
-            "params": {
-                "nqn": nqn,
-                "listen_address": {
-                    "trtype": "TCP",
-                    "adrfam": "IPv4",
-                    "traddr": ip_addr,
-                    "trsvcid": port_to_expose,
-                },
-            },
-        },
-    ]
-    send_requests(
-        requests=requests,
-        function=send_rpc_request,
         addr=ip_addr,
         port=storage_target_port,
     )
+    delete_subsystem = {"method": "nvmf_delete_subsystem", "params": {"nqn": nqn}}
+
+    try:
+        if not is_tcp_transport_created(ip_addr, storage_target_port):
+            send_rpc_request(
+                request={
+                    "method": "nvmf_create_transport",
+                    "params": {"trtype": TCP_TRANSPORT_TYPE},
+                },
+                addr=ip_addr,
+                port=storage_target_port,
+            )
+
+        send_rpc_request(
+            request={
+                "method": "nvmf_subsystem_add_listener",
+                "params": {
+                    "nqn": nqn,
+                    "listen_address": {
+                        "trtype": "TCP",
+                        "adrfam": "IPv4",
+                        "traddr": ip_addr,
+                        "trsvcid": port_to_expose,
+                    },
+                },
+            },
+            addr=ip_addr,
+            port=storage_target_port,
+        )
+    except Exception as ex:
+        send_rpc_request(
+            request=delete_subsystem,
+            addr=ip_addr,
+            port=storage_target_port,
+        )
+        raise ex
 
 
 def create_ramdrive_and_attach_as_ns_to_subsystem(
@@ -140,8 +171,8 @@ def create_ramdrive_and_attach_as_ns_to_subsystem(
     nqn: str,
     storage_target_port: int,
 ) -> str:
-    requests = [
-        {
+    send_rpc_request(
+        request={
             "method": "bdev_malloc_create",
             "params": {
                 "name": ramdrive_name,
@@ -149,20 +180,33 @@ def create_ramdrive_and_attach_as_ns_to_subsystem(
                 "block_size": 4096,
             },
         },
-        {
-            "method": "nvmf_subsystem_add_ns",
-            "params": {"nqn": nqn, "namespace": {"bdev_name": ramdrive_name}},
-        },
-        {"method": "bdev_get_bdevs", "params": {"name": ramdrive_name}},
-    ]
-    response = send_requests(
-        requests=requests,
-        function=send_rpc_request,
         addr=ip_addr,
         port=storage_target_port,
     )
-    device_uuid = response[2][0]["uuid"]
-    return device_uuid
+
+    try:
+        send_rpc_request(
+            request={
+                "method": "nvmf_subsystem_add_ns",
+                "params": {"nqn": nqn, "namespace": {"bdev_name": ramdrive_name}},
+            },
+            addr=ip_addr,
+            port=storage_target_port,
+        )
+
+        response = send_rpc_request(
+            request={"method": "bdev_get_bdevs", "params": {"name": ramdrive_name}},
+            addr=ip_addr,
+            port=storage_target_port,
+        )
+        return response[0]["uuid"]
+    except Exception as ex:
+        send_rpc_request(
+            {"method": "bdev_malloc_delete", "params": {"name": ramdrive_name}},
+            ip_addr,
+            storage_target_port,
+        )
+        raise ex
 
 
 def bytes2base64(b: bytes) -> str:
