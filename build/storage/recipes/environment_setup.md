@@ -50,10 +50,14 @@ Installation guideline for [Fedora](https://docs.docker.com/engine/install/fedor
 
 Installation guideline for [Ubuntu](https://docs.docker.com/engine/install/ubuntu/).
 
-**Note:**
+---
+**NOTE**
+
 Make sure that required proxy settings are configured for docker.
 Please, refer to [this](https://docs.docker.com/config/daemon/systemd/#httphttps-proxy)
 page.
+
+---
 
 ### libguestfs-tools
 ```
@@ -64,13 +68,16 @@ or
 $ sudo apt install libguestfs-tools
 ```
 
-**Note:**
+---
+**NOTE**
+
 To run `libguestfs` tools without root privileges, you may need to workaround
-the problem of
-Linux kernel image not being readable by issuing:
+the problem of Linux kernel image not being readable by issuing:
 ```
 $ sudo chmod +r /boot/vmlinuz-*
 ```
+
+---
 
 ### oracle/qemu
 Install required tools.
@@ -123,11 +130,16 @@ scripts/run_ipu_storage_container.sh
 `SHARED_VOLUME` points to a directory where vhost storage devices
 will be exposed.
 
-**Note:** By default, images for `storage-target` and `ipu-storage-container`
+---
+**NOTE**
+
+By default, images for `storage-target` and `ipu-storage-container`
 will be pulled from IPDK public registry for the scripts in the main branch.
 However, those images are not optimized for a local CPU and if such an
 optimization is required, then `OPTIMIZED_SPDK=true` environment variable should
 be exported before running the scripts above.
+
+---
 
 It is also possible for `storage-target` to specify ip addresses and ports where
 spdk service is exposed on by specifying `SPDK_IP_ADDR` and `SPDK_PORT`
