@@ -11,7 +11,9 @@ declare https_proxy
 declare http_proxy
 declare no_proxy
 
+
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+PIDS_LIMIT="${PIDS_LIMIT:-1024}"
 
 function find_latest_commit_with_changes_in_storage_dir() {
     branch="$(git rev-parse HEAD)"
@@ -82,4 +84,5 @@ docker run \
     -e HTTP_PROXY="$http_proxy" \
     -e NO_PROXY="$no_proxy" \
     --network host \
+    --pids-limit="$PIDS_LIMIT" \
     "$IMAGE_NAME"
