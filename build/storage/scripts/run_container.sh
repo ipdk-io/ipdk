@@ -14,6 +14,7 @@ declare no_proxy
 
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 PIDS_LIMIT="${PIDS_LIMIT:-1024}"
+CPU_SHARES="${CPU_SHARES:-1024}"
 
 function find_latest_commit_with_changes_in_storage_dir() {
     branch="$(git rev-parse HEAD)"
@@ -85,4 +86,5 @@ docker run \
     -e NO_PROXY="$no_proxy" \
     --network host \
     --pids-limit="$PIDS_LIMIT" \
+    --cpu-shares="$CPU_SHARES" \
     "$IMAGE_NAME"
