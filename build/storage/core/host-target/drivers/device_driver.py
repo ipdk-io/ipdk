@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 #
 import os
+import logging
 from typing import Callable
 
 from pci import PciAddress
@@ -46,9 +47,10 @@ class DeviceDriver:
             if self.is_bound(pci_addr):
                 return
             self._wait(1)
-        raise DriverError(
+        logging.error(
             f"Device '{pci_addr}' cannot be bound to '{self._driver_name}' driver"
         )
+        raise DriverError(f"Device cannot be bound to driver")
 
     def unbind(self, pci_addr: PciAddress) -> None:
         nvme_driver_unbind = os.path.join(self._get_driver_path(), "unbind")
@@ -58,9 +60,10 @@ class DeviceDriver:
             if not self.is_bound(pci_addr):
                 return
             self._wait(1)
-        raise DriverError(
+        logging.error(
             f"Device '{pci_addr}' cannot be unbound from '{self._driver_name}' driver"
         )
+        raise DriverError(f"Device cannot be unbound from driver")
 
     def _get_driver_path(self) -> str:
         return f"/sys/bus/pci/drivers/{self._driver_name}/"
