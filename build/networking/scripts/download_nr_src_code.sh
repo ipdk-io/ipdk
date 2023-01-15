@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2021-2023 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
 usage() {
@@ -23,7 +23,7 @@ eval set -- "${GETOPTS}"
 
 # Set defaults.
 WORKING_DIR=""
-GIT_SHA="3a18b11217629aee6c93d95b6df57c5fee6a005f"
+GIT_SHA="13de0d46f3f27a18b2d175032517ed3762389a03"
 NR_DIR="networking-recipe"
 
 # Process command-line options.

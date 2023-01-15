@@ -1,8 +1,8 @@
 # Native Install
 
-This method is supportd for either installing and using IPDK in a VM or on a
+This method is supported for either installing and using IPDK in a VM or on a
 host natively. Infrap4d will run natively on the host or inside of a VM, which
-is different than the containerized version of IPDK, which runs Infrap4d as a
+is different from the containerized version of IPDK, which runs Infrap4d as a
 container.
 
 ## Steps To Install
@@ -23,53 +23,70 @@ Without a proxy:
 ```
 root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh
 ```
+*Note*: This assumes your default source directory is `/git/` and searches for `ipdk`
+repository under default source directory. Output of this command copies
+necessary files to `/root/` by default.
 
 If using a proxy:
 
 ```
 root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -p [proxy name]
 ```
+*Note*: This assumes your default source directory is `/git/` and searches for `ipdk`
+repository under default source directory. Output of this command copies
+necessary files to `/root/` by default.
+
+If user wants to copy necessary dependent files to a specific location, use `--workdir` option.
+
+```
+root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh --workdir=/root/<my_own_dir>
+```
+*Note*: If user is behind proxy, need to provide `-p` with proxy.
+
 
 If your source directory is in a different location, such as `/opt/src/ipdk`:
 
 ```
-root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -d /opt/src/ipdk
+root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -d /opt/src
 ```
-
-Note: To skip installing and building dependencies in the future, add a `-s`
+*Note*: Output of this command copies necessary files to `/root/` by default.
+If user wants to copy necessary dependent files to a specific location use `--workdir` option.
+To skip installing and building dependencies in the future, add a `-s`
 flag to the host_install.sh script.
+
+
 
 ## Run P4 use case, either via VHOST ports or TAP ports.
 
 ### 1.1 Run the rundemo_TAP_IO.sh script
 
+If `host_install.sh` is excuted with default source directory.
 ```
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo_TAP_IO.sh
 ```
 
-Or, if your source is checked out somewhere else, such as `/opt/src/ipdk`:
-
+If `host_install.sh` is excuted with `--workdir` option.
 ```
-root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo_TAP_IO.sh -d /opt/src/ipdk
+root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo_TAP_IO.sh --workdir=/root/<my_own_dir>
 ```
 
-*Note*: rundemo_TAP_IO.sh does starts infrap4d, create TAP ports, set the
+*Note*: rundemo_TAP_IO.sh does start infrap4d, create TAP ports, set the
 pipeline, configure rules and then validates traffic between TAP ports.
 
 
 ### 1.2 Run the rundemo.sh script
 
+If `host_install.sh` is excuted with default source directory.
 ```
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo.sh
 ```
 
-Or, if your source is checked out somewhere else, such as `/opt/src/ipdk`:
-
+If `host_install.sh` is excuted with `--workdir` option.
 ```
-root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo.sh -d /opt/src/ipdk
+root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo.sh --workdir=/root/<my_own_dir>
 ```
 
-5. Verify Infrap4d is running:
+Verify Infrap4d is running:
 
 ```
 root@linux:~# ps -ef | grep infrap4d
@@ -80,15 +97,13 @@ root@linux:~# ps -ef | grep infrap4d
 You will need two login windows, one for each VM:
 
 ```
-$ vagrant ssh
-vagrant@ubuntu2004:~$ telnet localhost 6551
+root@linux:~# telnet localhost 6551
 ```
 
 And in another window:
 
 ```
-$ vagrant ssh
-vagrant@ubuntu2004:~$ telnet localhost 6552
+root@linux:~# telnet localhost 6552
 ```
 
 ### Verify guest is finished booting
@@ -121,6 +136,10 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4yha3xcGv+ISubnNDJvnunNXR1RgG2wCUzBz8Cry7
 [  OK  ] Reached target Cloud-init target.
 ```
 
+*NOTE*: If VM's are not up even after waiting for 6-9 minutes, check if
+hugepages are mounted to `/mnt/huge`.
+  Example: Command to mount huge pages is `mount -t hugetlbfs nodev /mnt/huge`
+
 ### Ping across VMs
 
 Once you reach the following, you can login as the user `ubuntu` with the
@@ -128,8 +147,7 @@ defined password `IPDK`. Then you can ping from vm1 to vm2, and P4-OVS will
 be used for networking traffic:
 
 ```
-$ vagrant ssh
-vagrant@ubuntu2004:~$ telnet localhost 6551
+root@linux:~# telnet localhost 6551
 ubuntu@vm1:~$ ping -c 5 2.2.2.2
 PING 2.2.2.2 (2.2.2.2) 56(84) bytes of data.
 64 bytes from 2.2.2.2: icmp_seq=1 ttl=64 time=0.317 ms

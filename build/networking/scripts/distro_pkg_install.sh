@@ -111,7 +111,8 @@ fedora_install_default_pkgs() {
         net-tools \
         libatomic \
         iputils \
-        psmisc
+        psmisc \
+        openssl
 
     python -m pip install --upgrade pip
     python -m pip install grpcio
@@ -246,7 +247,8 @@ ubuntu_install_default_pkgs() {
         iproute2 \
         vim \
         iputils-ping \
-        psmisc
+        psmisc \
+        openssl
 
     python3 -m pip install --no-cache-dir --upgrade pip
     python3 -m pip install --no-cache-dir grpcio

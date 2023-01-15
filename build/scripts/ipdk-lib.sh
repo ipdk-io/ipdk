@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (C) 2022 Sander Tolsma
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 # 
@@ -273,9 +274,23 @@ start_vms() {
 	# clean for extra parameters in ${@}
 	shift 2
 
+	KVM_PATH=/usr/bin/kvm
+	QEMU_KVM_PATH=/usr/bin/qemu-kvm
+	QEMU_BIN_PATH=""
+
+	if [ -f "${KVM_PATH}" ]; then
+	    QEMU_BIN_PATH="kvm"
+	fi
+
+	if [ -f "${QEMU_KVM_PATH}" ]; then
+	    QEMU_BIN_PATH="qemu-kvm"
+	fi
+
+	echo "Using QEMU: ${QEMU_BIN_PATH}"
+
 	print_banner "Starting VM1_TAP_DEV with serial port# 6551"
 
-	sudo kvm -smp 1 -m 256M \
+	sudo "${QEMU_BIN_PATH}" -smp 1 -m 256M \
 		-boot c -cpu host --enable-kvm \
 		-name VM1_TAP_DEV \
 		-hda "$IMAGE_LOCATION"/vm1.qcow2 \
@@ -303,7 +318,7 @@ start_vms() {
 
 	print_banner "Starting VM2_TAP_DEV with serial port# 6551"
 
-	sudo kvm -smp 1 -m 256M \
+	sudo "${QEMU_BIN_PATH}" -smp 1 -m 256M \
 		-boot c -cpu host --enable-kvm \
 		-name VM2_TAP_DEV \
 		-hda "$IMAGE_LOCATION"/vm2.qcow2 \

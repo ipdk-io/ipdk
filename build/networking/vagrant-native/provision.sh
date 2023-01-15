@@ -1,5 +1,5 @@
 #!/bin/bash
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2021-2023 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 #
 # Version 0.1.0
@@ -53,7 +53,11 @@ apt-get install -y apt-utils \
         make \
         cloud-image-utils \
         telnet \
-        qemu-kvm
+        qemu-kvm \
+        qemu \
+        libvirt-bin \
+        virt-manager \
+        wget
 
 apt-get --allow-downgrades install -y libssl1.1="1.1.1f-1ubuntu2.16" \
         libssl-dev
