@@ -1,78 +1,52 @@
-# Native Install
+# Vagrant Install
 
-This method is supportd for either installing and using IPDK in a VM or on a
-host natively. Infrap4d will run natively on the host or inside of a VM, which
-is different than the containerized version of IPDK, which runs Infrap4d as a
-container.
+Once vagrant box is up and running user can execute `host_install.sh` to clone
+and build dependent modules.
 
-## Steps To Install
-
-### Clone the repository
-
-```
-root@linux:~# cd <CLONE-PATH>
-root@linux:~# git clone https://github.com/ipdk-io/ipdk.git
-```
-
-### Run the install script to install all dependencies and build components.
-
-*NOTE*: This takes a long time, You also need to run these as root.
+## Steps to Install
 
 Without a proxy:
 
 ```
-root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh
+vagrant@ubuntu2004:~$ sudo su -
+root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build/networking/scripts/host_install.sh
 ```
 
 If using a proxy:
 
 ```
-root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -p [proxy name]
+vagrant@ubuntu2004:~$ sudo su -
+root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build/networking/scripts/host_install.sh -p [proxy name]
 ```
 
 If your source directory is in a different location, such as `/opt/src/ipdk`:
 
 ```
-root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -d /opt/src/ipdk
+vagrant@ubuntu2004:~$ sudo su -
+root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build/networking/scripts/host_install.sh -d /opt/src/ipdk
 ```
 
 Note: To skip installing and building dependencies in the future, add a `-s`
 flag to the host_install.sh script.
 
-## Run P4 use case, either via VHOST ports or TAP ports.
-
-### 1.1 Run the rundemo_TAP_IO.sh script
+### Run the rundemo.sh script
 
 ```
-root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo_TAP_IO.sh
+root@ubuntu2004:~$ /git/ipdk/build/networking/scripts/rundemo.sh
 ```
 
 Or, if your source is checked out somewhere else, such as `/opt/src/ipdk`:
 
 ```
-root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo_TAP_IO.sh -d /opt/src/ipdk
+root@ubuntu2004:~$ /git/ipdk/build/networking/scripts/rundemo.sh -d /opt/src/ipdk
 ```
 
-*Note*: rundemo_TAP_IO.sh does starts infrap4d, create TAP ports, set the
-pipeline, configure rules and then validates traffic between TAP ports.
-
-
-### 1.2 Run the rundemo.sh script
+5. Verify infrap4d is running:
 
 ```
-root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo.sh
-```
-
-Or, if your source is checked out somewhere else, such as `/opt/src/ipdk`:
-
-```
-root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo.sh -d /opt/src/ipdk
-```
-
-5. Verify Infrap4d is running:
-
-```
-root@linux:~# ps -ef | grep infrap4d
+root@ubuntu2004:~/networking-recipe# ps -ef | grep infrap4d
+root       73394       1 96 20:03 ?        00:04:10 infrap4d
+root       74141   73274  0 20:08 pts/1    00:00:00 grep --color=auto infrap4d
 ```
 
 ### Connect to the guest VMs serial consoles
@@ -124,7 +98,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4yha3xcGv+ISubnNDJvnunNXR1RgG2wCUzBz8Cry7
 ### Ping across VMs
 
 Once you reach the following, you can login as the user `ubuntu` with the
-defined password `IPDK`. Then you can ping from vm1 to vm2, and P4-OVS will
+defined password `IPDK`. Then you can ping from vm1 to vm2, and infrap4d will
 be used for networking traffic:
 
 ```
