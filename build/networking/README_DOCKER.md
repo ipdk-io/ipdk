@@ -1,98 +1,165 @@
-# IPDK Container (Version 0.1.0)
+# IPDK Container
 
 ## What is IPDK container?
 The IPDK Container is a Virtual Networking Infrastructure Container and is
 built with the following components:
 
-1. [OvS with P4 Support](https://github.com/ipdk-io/ovs/tree/ovs-with-p4)
+1. [IPDK Networking-Recipe with P4 Support](https://github.com/ipdk-io/networking-recipe)
 2. [P4_DPDK_target library](https://github.com/p4lang/p4-dpdk-target)
 3. [P4-DPDK](https://github.com/DPDK/dpdk)
 4. [P4C P4 reference compiler with DPDK, eBPF target support](https://github.com/p4lang/p4c)
-5. OVS pipeline builder program
+5. TDI pipeline builder program
 6. P4 Pipeline program examples
 
-The IPDK container dockerfile builds all the five components and their dependencies
+The IPDK container Dockerfile builds all the five components and their dependencies
 and integrates them providing a P4 based virtual networking switch, P4
 compiler + builder and example p4 pipeline code within the container. Following
 sections decribe the steps on how to bring up and run this container and use
 the example P4 pipeline programs.
 
-## Optional Vagrant Setup
+## Install IPDK CLI
 
-To ease usage of the IPDK P4OVS container, a Vagrant environment is provided
-which will spinup an Ubuntu VM with Docker already installed, allowing for a
-quick way to play with the containerized version of P4OVS.
+To fully use all the features of the IPDK containers and if you want to follow
+the examples, then install the IPDK CLI with the following command executed
+from the directory this README is found in:
 
-### Supported Vagrant + Virtualbox Setups
+ ```bash
+ $ git clone https://github.com/ipdk-io/ipdk.git
+ $ cd ipdk/build
+ $ ./ipdk install
+ ```
 
-The Vagrant setup is currently only tested with Virtualbox running on MacOS. As
-more uses test and report things working, this will be updated.
+If your system has not added `~/.local/bin` or `~/bin` to your search PATH then
+execute the given `export PATH=<>` command to add the `ipdk` command
+to your current environment path each time you open a new terminal to your
+system!
 
-It's also not advised to run multiple hypervisors at the same time, as this can lead
-to trouble with sharing the CPU's virtualization extensions.
+*NOTE*: If `$PATH` variable is not updated as mentioned above, use `./ipdk`
+everywhere instead of using `ipdk` command directly.
 
-### Bringup the Vagrant VM:
-```
-$ cd vagrant-container
-$ vagrant up
-```
+The IPDK CLI is by default setup for a `Fedora:33` environment. Build
+and run your IPDK container with the `ubuntu:20.04` or `ubuntu:18.04` base
+environment by running `ipdk install ubuntu2004` or `ipdk install ubuntu1804`.
+`ipdk install default` will bring you back to the default environment (fedora)
 
-### Login to the VM
-```
-$ vagrant ssh
-Welcome to Ubuntu 20.04 LTS (GNU/Linux 5.4.0-31-generic x86_64)
+## Build Containers
 
-                  ubuntu-20.04-amd64-docker (virtualbox)
-                 _____ _____ _____ _____ _____ _____ _____
-                |  |  |  _  |   __| __  |  _  |   | |_   _|
-                |  |  |     |  |  |    -|     | | | | | |
-                 \___/|__|__|_____|__|__|__|__|_|___| |_|
-                       Sat May 23 14:38:33 UTC 2020
-                            Box version: 0.1.1
+The following are the container images you can build from here:
 
-  System information as of Wed 22 Dec 2021 05:47:40 PM UTC
+* Fedora 33 P4-DPDK networking container: `ipdk install fedora33`
+* Ubuntu 18.04 P4-DPDK networking container: `ipdk install ubuntu1804`
+* Ubuntu 20.04 P4-DPDK networking container: `ipdk install ubuntu2004`
+* Ubuntu 20.04 eBPF networking container: `ipdk install ebpf-ubuntu2004`
 
-  System load:  1.08               Processes:                141
-  Usage of /:   12.1% of 38.65GB   Users logged in:          0
-  Memory usage: 3%                 IPv4 address for docker0: 172.17.0.1
-  Swap usage:   0%                 IPv4 address for eth0:    10.0.2.15
+## Container Build Instructions
 
-vagrant@ubuntu2004:~$
-```
+## Section 1: Bring-up IPDK Container
 
-From here on, make sure to follow the instructions below while logged into
-the vagrant-container virtual machine.
+### Pre-requisites to run IPDK container
 
-## Platform Specific Container Instructions
+* Docker is installed and running with correct (proxy) settings.
+* Note: Since all dependent packages are installed in docker container, these
+  specific settings should be defined on the host machine/server. Eg:
+  * A nameserver in `resolv.conf`
+  * proxies in below files if needed:
+    - `~/.docker/config.json`(<https://docs.docker.com/network/proxy/>)
+    - `http-proxy.conf` under docker service.
+    - /etc/default/docker
+  * Then restart docker service.
+* If you want to push the container to Docker Hub then login to docker using
+  `docker login`
+* Start docker service using following commands:
 
-Run - 'ipdk connect' - To connect to your IPDK container daemon and to use
-it from a command line.
+  ```command
+  systemctl daemon-reload
+  systemctl restart docker
+  ```
+
+* If you are behind proxy update `PROXY` parameter in `scripts/ipdk_default.env` file.
+  Example: `PROXY=http://iam.behind.proxy:1234`
+
+Install the IPDK CLI and set your specific IPDK CLI configuration settings! See
+[here](#CLI-configuration-settings) for more information about IPDK CLI
+configuration file settings and inner workings!
+
+* If you are behind a proxy, add the `PROXY=<your proxy address>` option to
+  add your proxy to your user CLI configuration file.
+* By default source code will not be retained in the IPDK container when built.
+  If user wants to retain source code, set the (`KEEP_SOURCE_CODE=true`)
+  option in the CLI configuration file.
+* By default, image will contain all the modules including its dependencies.
+  To minimize the image size suitable for K8S or any cloud deployments, set the
+  (`DEPLOYMENT_IMAGE=true`) option in the CLI configuration file to keep only
+  modules and libraries required for bringing up the stack.
+
+* Set the location of the working directory for the logs, interfaces and
+  example VM images by setting the `VOLUME=` option in your user CLI
+  configuration file. Default location is `~/.ipdk/volume`
+
+### Commands to bring-up IPDK container
+
+* The following commands can be used to build a IPDK container:
+
+  * Run `ipdk build --no-cache` - To build a IPDK docker image.
+  * Run `ipdk build --no-cache --use-proxy` - To build a docker image while
+    running behind a proxy (set the `PROXY` option, see above!!!).
+  * Run `ipdk build` - To build a IPDK docker image with using
+    previously cached build data.
+  * Run `ipdk build --use-proxy` - To build a docker image while running
+    behind a proxy, with using previous cached build's data. (set the
+    `PROXY` option, see above!!!)
+
+* In normal environments use `ipdk build --no-cache` Now the container image is
+  built, this can take more then 60 minutes depending on the hardware/VM
+  configuration.
+* When the build is ready, the infrap4d switch can be started as docker
+  container daemon with `ipdk start -d`. A `volume` directory will be created
+  (depending on option settings at `~/.ipdk/volume`). This directory will be used
+  for creating the vhost socket interfaces in `volume/intf`, all the log files in
+  `volume/logs` and can be used to share files with the IPDK daemon container
+  where the `VOLUME` directory is available as '/tmp'.
+* Run `ipdk connect` - To connect to your IPDK container daemon and to use
+  it from a command line.
 
 If above commands are successful, at this point you should have your IPDK
 container up and running, and should see the container prompt like below:
 
-```
+```text
     root@c5efb1a949ad ~]#
 ```
 
 `c5efb1a949ad` is your container id as displayed in command `docker ps -a`
 
-As your P4-OvS should be up and running, you could see the ovsdb-server
-and ovs-vswitchd process with the `ps -ef | grep ovs` command.
 
-## Section 2: Running example setup ( VM1 <-> IPDK Container <-> VM2 )
+As your Infrap4d process should be up and running, you could see the infrap4d
+process with the `ps -ef | grep infrap4d` command.
+
+## Section 2: Running example use case
+
+### Section 2.1: Running example setup with TAP ports.
+After logging to container, execute below sample script which will
+  - Set the environment.
+  - Starts infrap4d process.
+  - Creates TAP ports and move to two different namespaces.
+  - Create a forwarding pipeline binary.
+  - Load the target with forwarding pipeline.
+  - Configure rules.
+  - Test traffic with Ping between TAP ports.
+
+
+### Section 2.2: Running example setup ( VM1 <-> IPDK Container <-> VM2 )
 Below commands will help you setup traffic between 2 VMs on your host with the
 IPDK container as a P4 program enabled vswitch switching traffic between them.
 
 Pre-requisite:
-- Container in Section 1 should be up and with OvS running
+- Container in Section 1 should be up and with Infrap4d running
 - If you are running in a VM then make sure you have nested virtualization
   enabled on your guest VM
 - QEMU and KVM should be installed and running
 
 ### Example description
 
-The demo environment is easily setup. The command below will set the environment up and allow for simple testing using the P4OVS container:
+The demo environment is easily setup. The command below will set the environment up and allow for simple testing using the networking-recipe container:
 
 ```
 ipdk demo
@@ -104,14 +171,14 @@ below.
 ### Step-by-step commands to setup the example scenario
 
 If you want to execute each command yourself instead of using the pre-written
-demo script, do the following steps:
+demo script, do the following steps on your host/server:
 
-1) Create 2 vhost ports using GNMI CLI commands through the `ipdk execute` CLI:
+1) Create 2 vhost ports using GNMI CTL commands through the `ipdk execute` CLI:
 
 ```
-ipdk execute --- gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-0,port-type:LINK"
+ipdk execute --- gnmi-ctl set "device:virtual-device,name:net_vhost0,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-0,port-type:LINK"
 
-ipdk execute --- gnmi-cli set "device:virtual-device,name:net_vhost1,host:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-1,port-type:LINK"
+ipdk execute --- gnmi-ctl set "device:virtual-device,name:net_vhost1,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-1,port-type:LINK"
 ```
 
 2) On your host, create two Ubuntu demo VM images with accompanying cloud-init images:
@@ -133,21 +200,21 @@ pipeline binary package by using the pipeline builder:
 export OUTPUT_DIR=/root/examples/simple_l3
 ipdk execute --- p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
 
-ipdk execute /root/examples/simple_l3 --- ovs_pipeline_builder --p4c_conf_file=simple_l3.conf --bf_pipeline_config_binary_file=simple_l3.pb.bin
+ipdk execute /root/examples/simple_l3 --- tdi_pipeline_builder --p4c_conf_file=simple_l3.conf --bf_pipeline_config_binary_file=simple_l3.pb.bin
 ```
 
-5) Add the created pipeline binary package to the running IPDK container P4-OVS switch:
+5) Add the created pipeline binary package to the running IPDK container infrap4d switch:
 
 ```
-ipdk execute --- ovs-p4ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin /root/examples/simple_l3/p4Info.txt
+ipdk execute --- p4rt-ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin /root/examples/simple_l3/p4Info.txt
 ```
 
 6) Add pipeline table rules:
 
 ```
-ipdk execute --- ovs-p4ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
+ipdk execute --- p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
 
-ipdk execute --- ovs-p4ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
+ipdk execute --- p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
 ```
 
 From this step you can connect to the test VMs and do some ping tests as described below!
@@ -201,7 +268,7 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4yha3xcGv+ISubnNDJvnunNXR1RgG2wCUzBz8Cry7
 ### Ping across VMs
 
 Once you reach the following, you can login as the user `ubuntu` with the
-defined password `IPDK`. Then you can ping from vm1 to vm2, and P4-OVS will
+defined password `IPDK`. Then you can ping from vm1 to vm2, and infrap4d will
 be used for networking traffic:
 
 ```
@@ -220,7 +287,7 @@ rtt min/avg/max/mdev = 0.309/0.406/0.779/0.186 ms
 ubuntu@vm1:~$
 ```
 
-# Section 3: Generating dependent files from P4C and OVS pipeline builder:
+## Section 3: Generating dependent files from P4C and TDI pipeline builder:
 
 TODO: change this whole section to ipdk script + explaining in more depth then demo text above
 
@@ -233,9 +300,9 @@ An open-sourced p4lang P4 compiler is integrated as part of the IPDK container.
     $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
 
 2) Steps to generate pipeline binary file:
-Use ovs_pipeline_builder utility to generate pipeline binary file.
+Use tdi_pipeline_builder utility to generate pipeline binary file.
     a. cd /root/examples/simple_l3/
-    b. ovs_pipeline_builder --p4c_conf_file=simple_l3.conf \
+    b. tdi_pipeline_builder --p4c_conf_file=simple_l3.conf \
     --bf_pipeline_config_binary_file=simple_l3.pb.bin
 
 Note: As of today <program>.conf is not generated by compiler, in that case
@@ -256,7 +323,7 @@ the host in `~/.ipdk/examples`, by executing:
     ipdk [options] examples
 ```
 
-# Section 4: IPDK CLI inner workings
+## Section 4: IPDK CLI inner workings
 
 TODO: Add all specific things about how the IPDK container and cli works.
 
@@ -273,31 +340,31 @@ TODO: add all configuration options and their working!
 KEEP_SOURCE_CODE:
 
 1) If `KEEP_SOURCE_CODE=false` which is a default value then, complete source
-code for P4-OVS, p4-driver and P4C will be removed.
+code for networking-recipe, p4-driver and P4C will be removed.
 
-2) `KEEP_SOURCE_CODE=true` then, source code for P4-OVS, p4-driver and P4C will
+2) `KEEP_SOURCE_CODE=true` then, source code for networking-recipe, p4-driver and P4C will
 be retained but temporary files generated after building these repositories
 will be removed.
 
 DEPLOYMENT_IMAGE:
 
 1) If `DEPLOYMENT_IMAGE=false` which is a default value then,  all libraries
-and binaries of modules P4-OVS, p4-driver and P4C are retained without removing
+and binaries of modules networking-recipe, p4-driver and P4C are retained without removing
 any files generated by the build process.
 
 2) If `DEPLOYMENT_IMAGE=true` then, all libraries and binaries of modules
-P4-OVS and p4-driver required for bringing up the stack are retained.
+networking-recipe and p4-driver required for bringing up the stack are retained.
 
-# Section 4: Helpful references:
+## Section 5: Helpful references:
 
-1. /root/OVS-WITH-P4/Documentation/howto/ovs-with-p4-executables.rst
-2. /root/OVS-WITH-P4/OVS-WITH-P4-BUILD-README
-3. ipdk/build/networking/README.md
+1. /root/networking-recipe/docs/ipdk-dpdk.md
+2. /root/networking-recipe/docs/p4rt-ctl.rst
+3. /root/networking-recipe/docs/dpdk/gnmi-ctl.rst
 4. ipdk/build/networking/examples/vhost-vhost/README
 5. ipdk/build/networking/examples/simple_l3
 
-# Section 6: Copyright
+## Section 6: Copyright
 
-Copyright (C) 2021 Intel Corporation
+Copyright (C) 2021-2023 Intel Corporation
 
 SPDX-License-Identifier: Apache-2.0
