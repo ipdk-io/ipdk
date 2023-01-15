@@ -19,8 +19,8 @@ LONGOPTS=help,scripts-dir:,workdir:
 GETOPTS=$(getopt -o ${SHORTOPTS} --long ${LONGOPTS} -- "$@")
 eval set -- "${GETOPTS}"
 # Set defaults.
-WORKING_DIR=""
-SCRIPTS_DIR=""
+WORKING_DIR=/root/
+SCRIPTS_DIR="${WORKING_DIR}"/scripts
 NUM_BUILD_CORES=4
 
 # Process command-line options.
@@ -31,6 +31,7 @@ while true ; do
       exit 1 ;;
     -w|--workdir)
         WORKING_DIR="${2}"
+        SCRIPTS_DIR="${WORKING_DIR}"/scripts
         shift 2 ;;
     --scripts-dir)
         SCRIPTS_DIR="${2}"
@@ -70,6 +71,7 @@ DEPS_INSTALL_DIR="${WORKING_DIR}"/networking-recipe/deps_install
 SDE_INSTALL_DIR="${WORKING_DIR}"/p4-sde/install
 
 # Get number of cores to be used for build
+# shellcheck source=/dev/null
 . "${SCRIPTS_DIR}"/os_ver_details.sh
 get_num_cores
 if [ "${NUM_CORES}" -gt 4 ]; then
@@ -112,6 +114,11 @@ install_nr() {
      bash "${SCRIPTS_DIR}"/install_nr.sh --src-dir="${NR_SRC_DIR}" \
          --deps-install-dir="${DEPS_INSTALL_DIR}" \
          --sde-install-dir="${SDE_INSTALL_DIR}" --num-cores="${NUM_BUILD_CORES}"
+
+     # Copy TLS specific scripts and configurations
+     mkdir -p "${NR_SRC_DIR}"/tools/tls
+     cp "${NR_SRC_DIR}"/stratum/stratum/tools/tls/generate-certs.sh "${NR_SRC_DIR}"/tools/tls
+     cp "${NR_SRC_DIR}"/stratum/stratum/tools/tls/*.conf "${NR_SRC_DIR}"/tools/tls
 }
 
 # Main

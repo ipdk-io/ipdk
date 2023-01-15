@@ -104,4 +104,5 @@ export PKG_CONFIG_PATH="${SDE_INSTALL_DIR}"/lib/pkgconfig:"${SDE_INSTALL_DIR}"/l
 # Build and install networking recipe modules
 pushd "${NR_SRC_DIR}" || exit
 ./make-all.sh --target=dpdk "${INSTALL_PREFIX}" "${EXTRA_BUILD_ARGS}"
-popd
+rm -rf ./build || exit
+popd || exit

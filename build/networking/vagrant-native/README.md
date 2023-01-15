@@ -1,6 +1,6 @@
 # Vagrant Install
 
-Once vagrant box is up and running user can execute `host_install.sh` to clone
+Once the vagrant box is up and running, the user can execute `host_install.sh` to clone
 and build dependent modules.
 
 ## Steps to Install
@@ -11,6 +11,9 @@ Without a proxy:
 vagrant@ubuntu2004:~$ sudo su -
 root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build/networking/scripts/host_install.sh
 ```
+*Note*: This assumes your default source directory is `/git/` and searches for `ipdk`
+repository under default source directory. Output of this command copies
+necessary files to `/root/` by default.
 
 If using a proxy:
 
@@ -18,30 +21,65 @@ If using a proxy:
 vagrant@ubuntu2004:~$ sudo su -
 root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build/networking/scripts/host_install.sh -p [proxy name]
 ```
+*Note*: This assumes your default source directory is `/git/` and searches for `ipdk`
+repository under default source directory. Output of this command copies
+necessary files to `/root/` by default.
+
+If user wants to copy necessary dependent files to a specific location, use `--workdir` option.
+
+```
+vagrant@ubuntu2004:~$ sudo su -
+root@ubuntu2004:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh --workdir=/root/<my_own_dir>
+```
+*Note*: If user is behind proxy, need to provide `-p` with proxy.
 
 If your source directory is in a different location, such as `/opt/src/ipdk`:
 
 ```
 vagrant@ubuntu2004:~$ sudo su -
-root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build/networking/scripts/host_install.sh -d /opt/src/ipdk
+root@ubuntu2004:~# SCRIPT_DIR=/git/ipdk/build/networking/scripts /git/ipdk/build/networking/scripts/host_install.sh -d /opt/src
 ```
 
-Note: To skip installing and building dependencies in the future, add a `-s`
-flag to the host_install.sh script.
+Note: Output of this command copies necessary files to `/root/` by default.
+If user wants to copy necessary dependent files to a specific location use `--workdir` option.
+To skip installing and building dependencies in the future, add a `-s` flag
+to the host_install.sh script.
 
-### Run the rundemo.sh script
+### 1.1 Run the rundemo_TAP_IO.sh script.
 
+Here running use case assumes `ipdk` repository mounted from host machine. User
+can also use scripts from different location.
+
+If `host_install.sh` is excuted with default source directory.
 ```
-root@ubuntu2004:~$ /git/ipdk/build/networking/scripts/rundemo.sh
+root@ubuntu2004:~# /git/ipdk/build/networking/scripts/rundemo_TAP_IO.sh
 ```
 
-Or, if your source is checked out somewhere else, such as `/opt/src/ipdk`:
-
+If `host_install.sh` is excuted with `--workdir` option.
 ```
-root@ubuntu2004:~$ /git/ipdk/build/networking/scripts/rundemo.sh -d /opt/src/ipdk
+root@linux:~# /git/ipdk/build/networking/scripts/rundemo_TAP_IO.sh --workdir=/root/<my_own_dir>
 ```
 
-5. Verify infrap4d is running:
+*Note*: rundemo_TAP_IO.sh does start infrap4d, create TAP ports, set the
+pipeline, configure rules and then validates traffic between TAP ports.
+
+
+### 1.2 Run the rundemo.sh script
+
+Here running use case assumes `ipdk` repository mounted from host machine. User
+can also use scripts from different location.
+
+If `host_install.sh` is excuted with default source directory.
+```
+root@ubuntu2004:~# /git/ipdk/build/networking/scripts/rundemo.sh
+```
+
+If `host_install.sh` is excuted with `--workdir` option.
+```
+root@linux:~# /git/ipdk/build/networking/scripts/rundemo.sh --workdir=/root/<my_own_dir>
+```
+
+Verify infrap4d is running:
 
 ```
 root@ubuntu2004:~/networking-recipe# ps -ef | grep infrap4d
@@ -94,6 +132,10 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQC4yha3xcGv+ISubnNDJvnunNXR1RgG2wCUzBz8Cry7
 [  OK  ] Finished Execute cloud user/final scripts.
 [  OK  ] Reached target Cloud-init target.
 ```
+
+*NOTE*: If VM's are not up even after waiting for 6-9 minutes, check if
+hugepages are mounted to `/mnt/huge`.
+  Example: Command to mount huge pages is `mount -t hugetlbfs nodev /mnt/huge`
 
 ### Ping across VMs
 

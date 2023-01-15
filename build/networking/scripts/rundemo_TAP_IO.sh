@@ -1,5 +1,5 @@
 #!/bin/bash
-#Copyright (C) 2021-2022 Intel Corporation
+#Copyright (C) 2021-2023 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
 stty -echoctl # hide ctrl-c
@@ -7,54 +7,29 @@ stty -echoctl # hide ctrl-c
 usage() {
     echo ""
     echo "Usage:"
-    echo "rundemo_TAP_IO.sh: -s|--scripts-dir --deps-install-dir --nr-install-dir --sde-install-dir -w|--workdir -h|--help"
+    echo "rundemo_TAP_IO.sh: -w|--workdir -h|--help"
     echo ""
-    echo "  --deps-install-dir: Networking-recipe dependencies install path. [Default: ${workdir}/networking-recipe/deps_install"
     echo "  -h|--help: Displays help"
-    echo "  --nr-install-dir: Networking-recipe install path. [Default: ${workdir}/networking-recipe/install"
-    echo "  --p4c-install-dir: P4C install path. [Default: ${workdir}/p4c/install"
-    echo "  -s|--scripts-dir: Directory path where all utility scripts copied.  [Default: ${workdir}/scripts]"
-    echo "  --sde-install-dir: P4 SDE install path. [Default: ${workdir}/p4-sde/install"
     echo "  -w|--workdir: Working directory"
     echo ""
 }
 
 # Parse command-line options.
-SHORTOPTS=:h,s:,w:
-LONGOPTS=help,deps-install-dir:,nr-install-dir:,p4c-install-dir:,sde-install-dir:,scripts-dir:,workdir:
+SHORTOPTS=:h,w:
+LONGOPTS=help,workdir:
 
 GETOPTS=$(getopt -o ${SHORTOPTS} --long ${LONGOPTS} -- "$@")
 eval set -- "${GETOPTS}"
 
 # Set defaults.
 WORKING_DIR=/root
-SCRIPTS_DIR="${WORKING_DIR}"/scripts
-DEPS_INSTALL_DIR="${WORKING_DIR}"/networking-recipe/deps_install
-P4C_INSTALL_DIR="${WORKING_DIR}"/p4c/install
-SDE_INSTALL_DIR="${WORKING_DIR}"/p4-sde/install
-NR_INSTALL_DIR="${WORKING_DIR}"/networking-recipe/install
 
 # Process command-line options.
 while true ; do
     case "${1}" in
-    --deps-install-dir)
-        DEPS_INSTALL_DIR="${2}"
-        shift 2 ;;
     -h|--help)
         usage
         exit 1 ;;
-    --nr-install-dir)
-        NR_INSTALL_DIR="${2}"
-        shift 2 ;;
-    --p4c-install-dir)
-        P4C_INSTALL_DIR="${2}"
-        shift 2 ;;
-    --sde-install-dir)
-        SDE_INSTALL_DIR="${2}"
-        shift 2 ;;
-    -s|--scripts-dir)
-        SCRIPTS_DIR="${2}"
-        shift 2 ;;
     -w|--workdir)
         WORKING_DIR="${2}"
         shift 2 ;;
@@ -66,6 +41,12 @@ while true ; do
         exit 1 ;;
     esac
 done
+
+SCRIPTS_DIR="${WORKING_DIR}"/scripts
+DEPS_INSTALL_DIR="${WORKING_DIR}"/networking-recipe/deps_install
+P4C_INSTALL_DIR="${WORKING_DIR}"/p4c/install
+SDE_INSTALL_DIR="${WORKING_DIR}"/p4-sde/install
+NR_INSTALL_DIR="${WORKING_DIR}"/networking-recipe/install
 
 # Display argument data after parsing commandline arguments
 echo ""
@@ -102,11 +83,14 @@ pushd "${WORKING_DIR}" || exit
       --nr-install-dir="${NR_INSTALL_DIR}" --deps-install-dir="${DEPS_INSTALL_DIR}" \
       --p4c-install-dir="${P4C_INSTALL_DIR}"
 
+# shellcheck source=/dev/null
 . "${SCRIPTS_DIR}"/set_hugepages.sh
 
+# shellcheck source=/dev/null
 . "${SCRIPTS_DIR}"/setup_nr_cfg_files.sh --nr-install-dir="${NR_INSTALL_DIR}" \
       --sde-install-dir="${SDE_INSTALL_DIR}"
 
+# shellcheck source=/dev/null
 . "${SCRIPTS_DIR}"/run_infrap4d.sh --nr-install-dir="${NR_INSTALL_DIR}"
 popd || exit
 
@@ -164,8 +148,8 @@ echo ""
 echo "Add ARP table for neighbor TAP port"
 echo ""
 
-ip netns exec VM0 ip neigh add 2.2.2.2 dev TAP0 lladdr $(ip netns exec VM1 ip -o link show TAP1 | awk -F" " '{print $17}')
-ip netns exec VM1 ip neigh add 1.1.1.1 dev TAP1 lladdr $(ip netns exec VM0 ip -o link show TAP0 | awk -F" " '{print $17}')
+ip netns exec VM0 ip neigh add 2.2.2.2 dev TAP0 lladdr "$(ip netns exec VM1 ip -o link show TAP1 | awk -F" " '{print $17}')"
+ip netns exec VM1 ip neigh add 1.1.1.1 dev TAP1 lladdr "$(ip netns exec VM0 ip -o link show TAP0 | awk -F" " '{print $17}')"
 
 echo ""
 echo "Add Route to reach neighbor TAP port"

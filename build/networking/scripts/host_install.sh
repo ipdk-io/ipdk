@@ -7,20 +7,19 @@
 usage() {
     echo ""
     echo "Usage:"
-    echo "host_install.sh: -d|--ipdk-base-dir -s|--skip-deps-install -p|--proxy --scripts-dir -w|--workdir -h|--help"
+    echo "host_install.sh: -d|--ipdk-base-dir -s|--skip-deps-install -p|--proxy -w|--workdir -h|--help"
     echo ""
     echo "  -d|--ipdk-base-dir: Base directory of source"
     echo "  -h|--help: Displays help"
     echo "  -p|--proxy: Proxy to use"
     echo "  -s|--skip-deps-install: Skip installing and building dependencies"
-    echo "  --scripts-dir: Directory path where all utility scripts copied. [Default: /root/scripts]"
     echo "  -w|--workdir: Working directory. [Default: /root"
     echo ""
 }
 
 # Parse command-line options.
 SHORTOPTS=d:,h,p:,s:w:
-LONGOPTS=ipdk-base-dir:,help,proxy:,skip-deps-install:,scripts-dir:,workdir:
+LONGOPTS=ipdk-base-dir:,help,proxy:,skip-deps-install:,workdir:
 
 GETOPTS=$(getopt -o ${SHORTOPTS} --long ${LONGOPTS} -- "$@")
 eval set -- "${GETOPTS}"
@@ -49,11 +48,9 @@ while true ; do
     -s|--skip-deps-install)
         INSTALL_DEPENDENCIES=n
         shift 2 ;;
-    --scripts-dir)
-        SCRIPTS_DIR="${2}"
-        shift 2 ;;
     -w|--workdir)
         WORKING_DIR="${2}"
+        SCRIPTS_DIR="${WORKING_DIR}/scripts"
         shift 2 ;;
     --)
         shift
@@ -102,3 +99,6 @@ echo "$TAG"
 
 "${WORKING_DIR}"/scripts/install_cmake_3.20.2.sh
 "${WORKING_DIR}"/install_nr_modules.sh --workdir="${WORKING_DIR}"
+
+# Generate and install certificates required for TLS
+COMMON_NAME=localhost "${WORKING_DIR}"/scripts/generate_tls_certs.sh --workdir="${WORKING_DIR}"

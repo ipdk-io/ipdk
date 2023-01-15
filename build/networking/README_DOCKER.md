@@ -1,6 +1,6 @@
 # IPDK Container
 
-## What is IPDK container?
+## What is an IPDK container?
 The IPDK Container is a Virtual Networking Infrastructure Container and is
 built with the following components:
 
@@ -14,7 +14,7 @@ built with the following components:
 The IPDK container Dockerfile builds all the five components and their dependencies
 and integrates them providing a P4 based virtual networking switch, P4
 compiler + builder and example p4 pipeline code within the container. Following
-sections decribe the steps on how to bring up and run this container and use
+sections desribe the steps on how to bring up and run this container and use
 the example P4 pipeline programs.
 
 ## Install IPDK CLI
@@ -75,7 +75,7 @@ The following are the container images you can build from here:
   systemctl restart docker
   ```
 
-* If you are behind proxy update `PROXY` parameter in `scripts/ipdk_default.env` file.
+* If you are behind a proxy update `PROXY` parameter in `scripts/ipdk_default.env` file.
   Example: `PROXY=http://iam.behind.proxy:1234`
 
 Install the IPDK CLI and set your specific IPDK CLI configuration settings! See
@@ -85,7 +85,7 @@ configuration file settings and inner workings!
 * If you are behind a proxy, add the `PROXY=<your proxy address>` option to
   add your proxy to your user CLI configuration file.
 * By default source code will not be retained in the IPDK container when built.
-  If user wants to retain source code, set the (`KEEP_SOURCE_CODE=true`)
+  If the user wants to retain source code, set the (`KEEP_SOURCE_CODE=true`)
   option in the CLI configuration file.
 * By default, image will contain all the modules including its dependencies.
   To minimize the image size suitable for K8S or any cloud deployments, set the
@@ -100,26 +100,38 @@ configuration file settings and inner workings!
 
 * The following commands can be used to build a IPDK container:
 
-  * Run `ipdk build --no-cache` - To build a IPDK docker image.
+  * Run `ipdk build --no-cache` - To build an IPDK docker image.
   * Run `ipdk build --no-cache --use-proxy` - To build a docker image while
     running behind a proxy (set the `PROXY` option, see above!!!).
-  * Run `ipdk build` - To build a IPDK docker image with using
+  * Run `ipdk build` - To build an IPDK docker image using
     previously cached build data.
   * Run `ipdk build --use-proxy` - To build a docker image while running
-    behind a proxy, with using previous cached build's data. (set the
+    behind a proxy, using previous cached build's data. (set the
     `PROXY` option, see above!!!)
 
 * In normal environments use `ipdk build --no-cache` Now the container image is
   built, this can take more then 60 minutes depending on the hardware/VM
   configuration.
-* When the build is ready, the infrap4d switch can be started as docker
+* When the build is ready, the infrap4d switch can be started as a docker
   container daemon with `ipdk start -d`. A `volume` directory will be created
   (depending on option settings at `~/.ipdk/volume`). This directory will be used
   for creating the vhost socket interfaces in `volume/intf`, all the log files in
   `volume/logs` and can be used to share files with the IPDK daemon container
   where the `VOLUME` directory is available as '/tmp'.
+
+* User can also start IPDK container via docker command.
+  * Update `VOLUME` and `CONTAINER_NAME` environment variables, these are defined in `scripts/ipdk_default.env`
+  * rm -rf "${VOLUME}"/logs
+    rm -rf "${VOLUME}"/intf
+    mkdir -p "${VOLUME}"/logs
+    mkdir -p "${VOLUME}"/intf
+  * docker run --name "${CONTAINER_NAME}" --cap-add ALL --privileged \
+               -v "${VOLUME}":/tmp -p 9339:9339 -p 9559:9559 \
+               -d --entrypoint /root/scripts/start.sh -it <Image ID> rundaemon
+
 * Run `ipdk connect` - To connect to your IPDK container daemon and to use
-  it from a command line.
+  it from a command line. Everytime we login to container via `ipdk connect`,
+  TLS certificates will be generated and stored in a specific location.
 
 If above commands are successful, at this point you should have your IPDK
 container up and running, and should see the container prompt like below:
@@ -137,12 +149,13 @@ process with the `ps -ef | grep infrap4d` command.
 ## Section 2: Running example use case
 
 ### Section 2.1: Running example setup with TAP ports.
-After logging to container, execute below sample script which will
-  - Set the environment.
-  - Starts infrap4d process.
-  - Creates TAP ports and move to two different namespaces.
+Infrap4d process is already started with `ipdk start -d` or with manual
+steps mentioned above.
+Start example usecase by connecting to docker and running script `/root/scripts/rundemo_TAP_IO.sh`,
+this script will:
+  - Creates TAP ports and moves to two different namespaces.
   - Create a forwarding pipeline binary.
-  - Load the target with forwarding pipeline.
+  - Load the target with a forwarding pipeline.
   - Configure rules.
   - Test traffic with Ping between TAP ports.
 
@@ -155,7 +168,10 @@ Pre-requisite:
 - Container in Section 1 should be up and with Infrap4d running
 - If you are running in a VM then make sure you have nested virtualization
   enabled on your guest VM
-- QEMU and KVM should be installed and running
+- QEMU, KVM, libvirt and cloud-utils packages should be installed as per your distribution and running.
+- `ipdk` commands executed on host machine works only when container is started
+  via `ipdk start -d` and `ipdk connect`. These start commands provides ports
+  from container to host machine for gRPC communication.
 
 ### Example description
 
@@ -192,6 +208,10 @@ ipdk createvms
 ```
 ipdk startvms
 ```
+
+*NOTE*: If VM's are not up even after waiting for 6-9 minutes, check if
+hugepages are mounted to `/mnt/huge`.
+  Example: Command to mount huge pages is `mount -t hugetlbfs nodev /mnt/huge`
 
 4) Create a forwarding pipeline program by compiling and package the vSwitch consumable
 pipeline binary package by using the pipeline builder:
@@ -272,7 +292,6 @@ defined password `IPDK`. Then you can ping from vm1 to vm2, and infrap4d will
 be used for networking traffic:
 
 ```
-vagrant@ubuntu2004:~$ telnet localhost 6551
 ubuntu@vm1:~$ ping -c 5 2.2.2.2
 PING 2.2.2.2 (2.2.2.2) 56(84) bytes of data.
 64 bytes from 2.2.2.2: icmp_seq=1 ttl=64 time=0.317 ms
@@ -287,13 +306,13 @@ rtt min/avg/max/mdev = 0.309/0.406/0.779/0.186 ms
 ubuntu@vm1:~$
 ```
 
+*NOTE*: If user wants to cleanup, manually remove the qemu VM spawned on the
+machine and delete existing IPDK docker container with command `ipdk rm`
+
 ## Section 3: Generating dependent files from P4C and TDI pipeline builder:
-
-TODO: change this whole section to ipdk script + explaining in more depth then demo text above
-
 An open-sourced p4lang P4 compiler is integrated as part of the IPDK container.
-1) the p4c executable is used to generate dependent files.
-   You can execute all these commands on container.
+1) The p4c executable is used to generate dependent files.
+   You can execute all these commands on the container.
     a. export OUTPUT_DIR=/root/examples/simple_l3/
     b. p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files \
     $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context \
@@ -305,8 +324,8 @@ Use tdi_pipeline_builder utility to generate pipeline binary file.
     b. tdi_pipeline_builder --p4c_conf_file=simple_l3.conf \
     --bf_pipeline_config_binary_file=simple_l3.pb.bin
 
-Note: As of today <program>.conf is not generated by compiler, in that case
-need to manually update this conf file.
+Note: As of today <program>.conf is not generated by the compiler, in that case
+you need to manually update this conf file.
 
 ## Using and compiling included P4 Example pipelines
 Example P4 pipeline implementations included on the IPDK container:
@@ -355,15 +374,8 @@ any files generated by the build process.
 2) If `DEPLOYMENT_IMAGE=true` then, all libraries and binaries of modules
 networking-recipe and p4-driver required for bringing up the stack are retained.
 
-## Section 5: Helpful references:
 
-1. /root/networking-recipe/docs/ipdk-dpdk.md
-2. /root/networking-recipe/docs/p4rt-ctl.rst
-3. /root/networking-recipe/docs/dpdk/gnmi-ctl.rst
-4. ipdk/build/networking/examples/vhost-vhost/README
-5. ipdk/build/networking/examples/simple_l3
-
-## Section 6: Copyright
+## Section 5: Copyright
 
 Copyright (C) 2021-2023 Intel Corporation
 

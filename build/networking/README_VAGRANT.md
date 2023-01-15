@@ -17,15 +17,16 @@ to trouble with sharing the CPU's virtualization extensions.
 Note this method is using Vagrant with Virtualbox. Make sure you have nested
 virtualization enabled on your guest VM. There are many articles published on
 how to do this, but [this](https://stackoverflow.com/questions/54251855/virtualbox-enable-nested-vtx-amd-v-greyed-out)
-one is quite useful. If your machine is behing any proxies, update proxy
+one is quite useful. If your machine is behind any proxies, update proxy
 settings accordingly.
 
 
 ### Clone IPDK repository
 ```
 $ git clone https://github.com/ipdk-io/ipdk.git
+```
 
-### Bringup either Vagrant native or Vaagrant container VM:
+### Bringup either Vagrant native or Vagrant container VM:
 
 #### Vagrant Native
 ```
@@ -39,12 +40,12 @@ $ cd ipdk/build/networking/vagrant-container
 $ vagrant up
 ```
 
-*NOTE*: If you are behind proxies, update Vagrantfile with appropiate proxy
+*NOTE*: If you are behind proxies, update Vagrantfile with appropriate proxy
 settings.
 
 ### Login to the VM
 
-After successfuly building vagrant VM, login to vagrant VM through SSH.
+After successfully building a vagrant VM, login to vagrant VM through SSH.
 ```
 $ vagrant ssh
 Welcome to Ubuntu 20.04 LTS (GNU/Linux 5.4.0-31-generic x86_64)

@@ -1,5 +1,5 @@
 #!/bin/bash
-#Copyright (C) 2021-2022 Intel Corporation
+#Copyright (C) 2021-2023 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
 usage() {
@@ -80,4 +80,5 @@ fi
 pushd "${NR_SRC_DIR}"/setup || exit
 cmake -B build "${INSTALL_PREFIX}" "${EXTRA_BUILD_ARGS}" || exit
 cmake --build build -j"${NUM_CORES}" || exit
-popd
+./cleanup.sh || exit
+popd || exit

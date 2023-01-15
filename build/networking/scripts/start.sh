@@ -1,5 +1,6 @@
 #!/bin/bash
 # Copyright (C) 2021-2022 Sander Tolsma
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 
 # Initialize the IPDK container environment
@@ -18,6 +19,8 @@ rundaemon() {
 	echo "Start as long running process."
 	initialize_env
 	/root/scripts/set_hugepages.sh 10
+  # Generate and install certificates required for TLS
+  COMMON_NAME=localhost /root/scripts/generate_tls_certs.sh
   /root/scripts/run_infrap4d.sh --nr-install-dir=/root/networking-recipe/install
 	# TODO() Following doesn't work :-(
 	# PIDFile="/var/run/openvswitch/ovs-vswitchd.pid"
@@ -36,6 +39,8 @@ startcmd() {
 	# shellcheck source=/dev/null
 	. "$HOME/.bashrc"
 	initialize_env
+  # Generate and install certificates required for TLS
+  COMMON_NAME=localhost /root/scripts/generate_tls_certs.sh
 }
 
 # execute command given through the arguments
@@ -48,7 +53,7 @@ execute() {
 
 # This script enables the container to different actiona at invocation time
 # Available commands are:
-#   rundaemon - run P4OVS as a long running process
+#   rundaemon - run Networking-Recipe as a long running process
 #   startcmd  - start with commandline
 #   execute   - run a given commandline
 #   help      - show help

@@ -104,7 +104,7 @@ export LD_LIBRARY_PATH="${DEPS_INSTALL_DIR}"/lib:"${DEPS_INSTALL_DIR}"/lib64:"${
 export PATH="${DEPS_INSTALL_DIR}"/bin:"${DEPS_INSTALL_DIR}"/sbin:"${PATH}"
 export LIBRARY_PATH="${DEPS_INSTALL_DIR}"/lib:"${DEPS_INSTALL_DIR}"/lib64:"${LIBRARY_PATH}"
 
-if [ ! -z "${P4C_INSTALL_DIR}" ]; then
+if [ -n "${P4C_INSTALL_DIR}" ]; then
     export PATH="${P4C_INSTALL_DIR}"/bin:"${PATH}"
 fi
 
