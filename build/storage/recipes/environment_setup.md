@@ -142,16 +142,20 @@ By default, `SPDK_IP_ADDR` is set to `0.0.0.0` and `SPDK_PORT` is set to `5260`
 ```
 $ SHARED_VOLUME=<dir_to_expose_vhost> scripts/vm/run_vm.sh
 ```
-
+By default, password for root user is `root`
 `SHARED_VOLUME` points to a directory where vhost storage devices
 will be exposed(exactly one specified in `SHARED_VOLUME` to run
 `ipu-storage-container`).
 
+If it is needed to use no-default password, `ASK_FOR_VM_ROOT_PASSWORD=true` variable should be set
+and a user will be prompt to provide root password at build time.
+```
+$ SHARED_VOLUME=<dir_to_expose_vhost> ASK_FOR_VM_ROOT_PASSWORD=true scripts/vm/run_vm.sh
+```
+
 <a name="vm-console">
 Finally vm console will be opened.
 </a>
-
-login:password pair for the vm is `root:root`.
 
 4. Prepare environment to send commands to the containers.
 Use `cmd-sender` on `ipu-storage-container-platform` machine.
