@@ -7,7 +7,7 @@ from system_tools.config import (HostTargetConfig, IPUStorageConfig,
 from system_tools.docker import (CMDSenderContainer, Docker,
                                  HostTargetContainer, IPUStorageContainer,
                                  StorageTargetContainer)
-from system_tools.errors import MissingDependencyException
+from system_tools.errors import CMDSenderPlatformNameException, MissingDependencyException
 from system_tools.ssh_terminal import SSHTerminal
 from system_tools.vm import VirtualMachine
 
@@ -307,7 +307,7 @@ class PlatformFactory:
         elif cmd_sender_platform_name == "host":
             self.cmd_sender = CMDSenderContainer(HostTargetConfig())
         else:
-            assert False
+            raise CMDSenderPlatformNameException
 
     def create_ipu_storage_platform(self):
         return IPUStoragePlatform(self.cmd_sender)

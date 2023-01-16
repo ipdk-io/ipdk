@@ -4,7 +4,7 @@
 
 from typing import Optional
 
-from paramiko.client import AutoAddPolicy, SSHClient
+from paramiko.client import WarningPolicy, SSHClient
 
 from system_tools.errors import CommandException
 
@@ -17,7 +17,7 @@ class SSHTerminal:
         self.client = SSHClient()
 
         self.client.load_system_host_keys()
-        self.client.set_missing_host_key_policy(AutoAddPolicy)
+        self.client.set_missing_host_key_policy(WarningPolicy)
         self.client.connect(
             config.ip_address,
             config.port,
@@ -31,7 +31,7 @@ class SSHTerminal:
         """Simple function executes a command on the SSH server
         Returns list of the lines output
         """
-        _, stdout, stderr = self.client.exec_command(cmd, timeout=timeout)
+        _, stdout, stderr = self.client.exec_command(cmd, timeout=timeout)  # nosec
         if stdout.channel.recv_exit_status():
             raise CommandException(stderr.read().decode())
         # if command is executed in the background don't wait for the output
