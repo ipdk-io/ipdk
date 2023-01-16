@@ -13,11 +13,15 @@ declare no_proxy
 
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
-function find_latest_commit_with_changes_in_storage_dir() {
-    branch="$(git rev-parse HEAD)"
-    commit="$(git log --format=format:%h -n 1 -- "$scripts_dir/..")"
-    (git rev-list --format=format:%h "$commit".."$branch" --ancestry-path | \
-        cat -n; git rev-list --format=format:%h "$commit".."$branch" --first-parent | cat -n) \
+function find_commit_to_fetch() {
+    branch_head_commit="$(git rev-parse HEAD)"
+    commit_with_changes_in_folder="$(git log --format=format:%h -n 1 -- "$scripts_dir/..")"
+    if [[ "$branch_head_commit" == "$commit_with_changes_in_folder"* ]]; then
+        echo "$commit_with_changes_in_folder"
+        return
+    fi
+    (git rev-list --format=format:%h "$commit_with_changes_in_folder".."$branch_head_commit" --ancestry-path | \
+        cat -n; git rev-list --format=format:%h "$commit_with_changes_in_folder".."$branch_head_commit" --first-parent | cat -n) \
         | sort -k2 -s | uniq -f1 -d | sort -n | tail -1 | cut -f2
 }
 
@@ -39,7 +43,7 @@ else
         branch=$(git rev-parse --abbrev-ref HEAD)
         if [ "$branch" == "main" ] ; then
             echo "Image '$IMAGE_NAME' will be fetched from public registry."
-            commit_sha_with_changes_in_storage=$(find_latest_commit_with_changes_in_storage_dir)
+            commit_sha_with_changes_in_storage=$(find_commit_to_fetch)
             arch=$(uname -m)
             fetch_image_name="ghcr.io/ipdk-io/storage/$IMAGE_NAME-kvm-$arch:sha-$commit_sha_with_changes_in_storage"
             if docker pull "$fetch_image_name" ; then
