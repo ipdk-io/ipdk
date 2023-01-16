@@ -63,6 +63,11 @@ class FioArgs:
                 raise FioArgsError(
                     "Explicitly specify filename as argument is not allowed."
                 )
+            for arg_key in self._fio_args:
+                if self._volume_to_exercise_option in str(self._fio_args[arg_key]):
+                    raise FioArgsError(
+                        "Explicitly specify filename as argument is not allowed."
+                    )
         except (json.JSONDecodeError, TypeError) as err:
             raise FioArgsError(str(err))
 
