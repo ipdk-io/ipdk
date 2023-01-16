@@ -1,5 +1,49 @@
 # IPDK Release Notes
 
+## v23.01
+
+### Recipes
+
+#### Storage
+
+The recipe enhances and extends the functionality enabled in the previous
+release.
+All virtio-blk flows from 22.07 have been enabled for NVMe incl. fio
+traffic, hot-plug and scale-out scenarios.
+
+Additional major features were enabled including:
+
+* Quality-of-Service (QoS) support
+  * Device-level rate and bandwidth limiters for virtio-blk devices
+  * Volume-level rate and bandwidth limiters for NVMe devices
+* Data-At-Rest Encryption (DARE) support for NVMe devices using
+  * AES CBC cipher or
+  * AES XTS cipher
+
+Minor enhancements for this release include:
+
+* Introduction of the cmd-sender container to improve use-of-use for the user
+* Refactor of the object model to allow for more flexible design
+* Adding `host-target` customization capability
+* Adding the possibility to download pre-build images from GHCR
+* Extending the solution with Python-based integration tests
+* Passing arguments to SPDK from outside of containers
+* Add ability to force build `host-target` container
+* Providing fio config and results in JSON format
+* Security-related improvements and fixes
+* Documentation improvements
+
+---
+**NOTE**
+
+IPDK is switching to the OPI Storage APIs. As part of that work SMA API will be
+deprecated and will not be supported further.
+IPDK contributors will work with OPI community to reach feature parity with the
+current IPDK solution and plan to complete the full transition to OPI Storage
+APIs by 23.07 release to allow for a full validation cycle.
+
+---
+
 ## v22.07
 
 This is the initial release of the Infrastructure Programming Development Kit
