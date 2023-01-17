@@ -2,6 +2,18 @@
 
 This recipe describes how to create crypto volumes for NVMe devices.
 
+---
+**NOTE**
+
+Please note that the recipe does not provide a solution for opening a secure connection for the provisioning
+of crypto keys. In particular, the crypto keys provided by the user in plain text will be passed through between
+the `cmd-sender` and `ipu-storage-container` which consumes them (both running on `ipu-storage-container-platform`).
+Secret generation, management and provisioning are not part of this recipe and are the responsibility of the end
+user to integrate the solution securely with their own production environment so that data confidentiality,
+integrity and availability are assured.
+
+---
+
 For this recipe, two physical machines are required.
 They are referred to as `storage-target-platform` and `ipu-storage-container-platform`.
 The containers running on those platforms are named `storage-target` and
@@ -21,9 +33,14 @@ $ attach_crypto_volume_with_aes_cbc_cipher <ipu_storage_container_platform_ip> "
 ```
 `1234567890abcdef1234567890abcde1` can be replaced with any other suitable key.
 
-Note: Underlying SMA supports also AES XTS cipher. If a used platform supports that cipher,
+---
+**NOTE**
+
+Underlying SMA supports also AES XTS cipher. If the platform in use supports that cipher,
 `attach_crypto_volume_with_aes_xts_cipher` can be used to attach a crypto volume.
-In addition, after the key, an additional key2 should be specified.
+In that case, in addition to key, a second key2 needs to be provided as required by the cipher.
+
+---
 
 4. Fill in drive with a pattern
 Send from your `cmd-sender`

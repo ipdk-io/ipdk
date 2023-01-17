@@ -2,11 +2,9 @@
 
 ## v23.01
 
-### Recipes
+### Storage
 
-#### Storage
-
-The recipe enhances and extends the functionality enabled in the previous
+The recipes enhance and extend the functionality enabled in the previous
 release.
 All virtio-blk flows from 22.07 have been enabled for NVMe incl. fio
 traffic, hot-plug and scale-out scenarios.
@@ -34,8 +32,8 @@ Minor enhancements for this release include:
 * Documentation improvements
 
 ---
-**NOTE**
 
+**NOTE:**\
 IPDK is switching to the OPI Storage APIs. As part of that work SMA API will be
 deprecated and will not be supported further.
 IPDK contributors will work with OPI community to reach feature parity with the
@@ -50,11 +48,7 @@ This is the initial release of the Infrastructure Programming Development Kit
 (IPDK).  It includes recipes for P4 networking and storage.  As well, it has
 support for continuous integration to gate changes to the IPDK repos.
 
-### Recipes
-
-Additions and changes to recipes are detailed here.
-
-#### Storage
+### Storage
 
 In this release initial recipes for storage were added. In particular,
 the solution enables:
@@ -71,9 +65,9 @@ docker-compose including running exemplary fio traffic and dynamic provisioning.
 * Customization possibility for enablement of virtio-blk HW-acceleration
 through dedicated HW over HW-agnostic interfaces.
 
-#### Networking Recipe (P4-OVS)
+### Networking Recipe (P4-OVS)
 
-##### Feature support
+Feature support:
 
 * Linux Networking support(L2 Forwarding,VXLAN,ECMP, and Routing)
 * Hotplug support for vhost-user ports
@@ -85,7 +79,7 @@ through dedicated HW over HW-agnostic interfaces.
 * GTEST based Unit test framework
 * Action Profile and Action Selector
 
-##### Limitations
+Limitations:
 
 * Partial implementation of TCP state machine for connection tracking
 * Hotplug feature works with specific configuration and user cannot del/re-add
