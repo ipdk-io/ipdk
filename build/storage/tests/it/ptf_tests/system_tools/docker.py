@@ -178,7 +178,7 @@ class CMDSenderContainer(DockerContainer):
             f"""('{ipu_storage_container_ip}', '{sma_port}', '{host_target_address_service.ip_address}', """
             f"""{host_target_address_service.port}, '{device_handle}'))" """
         )
-        return self._terminal.execute(cmd)
+        return self._terminal.execute(cmd) == "True"
 
 
 class HostTargetContainer(DockerContainer):

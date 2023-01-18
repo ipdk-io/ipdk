@@ -267,8 +267,9 @@ class IPUStoragePlatform(BaseTestPlatform):
         )
 
     def delete_virtio_blk_devices(self, devices_handles):
-        for device_handle in devices_handles:
-            device_handle.delete(self.cmd_sender)
+        return [
+            device_handle.delete(self.cmd_sender) for device_handle in devices_handles
+        ]
 
     def clean(self):
         # TODO delete all alocated devices
