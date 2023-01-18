@@ -33,7 +33,7 @@ if [ ! -f "${DRIVE_TO_BOOT}" ] ; then
     path_to_place_vm_file=$(dirname "$DRIVE_TO_BOOT")
     vm_tmp_file="${path_to_place_vm_file}/vm_original.qcow2"
     wget -O "${vm_tmp_file}" https://download.fedoraproject.org/pub/fedora/linux/\
-releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
+releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2 --secure-protocol=TLSv1_3
 
     HOST_TARGET_TAR="${HOST_TARGET_TAR:-"${path_to_place_vm_file}/host-target.tar"}"
     host_target_tar_file_name=$(basename "${HOST_TARGET_TAR}")
