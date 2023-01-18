@@ -60,9 +60,12 @@ trap 'cleanup' EXIT
 export ALLOCATE_HUGEPAGES="true"
 export IMAGE_NAME="ipu-storage-container"
 ARGS=()
+ARGS=("--privileged")
 ARGS+=("-v" "${SHARED_VOLUME}:/${SHARED_VOLUME}")
 ARGS+=("-v" "${tmp_sma_config_file}:/sma_config.yml")
 ARGS+=("-e" "SPDK_ARGS=${SPDK_ARGS}")
+ARGS+=("--tmpfs" "/var/tmp")
+ARGS+=("--tmpfs" "/var/run")
 if [ "$OPTIMIZED_SPDK" == "true" ]; then
     export BUILD_IMAGE=true
     export SPDK_TARGET_ARCH=native

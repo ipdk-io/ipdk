@@ -11,7 +11,11 @@ declare https_proxy
 declare http_proxy
 declare no_proxy
 
+
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
+PIDS_LIMIT="${PIDS_LIMIT:-1024}"
+CPU_SHARES="${CPU_SHARES:-1024}"
+MEMORY="${MEMORY:-4096m}"
 
 function find_commit_to_fetch() {
     branch_head_commit="$(git rev-parse HEAD)"
@@ -79,11 +83,16 @@ fi
 
 docker run \
     -i \
-    --privileged \
     "${ARGS[@]}" \
     -e DEBUG="$DEBUG" \
     -e HTTPS_PROXY="$https_proxy" \
     -e HTTP_PROXY="$http_proxy" \
     -e NO_PROXY="$no_proxy" \
     --network host \
+    --pids-limit="$PIDS_LIMIT" \
+    --cpu-shares="$CPU_SHARES" \
+    --memory="$MEMORY" \
+    --security-opt=no-new-privileges \
+    --tmpfs /tmp \
+    --read-only \
     "$IMAGE_NAME"

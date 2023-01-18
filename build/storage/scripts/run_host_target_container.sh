@@ -39,6 +39,7 @@ check_all_variables_are_set
 export IMAGE_NAME="host-target"
 
 ARGS=()
+ARGS=("--privileged")
 ARGS+=("-v" "/dev:/dev")
 ARGS+=("-e" "IP_ADDR=${IP_ADDR}")
 ARGS+=("-e" "PORT=${PORT}")

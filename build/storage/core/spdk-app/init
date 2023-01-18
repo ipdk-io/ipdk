@@ -81,11 +81,11 @@ function run_spdk() {
 	$app "${args[@]}"
 }
 
+SPDK_PID_FILE="${SPDK_PID_FILE:-"/var/tmp/spdk_pid"}"
+rm -f "$SPDK_PID_FILE"
 spdk_socket="/var/tmp/spdk.sock"
-spdk_pid_file="/spdk_pid"
 args+=("-r" "$spdk_socket")
-args+=("-f" "$spdk_pid_file")
-rm -f "$spdk_pid_file"
+args+=("-f" "$SPDK_PID_FILE")
 EXPOSE_SPDK="${EXPOSE_SPDK:-"true"}"
 
 if [ "$EXPOSE_SPDK" == "true" ]; then

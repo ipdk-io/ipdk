@@ -37,9 +37,12 @@ check_all_variables_are_set
 export ALLOCATE_HUGEPAGES="true"
 export IMAGE_NAME="storage-target"
 ARGS=()
+ARGS=("--privileged")
 ARGS+=("-e" "SPDK_IP_ADDR=${SPDK_IP_ADDR}")
 ARGS+=("-e" "SPDK_PORT=${SPDK_PORT}")
 ARGS+=("-e" "SPDK_ARGS=${SPDK_ARGS}")
+ARGS+=("--tmpfs" "/var/tmp")
+ARGS+=("--tmpfs" "/var/run")
 if [ "$OPTIMIZE_SPDK" == "true" ]; then
     export BUILD_IMAGE=true
     export SPDK_TARGET_ARCH=native
