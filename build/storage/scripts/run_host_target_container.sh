@@ -43,6 +43,7 @@ ARGS=("--privileged")
 ARGS+=("-v" "/dev:/dev")
 ARGS+=("-e" "IP_ADDR=${IP_ADDR}")
 ARGS+=("-e" "PORT=${PORT}")
+ARGS+=("--tmpfs=/tmp")
 if [[ -n "$CUSTOMIZATION_DIR" ]]; then
     customization_dir_in_container="/customizations"
     ARGS+=("-v" "$(realpath "$CUSTOMIZATION_DIR"):$customization_dir_in_container")
