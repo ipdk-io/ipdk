@@ -79,7 +79,6 @@ fi
 
 docker run \
     -i \
-    --privileged \
     "${ARGS[@]}" \
     -e DEBUG="$DEBUG" \
     -e HTTPS_PROXY="$https_proxy" \
