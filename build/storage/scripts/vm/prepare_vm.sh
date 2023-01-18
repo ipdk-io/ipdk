@@ -21,6 +21,15 @@ if [ ! -f "${DRIVE_TO_BOOT}" ] ; then
         echo "HOST_TARGET_SERVICE_PORT_IN_VM value has to be specified"
         exit 1
     fi
+
+    if [ "$ASK_FOR_VM_ROOT_PASSWORD" == "true" ]; then
+        echo -n "Please enter vm root user password:"
+        read -r -s root_password
+        echo
+    else
+        root_password="root"
+    fi
+
     path_to_place_vm_file=$(dirname "$DRIVE_TO_BOOT")
     vm_tmp_file="${path_to_place_vm_file}/vm_original.qcow2"
     wget -O "${vm_tmp_file}" https://download.fedoraproject.org/pub/fedora/linux/\
@@ -42,7 +51,7 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     systemd_host_target_service="/lib/systemd/system/host-target.service"
     run_customize=(virt-customize -a "${vm_tmp_file}")
     run_customize+=(--memsize 1260)
-    run_customize+=(--root-password password:root)
+    run_customize+=(--root-password password:"$root_password")
     run_customize+=(--run-command 'dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo')
     run_customize+=(--run-command 'grubby --update-kernel ALL --args selinux=0')
     run_customize+=(--install "dnf-plugins-core,docker-ce,docker-ce-cli,containerd.io")
@@ -76,10 +85,7 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
 
     "${run_customize[@]}"
     mv "${vm_tmp_file}" "${DRIVE_TO_BOOT}"
-elif [ -n "$HOST_TARGET_SERVICE_PORT_IN_VM" ] ; then
-    # TODO: Modify port value in systemd host-target config file if the value in
-    # HOST_TARGET_SERVICE_PORT_IN_VM is different
-    echo "drive to boot vm already exists. If it is needed to change only port"
-    echo "of host-target service within vm, then the vm file should be removed"
-    echo "and rebuilt."
+else
+    echo "drive to boot vm already exists. If any change in vm is needed,"
+    echo "please remove '$DRIVE_TO_BOOT' and create a new vm image"
 fi
