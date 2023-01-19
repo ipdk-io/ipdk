@@ -46,17 +46,14 @@ WORKDIR /
 # This allows to reduce final image size since we won't have any dependencies
 # which are only required to perform build.
 RUN mkdir /spdk-rpm
+COPY core/spdk-app/requirements.txt /requirements.txt
 COPY --from=base /spdk-rpm/*.rpm /spdk-rpm/
 
 # hadolint ignore=DL3041
 RUN dnf install -y python-unversioned-command-3.10.9-1.fc36 \
     python3-pip-21.3.1-4.fc36 /spdk-rpm/*.rpm && \
     dnf clean all && \
-    python -m pip install --no-cache-dir \
-    grpcio==1.51.1 \
-    grpcio-tools==1.48.2 \
-    protobuf==3.20.2 \
-    setuptools==65.5.1 && \
+    pip install --no-cache-dir -r /requirements.txt \
     rm -f /tmp/*.rpm && \
     for f in /usr/local/bin/*; do ln -sf "$f" /usr/bin ; done && \
     ln -s /usr/libexec/spdk/scripts/rpc.py /usr/bin && \
@@ -115,8 +112,6 @@ FROM spdk as ipu-storage-container
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
-
-RUN pip install --no-cache-dir pyyaml==5.4
 
 COPY core/ipu-storage-container/init /init
 COPY --from=spdk-app /init /init_spdk
@@ -263,14 +258,12 @@ ARG NO_PROXY
 
 WORKDIR /
 
+COPY tests/ut/requirements.txt ./
 RUN dnf install -y python-unversioned-command-3.10.9-1.fc36 \
     fio-3.29-1.fc36 \
     python3-pip-21.3.1-4.fc36 && \
     dnf clean all && \
-    python -m pip install --no-cache-dir \
-    protobuf==3.20.2 \
-    grpcio-reflection==1.48.2 \
-    pyfakefs==4.6.3
+    python -m pip install --no-cache-dir -r ./requirements.txt
 
 COPY tests/ut/host-target /host-target/tests
 COPY --from=host-target /root /host-target/src/

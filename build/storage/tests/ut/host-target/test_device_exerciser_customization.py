@@ -67,8 +67,8 @@ class DeviceExerciserCustomizationTests(unittest.TestCase):
             find_make_custom_device_exerciser(self.tempdir)
 
     def test_uses_only_files_with_py_extensions_to_search(self):
-        self.tmp_file_without_py_extension = tempfile.mktemp(dir=self.tempdir)
-        with open(self.tmp_file_without_py_extension, "a") as file:
+        self.tmp_file_without_py_extension = tempfile.mkstemp(dir=self.tempdir)
+        with open(self.tmp_file_without_py_extension[1], "a") as file:
             file.write("SomeText\n")
             file.write("def " + MAKE_DEVICE_EXERCISER_FUNCTION_NAME + "():\n")
             file.write("    pass\n")

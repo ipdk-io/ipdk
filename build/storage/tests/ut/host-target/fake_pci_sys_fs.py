@@ -30,12 +30,13 @@ class FakePciSysFs:
             initial_vfs = int(read_file(self.get_sriov_numvfs_path(pci_addr)))
             total_vfs = int(read_file(self.get_sriov_totalvfs_path(pci_addr)))
             # Indicate that this behavior is not covered
-            assert numvfs <= initial_vfs
-            assert initial_vfs <= total_vfs
+            if numvfs > initial_vfs:
+                raise NotImplementedError()
+            if initial_vfs > total_vfs:
+                raise NotImplementedError()
             self._enable_sriov(pci_addr, numvfs)
         else:
-            # Indicate that this behavior is not covered
-            assert False
+            raise NotImplementedError()
 
     def _disable_sriov(self, pf_pci_addr):
         vfs = glob.glob(
@@ -72,7 +73,7 @@ class FakePciSysFs:
                     self.get_pci_device_path(vf_pci_addr),
                 )
         else:
-            assert False
+            raise NotImplementedError()
 
     def create_pci_device(self, pci_addr):
         self.fs.create_file(self.get_driver_override_path(pci_addr), contents="(null)")

@@ -1,0 +1,3 @@
+protobuf==3.20.2
+grpcio-reflection==1.48.2
+pyfakefs==4.6.3

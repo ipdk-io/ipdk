@@ -34,7 +34,7 @@ class RunGrpcServer(unittest.TestCase):
 
     def test_fail_on_invalid_port_to_listen_to(self):
         with HiddenPrints():
-            self.assertNotEqual(run_grpc_server("0.0.0.0", "Invalid port", None), 0)
+            self.assertNotEqual(run_grpc_server("localhost", "Invalid port", None), 0)
 
     def test_success_on_keyboard_interrupt_exception(self):
         server_mock = unittest.mock.Mock()
