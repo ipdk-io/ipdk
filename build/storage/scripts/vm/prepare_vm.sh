@@ -48,11 +48,22 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
         trap 'rm -f ${HOST_TARGET_TAR}' EXIT
     fi
 
-    systemd_host_target_service="/lib/systemd/system/host-target.service"
+    vm_configs_dir="$scripts_dir/vm/configs"
+    local_audit_rules="$vm_configs_dir/audit.rules"
+    vm_audit_rules_dir="/etc/audit/rules.d"
+
+    local_docker_service_config="$vm_configs_dir/docker.service"
+    vm_docker_service_config_dir="/lib/systemd/system"
+
+    local_host_target_service_config="$vm_configs_dir/host-target.service"
+    vm_host_target_service_dir="/lib/systemd/system"
+    vm_host_target_service="$vm_host_target_service_dir/host-target.service"
+
     run_customize=(virt-customize -a "${vm_tmp_file}")
     run_customize+=(--memsize 1260)
     run_customize+=(--root-password password:"$root_password")
     run_customize+=(--run-command 'dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo')
+    # TODO: Enable SELinux
     run_customize+=(--run-command 'grubby --update-kernel ALL --args selinux=0')
     run_customize+=(--install "dnf-plugins-core,docker-ce,docker-ce-cli,containerd.io")
     run_customize+=(--install "pciutils,nvme-cli")
@@ -61,18 +72,8 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     run_customize+=(--copy-in "${scripts_dir}/$run_container_script:/usr/local/bin")
     run_customize+=(--run-command 'systemctl enable docker.service')
     run_customize+=(--run-command 'service docker start')
-    run_customize+=(--append-line "${systemd_host_target_service}:[Unit]")
-    run_customize+=(--append-line "${systemd_host_target_service}:Description=Host-target service")
-    run_customize+=(--append-line "${systemd_host_target_service}:After=docker.service")
-    run_customize+=(--append-line "${systemd_host_target_service}:BindsTo=docker.service")
-    run_customize+=(--append-line "${systemd_host_target_service}:[Service]")
-    run_customize+=(--append-line "${systemd_host_target_service}:Environment='PORT=${HOST_TARGET_SERVICE_PORT_IN_VM}'")
-    run_customize+=(--append-line "${systemd_host_target_service}:Environment='WITHOUT_TTY=true'")
-    run_customize+=(--append-line "${systemd_host_target_service}:Environment='DO_NOT_FETCH_OR_BUILD_IMAGE=true'")
-    run_customize+=(--append-line "${systemd_host_target_service}:ExecStart=run_host_target_container.sh")
-    run_customize+=(--append-line "${systemd_host_target_service}:ExecStop=/bin/bash -c 'docker container rm -f \$(docker container ls  | grep host-target | awk \'{print \$1}\')'")
-    run_customize+=(--append-line "${systemd_host_target_service}:[Install]")
-    run_customize+=(--append-line "${systemd_host_target_service}:WantedBy=multi-user.target")
+    run_customize+=(--copy-in "$local_host_target_service_config:$vm_host_target_service_dir")
+    run_customize+=(--run-command "sed -i 's/HOST_TARGET_SERVICE_PORT_IN_VM/${HOST_TARGET_SERVICE_PORT_IN_VM}/g' $vm_host_target_service")
     run_customize+=(--firstboot-command "docker load --input ${vm_host_target_tar_path}")
     run_customize+=(--firstboot-command "rm -f ${vm_host_target_tar_path}")
     run_customize+=(--firstboot-command 'systemctl start host-target')
@@ -81,6 +82,10 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2
     run_customize+=(--run-command "test -f /usr/local/bin/$run_host_target_container_script")
     run_customize+=(--run-command "test -f /usr/local/bin/$run_container_script")
     run_customize+=(--run-command "echo 'kernel.printk = 0 0 0 0' > /etc/sysctl.conf")
+    run_customize+=(--copy-in "$local_audit_rules:$vm_audit_rules_dir")
+    run_customize+=(--copy-in "$local_docker_service_config:$vm_docker_service_config_dir")
+    run_customize+=(--run-command "chown root:root $vm_docker_service_config_dir/docker.service")
+    run_customize+=(--run-command "chmod 644 $vm_docker_service_config_dir/docker.service")
 
 
     "${run_customize[@]}"

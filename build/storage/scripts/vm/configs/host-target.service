@@ -1,0 +1,15 @@
+# Copyright (C) 2023 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+[Unit]
+Description=Host-target service
+After=docker.service
+BindsTo=docker.service
+[Service]
+Environment='PORT=HOST_TARGET_SERVICE_PORT_IN_VM'
+Environment='WITHOUT_TTY=true'
+Environment='DO_NOT_FETCH_OR_BUILD_IMAGE=true'
+ExecStart=run_host_target_container.sh
+ExecStop=/bin/bash -c 'docker container rm -f $(docker container ls  | grep host-target | awk \'{print $1}\')'
+[Install]
+WantedBy=multi-user.target
