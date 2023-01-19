@@ -9,6 +9,8 @@
 export IMAGE_NAME="cmd-sender"
 scripts_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" &> /dev/null && pwd)
 
+ARGS=()
+ARGS+=("-v" "/home")
 # shellcheck source=./scripts/run_container.sh
 # shellcheck disable=SC1091,SC1090
 source "${scripts_dir}/run_container.sh"

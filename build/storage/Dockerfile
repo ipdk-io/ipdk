@@ -231,7 +231,10 @@ COPY tests/it/test-drivers/test-helpers /test-helpers
 COPY scripts/ /scripts
 
 FROM cmd-sender-base AS cmd-sender
-RUN echo "source /scripts/disk_infrastructure.sh" >> ~/.bashrc
+RUN echo "source /scripts/disk_infrastructure.sh" >> ~/.bashrc && \
+    useradd -s /bin/bash ipdk_user
+USER ipdk_user
+WORKDIR /home/ipdk_user
 ENTRYPOINT ["/bin/bash"]
 
 

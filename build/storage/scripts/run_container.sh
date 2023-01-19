@@ -93,6 +93,5 @@ docker run \
     --cpu-shares="$CPU_SHARES" \
     --memory="$MEMORY" \
     --security-opt=no-new-privileges \
-    --tmpfs /tmp \
     --read-only \
     "$IMAGE_NAME"
