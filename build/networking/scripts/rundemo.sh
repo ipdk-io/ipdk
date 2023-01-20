@@ -294,7 +294,7 @@ echo ""
 popd || exit
 
 echo ""
-echo "Programming P4-OVS pipelines"
+echo "Programming target pipelines"
 echo ""
 
 p4rt-ctl set-pipe br0 "${WORKING_DIR}"/examples/simple_l3/simple_l3.pb.bin \
