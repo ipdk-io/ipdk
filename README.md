@@ -18,5 +18,5 @@ infrastructure as an open source community.
 
 Instructions for how to build IPDK are found in two places:
 
-* [Networking Builds](build/networking/README.md)
+* [Networking Builds](build/README.md)
 * [Storage Builds](build/storage/README.md)
