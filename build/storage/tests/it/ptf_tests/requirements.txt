@@ -1,9 +1,9 @@
-# Copyright (C) 2022 Intel Corporation
+# Copyright (C) 2023 Intel Corporation
 # SPDX-License-Identifier: Apache-2.0
 #
 
-ptf
-scapy
-paramiko
-tenacity
-python-dotenv
+ptf==0.9.3
+scapy==2.5.0
+paramiko==2.12.0
+tenacity==8.1.0
+python-dotenv==0.21.0
