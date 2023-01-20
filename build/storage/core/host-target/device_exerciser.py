@@ -14,7 +14,7 @@ from volumes import (
     get_virtio_blk_volume,
 )
 from sma_handle import SmaHandle, SmaHandleError
-from helpers.file_helpers import read_file, write_file
+from helpers.file_helpers import read_file_securely, write_file_securely
 
 from devices import StoragePcieDevice
 from devices import VirtioBlkDevice
@@ -38,8 +38,8 @@ class DeviceExerciser(DeviceExerciserIf):
         },
         fio_runner=fio_runner.run_fio,
         wait=time.sleep,
-        read_file=read_file,
-        write_file=write_file,
+        read_file=read_file_securely,
+        write_file=write_file_securely,
     ) -> None:
         self._volume_detectors = volume_detectors
         self._fio_runner = fio_runner

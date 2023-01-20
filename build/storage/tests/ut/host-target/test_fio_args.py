@@ -44,6 +44,10 @@ class FioArgsTests(unittest.TestCase):
         with self.assertRaises(FioArgsError) as ex:
             FioArgs('{"name":no-quotation-mark", "size":"4MB", "filename":"test"}')
 
+    def test_raise_on_try_to_inject_drive_to_exercise(self):
+        with self.assertRaises(FioArgsError) as ex:
+            FioArgs(r'{"name":"test", "size":"4MB\nfilename=/dev/sda"}')
+
     def test_raise_on_empty_input(self):
         with self.assertRaises(FioArgsError):
             FioArgs("")

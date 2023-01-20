@@ -180,6 +180,7 @@ RUN dnf install -y wget-1.21.3-1.fc36 \
     guestfs-tools-1.48.2-3.fc36 && \
     dnf clean all
 
+COPY scripts/vm/configs/* /scripts/vm/configs/
 COPY scripts/vm/prepare_vm.sh /scripts/vm/prepare_vm.sh
 COPY scripts/run_host_target_container.sh /scripts/run_host_target_container.sh
 COPY scripts/run_container.sh /scripts/run_container.sh

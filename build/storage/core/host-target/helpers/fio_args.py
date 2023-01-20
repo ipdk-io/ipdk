@@ -6,6 +6,8 @@ import json
 import tempfile
 import typing
 
+from helpers.file_helpers import write_file
+
 
 class FioArgsError(ValueError):
     pass
@@ -22,8 +24,7 @@ class FioArgs:
             self._file = tempfile.NamedTemporaryFile()
             self.file_name = self._file.name
 
-            with open(self.file_name, "w") as config:
-                self._dump_owner_to_file(config)
+            self._dump_owner_to_file(self.file_name)
 
             self._file.__enter__()
             return self
@@ -31,15 +32,15 @@ class FioArgs:
         def __exit__(self, exc_type, exc_val, exc_tb) -> None:
             self._file.__exit__(exc_type, exc_val, exc_tb)
 
-        def _dump_owner_to_file(self, file: typing.TextIO) -> None:
-            file.write("[global]\n")
+        def _dump_owner_to_file(self, file_path: str) -> None:
+            content = "[global]\n"
             for arg_key in self._owner._fio_args:
                 if (
                     arg_key != self._owner._volume_to_exercise_option
                     and arg_key
                     not in self._owner._args_applicable_only_as_cmd_line_args
                 ):
-                    file.write(
+                    content += (
                         arg_key + "=" + str(self._owner._fio_args[arg_key]) + "\n"
                     )
 
@@ -47,12 +48,11 @@ class FioArgs:
                 for volume in self._owner._fio_args[
                     self._owner._volume_to_exercise_option
                 ]:
-                    file.write(f"[job ({volume})]\n")
-                    file.write(
+                    content += f"[job ({volume})]\n"
+                    content += (
                         self._owner._volume_to_exercise_option + "=" + volume + "\n"
                     )
-
-            file.flush()
+            write_file(file_path, content)
 
     def __init__(self, fio_args_str: str) -> None:
         self._volume_to_exercise_option = "filename"
@@ -63,6 +63,11 @@ class FioArgs:
                 raise FioArgsError(
                     "Explicitly specify filename as argument is not allowed."
                 )
+            for arg_key in self._fio_args:
+                if self._volume_to_exercise_option in str(self._fio_args[arg_key]):
+                    raise FioArgsError(
+                        "Explicitly specify filename as argument is not allowed."
+                    )
         except (json.JSONDecodeError, TypeError) as err:
             raise FioArgsError(str(err))
 

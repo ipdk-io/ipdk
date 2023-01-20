@@ -13,6 +13,7 @@ import test_device_exerciser_kvm
 from device_exerciser_kvm import *
 from device_exerciser_if import *
 from helpers.fio_args import FioArgs
+from helpers.file_helpers import *
 from fake_pci_sys_fs import FakePciSysFs
 
 
