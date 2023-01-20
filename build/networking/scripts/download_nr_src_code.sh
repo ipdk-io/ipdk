@@ -23,7 +23,7 @@ eval set -- "${GETOPTS}"
 
 # Set defaults.
 WORKING_DIR=""
-GIT_SHA="13de0d46f3f27a18b2d175032517ed3762389a03"
+GIT_SHA="7f68c084c5476a435e6a960f7ed23f56c7f37393"
 NR_DIR="networking-recipe"
 
 # Process command-line options.
