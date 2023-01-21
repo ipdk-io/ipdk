@@ -1,0 +1,6 @@
+# Enable all rules by default
+# See <https://github.com/DavidAnson/markdownlint/blob/master/doc/Rules.md
+default: true
+
+# Do not allow multiple headings with the same content
+MD024: false
