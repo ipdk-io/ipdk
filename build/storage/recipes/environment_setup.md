@@ -15,6 +15,13 @@ So far, the recipe has been successfully tested on the following systems:
 
 To run the recipe some basic system preparations are required, in particular:
 
+## Security features
+Please consider enabling security-enhancing features in your HW deployment
+environment for the solution. In particular, Data Execution Prevention (DEP)
+and Address Space Layout Randomization (ASLR) should be enabled on a server
+supporting this functionalities to harden your environment against buffer
+overflow attacks.
+
 ## Virtualization support
 Make sure that VT-x/AMD-v support is enabled in BIOS
 ```
