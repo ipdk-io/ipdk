@@ -266,11 +266,14 @@ start_container() {
 	docker "${RUNCMD[@]}" \
 		--name "${CONTAINER_NAME}" \
 		--rm \
-		--cap-add ALL \
 		--privileged \
 		-v "${VOLUME}":/tmp \
 		-p 9339:9339 \
 		-p 9559:9559 \
+		--pids-limit="${PIDS_LIMIT}" \
+		--cpu-shares="${CPU_SHARES}" \
+		--memory="${MEMORY}" \
+		--security-opt="${SECURITY_OPT_NO_NEW_PRIV}" \
 		"${ARGS[@]}" -it "${IMAGE_NAME}":"${TAG}" "${RUN_COMMAND[@]}"
 
 	if [ "$LINK_NAMESPACE" ] ; then
