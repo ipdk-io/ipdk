@@ -97,7 +97,8 @@ fedora_install_deployment_pkgs() {
 
 fedora_install_default_pkgs() {
     echo "Installing packages required for runtime"
-    dnf install -y boost-iostreams \
+    dnf install -y --setopt=install_weak_deps=False \
+        boost-iostreams \
         boost-devel \
         gmp-devel \
         numactl-devel \
@@ -229,8 +230,9 @@ ubuntu_install_deployment_pkgs() {
 
 ubuntu_install_default_pkgs() {
     echo "Installing packages required for runtime"
-    apt-get update
-    apt-get install -y libboost-iostreams-dev \
+    apt-get update --assume-yes --no-install-suggests --no-install-recommends -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+    apt-get install -y --no-install-suggests --no-install-recommends -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
+        libboost-iostreams-dev \
         libboost-dev \
         libgmp-dev \
         libgc-dev \
@@ -245,10 +247,10 @@ ubuntu_install_default_pkgs() {
         sudo \
         net-tools \
         iproute2 \
-        vim \
         iputils-ping \
         psmisc \
-        openssl
+        openssl \
+        gcc
 
     python3 -m pip install --no-cache-dir --upgrade pip
     python3 -m pip install --no-cache-dir grpcio
