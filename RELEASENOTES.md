@@ -42,6 +42,36 @@ APIs by 23.07 release to allow for a full validation cycle.
 
 ---
 
+#### Networking Recipe
+
+##### Feature support
+
+* Re-architecture of the Networking Recipe. The recipe is now modular and
+launched as the `InfraP4D` process
+* Support for underlay traffic hashing with ECMP
+* Support for dynamic underlay traffic via FRR, including routes learned with
+ECMP
+* Flow dump support (including direct counters)
+* TLS enablement to authenticate gRPC traffic
+
+##### Limitations
+
+* Linux Networking limitations are summarized here:
+<https://github.com/ipdk-io/networking-recipe/blob/main/p4src/linux_networking/README_LINUX_NETWORKING.md#limitations>
+* Unable to delete OVS bridge using command `ovs-vsctl del-br` while actively
+running traffic. User needs to stop all the networking recipe processes to
+proceed
+with bridge deletion
+* Flow dump & counters: A table-id/counter-id=0 is not yet supported
+* TLS feature: Custom certificate location is unsupported for P4RT gRPC client.
+Certificates are expected in default location (/usr/share/stratum/certs)
+* TLS feature: If InfraP4D is operating in insecure mode, gRPC clients may fail
+connecting
+to the server. Move the certificates out of the default location
+(/usr/share/stratum/certs/ folder) in order to use insecure communication
+between
+gRPC clients and server
+
 ## v22.07
 
 This is the initial release of the Infrastructure Programming Development Kit
