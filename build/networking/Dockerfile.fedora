@@ -24,7 +24,7 @@ RUN /root/scripts/distro_pkg_install.sh --install-dev-pkgs --scripts-dir=/root/s
        --deployment-image="${DEPLOYMENT_IMAGE}"
 
 #..Final Container With Packages And Dependent Libraries..#
-FROM ${BASE_IMG} AS p4ovs
+FROM ${BASE_IMG} AS ipdk-nr
 ARG PROXY
 ARG DEPLOYMENT_IMAGE
 COPY --from=base /root/scripts /root/scripts

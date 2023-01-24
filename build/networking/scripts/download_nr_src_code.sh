@@ -23,7 +23,8 @@ eval set -- "${GETOPTS}"
 
 # Set defaults.
 WORKING_DIR=""
-GIT_SHA="7f68c084c5476a435e6a960f7ed23f56c7f37393"
+# Default SHA or GIT branch
+GIT_SHA="ipdk_v23.01"
 NR_DIR="networking-recipe"
 
 # Process command-line options.

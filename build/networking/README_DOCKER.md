@@ -183,6 +183,7 @@ The demo environment is easily setup. The command below will set the environment
 ```
 ipdk demo
 ```
+Note: Run `ipdk demo` command from the host machine.
 
 When executed go to the 'Connect to the test VMs serial consoles' paragraph
 below.
