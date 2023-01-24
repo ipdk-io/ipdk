@@ -14,7 +14,7 @@ initialize_env() {
 	popd > /dev/null || exit
 }
 
-# run P4 ovs-vswitchd and ovsdb-server and wait
+# run networking-recipe processes and wait
 rundaemon() {
 	echo "Start as long running process."
 	initialize_env
@@ -31,7 +31,7 @@ rundaemon() {
 	#
 	# So try sleep infinity in the meantime
 	sleep infinity
-	echo "Openvswitch ovs-vswitchd stopped!"
+	echo "networking-recipe processes stopped!"
 }
 
 # start to commandline
