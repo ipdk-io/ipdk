@@ -2,9 +2,9 @@ name: Linters
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, ipdk_v23.01 ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, ipdk_v23.01 ]
 
   workflow_dispatch:
 
