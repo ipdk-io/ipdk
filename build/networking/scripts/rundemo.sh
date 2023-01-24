@@ -78,8 +78,6 @@ echo ""
 
 pkill qemu
 rm -rf /tmp/vhost-user-*
-killall ovsdb-server
-killall ovs-vswitchd
 killall infrap4d
 
 echo ""

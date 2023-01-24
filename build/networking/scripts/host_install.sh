@@ -87,7 +87,7 @@ export INSTALL_DEPENDENCIES
 "${SCRIPTS_DIR}"/distro_pkg_install.sh --install-dev-pkgs --scripts-dir="${SCRIPTS_DIR}"
 
 export OS_VERSION=20.04
-export IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04
+export IMAGE_NAME=ipdk/nr-ubuntu20.04
 export REPO="${IPDK_BASE_DIR}"/ipdk
 TAG="$(cd "${REPO}" && git rev-parse --short HEAD)"
 export TAG
