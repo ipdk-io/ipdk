@@ -1,8 +1,9 @@
 # IPDK Container
 
 ## What is an IPDK container?
-The IPDK Container is a Virtual Networking Infrastructure Container and is
-built with the following components:
+The IPDK Container is a Virtual Networking Infrastructure Container. This is a development 
+container and proper security measures will need to be implemented if this is used in
+production environment. The container is built with the following components:
 
 1. [IPDK Networking-Recipe with P4 Support](https://github.com/ipdk-io/networking-recipe)
 2. [P4_DPDK_target library](https://github.com/p4lang/p4-dpdk-target)
@@ -10,7 +11,7 @@ built with the following components:
 4. [P4C P4 reference compiler with DPDK, eBPF target support](https://github.com/p4lang/p4c)
 5. TDI pipeline builder program
 6. P4 Pipeline program examples
-
+ 
 The IPDK container Dockerfile builds all the five components and their dependencies
 and integrates them providing a P4 based virtual networking switch, P4
 compiler + builder and example p4 pipeline code within the container. Following
