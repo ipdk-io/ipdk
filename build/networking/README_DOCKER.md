@@ -1,8 +1,11 @@
 # IPDK Container
 
 ## What is an IPDK container?
-The IPDK Container is a Virtual Networking Infrastructure Container and is
-built with the following components:
+
+The IPDK Container is a Virtual Networking Infrastructure Container. This is a
+development container and proper security measures will need to be implemented
+if this is used in production environment. The container is built with the
+following components:
 
 1. [IPDK Networking-Recipe with P4 Support](https://github.com/ipdk-io/networking-recipe)
 2. [P4_DPDK_target library](https://github.com/p4lang/p4-dpdk-target)
@@ -180,6 +183,7 @@ The demo environment is easily setup. The command below will set the environment
 ```
 ipdk demo
 ```
+Note: Run `ipdk demo` command from the host machine.
 
 When executed go to the 'Connect to the test VMs serial consoles' paragraph
 below.
