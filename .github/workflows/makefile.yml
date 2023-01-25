@@ -14,7 +14,7 @@ on:
     branches:
       - main
       - ipdk_v*
-      paths:
+    paths:
       - 'build/networking/**'
       - 'build/networking_ebpf/**'
       - 'build/scripts/**'
