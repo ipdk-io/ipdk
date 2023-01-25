@@ -27,9 +27,9 @@ the examples, then install the IPDK CLI with the following command executed
 from the directory this README is found in:
 
  ```bash
- $ git clone https://github.com/ipdk-io/ipdk.git
- $ cd ipdk/build
- $ ./ipdk install
+ git clone https://github.com/ipdk-io/ipdk.git
+ cd ipdk/build
+ ./ipdk install
  ```
 
 If your system has not added `~/.local/bin` or `~/bin` to your search PATH then
@@ -65,9 +65,9 @@ The following are the container images you can build from here:
   specific settings should be defined on the host machine/server. Eg:
   * A nameserver in `resolv.conf`
   * proxies in below files if needed:
-    - `~/.docker/config.json`(<https://docs.docker.com/network/proxy/>)
-    - `http-proxy.conf` under docker service.
-    - /etc/default/docker
+    * `~/.docker/config.json`(<https://docs.docker.com/network/proxy/>)
+    * `http-proxy.conf` under docker service
+    * /etc/default/docker
   * Then restart docker service.
 * If you want to push the container to Docker Hub then login to docker using
   `docker login`
@@ -130,7 +130,7 @@ configuration file settings and inner workings!
     mkdir -p "${VOLUME}"/intf
   * docker run --name "${CONTAINER_NAME}" --cap-add ALL --privileged \
                -v "${VOLUME}":/tmp -p 9339:9339 -p 9559:9559 \
-               -d --entrypoint /root/scripts/start.sh -it <Image ID> rundaemon
+               -d --entrypoint /root/scripts/start.sh -it < Image ID > rundaemon
 
 * Run `ipdk connect` - To connect to your IPDK container daemon and to use
   it from a command line. Everytime we login to container via `ipdk connect`,
@@ -139,40 +139,44 @@ configuration file settings and inner workings!
 If above commands are successful, at this point you should have your IPDK
 container up and running, and should see the container prompt like below:
 
-```text
-    root@c5efb1a949ad ~]#
+```bash
+  root@c5efb1a949ad ~]#
 ```
 
 `c5efb1a949ad` is your container id as displayed in command `docker ps -a`
-
 
 As your Infrap4d process should be up and running, you could see the infrap4d
 process with the `ps -ef | grep infrap4d` command.
 
 ## Section 2: Running example use case
 
-### Section 2.1: Running example setup with TAP ports.
+### Section 2.1: Running example setup with TAP ports
+
 Infrap4d process is already started with `ipdk start -d` or with manual
 steps mentioned above.
 Start example usecase by connecting to docker and running script `/root/scripts/rundemo_TAP_IO.sh`,
 this script will:
-  - Creates TAP ports and moves to two different namespaces.
-  - Create a forwarding pipeline binary.
-  - Load the target with a forwarding pipeline.
-  - Configure rules.
-  - Test traffic with Ping between TAP ports.
 
+* Creates TAP ports and moves to two different namespaces
+* Create a forwarding pipeline binary
+* Load the target with a forwarding pipeline
+* Configure rules
+* Test traffic with Ping between TAP ports
+
+To cleanup, use command `ipdk rm` to delete existing IPDK docker container
 
 ### Section 2.2: Running example setup ( VM1 <-> IPDK Container <-> VM2 )
+
 Below commands will help you setup traffic between 2 VMs on your host with the
 IPDK container as a P4 program enabled vswitch switching traffic between them.
 
 Pre-requisite:
-- Container in Section 1 should be up and with Infrap4d running
-- If you are running in a VM then make sure you have nested virtualization
+
+* Container in Section 1 should be up and with Infrap4d running
+* If you are running in a VM then make sure you have nested virtualization
   enabled on your guest VM
-- QEMU, KVM, libvirt and cloud-utils packages should be installed as per your distribution and running.
-- `ipdk` commands executed on host machine works only when container is started
+* QEMU, KVM, libvirt and cloud-utils packages should be installed as per your distribution and running.
+* `ipdk` commands executed on host machine works only when container is started
   via `ipdk start -d` and `ipdk connect`. These start commands provides ports
   from container to host machine for gRPC communication.
 
@@ -180,9 +184,10 @@ Pre-requisite:
 
 The demo environment is easily setup. The command below will set the environment up and allow for simple testing using the networking-recipe container:
 
-```
+```bash
 ipdk demo
 ```
+
 Note: Run `ipdk demo` command from the host machine.
 
 When executed go to the 'Connect to the test VMs serial consoles' paragraph
@@ -193,53 +198,53 @@ below.
 If you want to execute each command yourself instead of using the pre-written
 demo script, do the following steps on your host/server:
 
-1) Create 2 vhost ports using GNMI CTL commands through the `ipdk execute` CLI:
+1. Create 2 vhost ports using GNMI CTL commands through the `ipdk execute` CLI:
 
-```
-ipdk execute --- gnmi-ctl set "device:virtual-device,name:net_vhost0,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-0,port-type:LINK"
+    ```bash
+    ipdk execute --- gnmi-ctl set "device:virtual-device,name:net_vhost0,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-0,port-type:LINK"
 
-ipdk execute --- gnmi-ctl set "device:virtual-device,name:net_vhost1,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-1,port-type:LINK"
-```
+    ipdk execute --- gnmi-ctl set "device:virtual-device,name:net_vhost1,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-1,port-type:LINK"
+    ```
 
-2) On your host, create two Ubuntu demo VM images with accompanying cloud-init images:
+1. On your host, create two Ubuntu demo VM images with accompanying cloud-init images:
 
-```
-ipdk createvms
-```
+    ```bash
+    ipdk createvms
+    ```
 
-3) Those two created VM images can at any moment be started with:
+1. Those two created VM images can at any moment be started with:
 
-```
-ipdk startvms
-```
+    ```bash
+    ipdk startvms
+    ```
 
-*NOTE*: If VM's are not up even after waiting for 6-9 minutes, check if
-hugepages are mounted to `/mnt/huge`.
-  Example: Command to mount huge pages is `mount -t hugetlbfs nodev /mnt/huge`
+    *NOTE*: If VM's are not up even after waiting for 6-9 minutes, check if
+    hugepages are mounted to `/mnt/huge`.
+      Example: Command to mount huge pages is `mount -t hugetlbfs nodev /mnt/huge`
 
-4) Create a forwarding pipeline program by compiling and package the vSwitch consumable
+1. Create a forwarding pipeline program by compiling and package the vSwitch consumable
 pipeline binary package by using the pipeline builder:
 
-```
-export OUTPUT_DIR=/root/examples/simple_l3
-ipdk execute --- p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
+    ```bash
+    export OUTPUT_DIR=/root/examples/simple_l3
+    ipdk execute --- p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
 
-ipdk execute /root/examples/simple_l3 --- tdi_pipeline_builder --p4c_conf_file=simple_l3.conf --bf_pipeline_config_binary_file=simple_l3.pb.bin
-```
+    ipdk execute /root/examples/simple_l3 --- tdi_pipeline_builder --p4c_conf_file=simple_l3.conf --bf_pipeline_config_binary_file=simple_l3.pb.bin
+    ```
 
-5) Add the created pipeline binary package to the running IPDK container infrap4d switch:
+1. Add the created pipeline binary package to the running IPDK container infrap4d switch:
 
-```
-ipdk execute --- p4rt-ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin /root/examples/simple_l3/p4Info.txt
-```
+    ```bash
+    ipdk execute --- p4rt-ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin /root/examples/simple_l3/p4Info.txt
+    ```
 
-6) Add pipeline table rules:
+1. Add pipeline table rules:
 
-```
-ipdk execute --- p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
+    ```bash
+    ipdk execute --- p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
 
-ipdk execute --- p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
-```
+    ipdk execute --- p4rt-ctl add-entry br0 ingress.ipv4_host "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"
+    ```
 
 From this step you can connect to the test VMs and do some ping tests as described below!
 
@@ -247,13 +252,13 @@ From this step you can connect to the test VMs and do some ping tests as describ
 
 You will need two login windows, one for each VM:
 
-```
+```bash
 telnet localhost 6551
 ```
 
 And in another window:
 
-```
+```bash
 telnet localhost 6552
 ```
 
@@ -264,7 +269,7 @@ You can stop the terminal session anytime by sending `CTRL+]` en then typing `qu
 It may take 6-9 minutes for both guest VMs to finish booting. You can
 watch each VM boot over the serial console.
 
-```
+```bash
 [  307.519991] cloud-init[1249]: Cloud-init v. 21.4-0ubuntu1~20.04.1 running 'modules:config' at Thu, 06 Jan 2022 15:27:13 +0000. Up 297.85 seconds.
 [  OK  ] Finished Apply the settings specified in cloud-config.
          Starting Execute cloud user/final scripts...
@@ -295,7 +300,7 @@ Once you reach the following, you can login as the user `ubuntu` with the
 defined password `IPDK`. Then you can ping from vm1 to vm2, and infrap4d will
 be used for networking traffic:
 
-```
+```bash
 ubuntu@vm1:~$ ping -c 5 2.2.2.2
 PING 2.2.2.2 (2.2.2.2) 56(84) bytes of data.
 64 bytes from 2.2.2.2: icmp_seq=1 ttl=64 time=0.317 ms
@@ -313,28 +318,38 @@ ubuntu@vm1:~$
 *NOTE*: If user wants to cleanup, manually remove the qemu VM spawned on the
 machine and delete existing IPDK docker container with command `ipdk rm`
 
-## Section 3: Generating dependent files from P4C and TDI pipeline builder:
+## Section 3: Generating dependent files from P4C and TDI pipeline builder
+
 An open-sourced p4lang P4 compiler is integrated as part of the IPDK container.
-1) The p4c executable is used to generate dependent files.
-   You can execute all these commands on the container.
-    a. export OUTPUT_DIR=/root/examples/simple_l3/
-    b. p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files \
-    $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context \
-    $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
 
-2) Steps to generate pipeline binary file:
+1. The p4c executable is used to generate dependent files.
+You can execute all these commands on the container.
+
+    ```bash
+      export OUTPUT_DIR=/root/examples/simple_l3/
+
+      p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files
+      $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json --context
+      $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
+    ```
+
+1. Steps to generate pipeline binary file.
 Use tdi_pipeline_builder utility to generate pipeline binary file.
-    a. cd /root/examples/simple_l3/
-    b. tdi_pipeline_builder --p4c_conf_file=simple_l3.conf \
-    --bf_pipeline_config_binary_file=simple_l3.pb.bin
 
-Note: As of today <program>.conf is not generated by the compiler, in that case
-you need to manually update this conf file.
+    ```bash
+      cd /root/examples/simple_l3/
+        
+      tdi_pipeline_builder --p4c_conf_file=simple_l3.conf \
+      --bf_pipeline_config_binary_file=simple_l3.pb.bin
+    ```
+
+Note: As of today < program >.conf is not generated by the compiler, in that case you need to manually update this conf file.
 
 ## Using and compiling included P4 Example pipelines
+
 Example P4 pipeline implementations included on the IPDK container:
 
-```
+```text
     /root/examples/simple_l3/simple_l3.conf
     /root/examples/simple_l3/simple_l3.p4
 ```
@@ -342,7 +357,7 @@ Example P4 pipeline implementations included on the IPDK container:
 They can be compiled, put through the pipeline builder and made available on
 the host in `~/.ipdk/examples`, by executing:
 
-```
+```bash
     ipdk [options] examples
 ```
 
@@ -377,7 +392,6 @@ any files generated by the build process.
 
 2) If `DEPLOYMENT_IMAGE=true` then, all libraries and binaries of modules
 networking-recipe and p4-driver required for bringing up the stack are retained.
-
 
 ## Section 5: Copyright
 
