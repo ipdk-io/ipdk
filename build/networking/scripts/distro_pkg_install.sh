@@ -50,6 +50,7 @@ fedora_install_build_pkgs() {
         openssl-devel \
         libatomic \
         libnl3-devel \
+        openssl \
         which
 
     python -m pip install --upgrade pip
@@ -80,6 +81,7 @@ fedora_install_deployment_pkgs() {
         procps-ng \
         iproute \
         net-tools \
+        openssl \
         iputils
 
     python -m pip install --upgrade pip
@@ -177,6 +179,7 @@ ubuntu_install_build_pkgs() {
         wget \
         vim \
         numactl \
+        openssl \
         sudo \
         "${PYTHON_PKG_NAME}"
 
@@ -213,6 +216,7 @@ ubuntu_install_deployment_pkgs() {
         sudo \
         net-tools \
         iproute2 \
+        openssl \
         vim
 
     python3 -m pip install --no-cache-dir --upgrade pip
