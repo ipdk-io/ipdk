@@ -151,9 +151,9 @@ which implements the p4runtime and openconfig clients to configure IPsec SPD
 and SAD to the target devices.
 
 * IPsec recipe design preview is validated on Intel IPU target.
-* Refer to https://ipdk.io/documentation/Recipes/InlineIPsec/
-* YANG model for IPsec SAD: https://github.com/ipdk-io/openconfig-public/blob/master/release/models/ipsec/openconfig-ipsec-offload.yang
-* Reference P4 program to enable IPsec on DPDK target: https://github.com/ipdk-io/networking-recipe/tree/main/p4src/Inline_IPsec
+* Refer to [https://ipdk.io/documentation/Recipes/InlineIPsec/](https://ipdk.io/documentation/Recipes/InlineIPsec/)
+* YANG model for IPsec SAD: [https://github.com/ipdk-io/openconfig-public/blob/master/release/models/ipsec/openconfig-ipsec-offload.yang](https://github.com/ipdk-io/openconfig-public/blob/master/release/models/ipsec/openconfig-ipsec-offload.yang)
+* Reference P4 program to enable IPsec on DPDK target: [https://github.com/ipdk-io/networking-recipe/tree/main/p4src/Inline_IPsec](https://github.com/ipdk-io/networking-recipe/tree/main/p4src/Inline_IPsec)
 
 ## v22.07
 
