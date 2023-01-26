@@ -69,7 +69,7 @@ The following are the container images you can build from here:
     * `http-proxy.conf` under docker service
     * /etc/default/docker
   * Then restart docker service.
-* If you want to push the container to Docker Hub then login to docker using
+* If you want to push the container to Docker Hub then log in to docker using
   `docker login`
 * Start docker service using following commands:
 
@@ -130,10 +130,10 @@ configuration file settings and inner workings!
     mkdir -p "${VOLUME}"/intf
   * docker run --name "${CONTAINER_NAME}" --cap-add ALL --privileged \
                -v "${VOLUME}":/tmp -p 9339:9339 -p 9559:9559 \
-               -d --entrypoint /root/scripts/start.sh -it < Image ID > rundaemon
+               -d --entrypoint /root/scripts/start.sh -it ${Image_ID} rundaemon
 
-* Run `ipdk connect` - To connect to your IPDK container daemon and to use
-  it from a command line. Everytime we login to container via `ipdk connect`,
+* Run `ipdk connect` to connect to your IPDK container daemon and to use
+  it from a command line. Everytime we log in to the container via `ipdk connect`,
   TLS certificates will be generated and stored in a specific location.
 
 If above commands are successful, at this point you should have your IPDK
@@ -157,40 +157,40 @@ steps mentioned above.
 Start example usecase by connecting to docker and running script `/root/scripts/rundemo_TAP_IO.sh`,
 this script will:
 
-* Creates TAP ports and moves to two different namespaces
+* Create TAP ports and moves to two different namespaces
 * Create a forwarding pipeline binary
 * Load the target with a forwarding pipeline
 * Configure rules
 * Test traffic with Ping between TAP ports
 
-To cleanup, use command `ipdk rm` to delete existing IPDK docker container
+To clean up, use command `ipdk rm` to delete existing IPDK docker container
 
 ### Section 2.2: Running example setup ( VM1 <-> IPDK Container <-> VM2 )
 
-Below commands will help you setup traffic between 2 VMs on your host with the
+Below commands will help you set up traffic between 2 VMs on your host with the
 IPDK container as a P4 program enabled vswitch switching traffic between them.
 
-Pre-requisite:
+Prerequisite:
 
-* Container in Section 1 should be up and with Infrap4d running
+* Container in Section 1 should be up and with infrap4d running
 * If you are running in a VM then make sure you have nested virtualization
   enabled on your guest VM
 * QEMU, KVM, libvirt and cloud-utils packages should be installed as per your distribution and running.
-* `ipdk` commands executed on host machine works only when container is started
+* `ipdk` commands executed on host machine work only when container is started
   via `ipdk start -d` and `ipdk connect`. These start commands provides ports
   from container to host machine for gRPC communication.
 
 ### Example description
 
-The demo environment is easily setup. The command below will set the environment up and allow for simple testing using the networking-recipe container:
+The demo environment is easily set up. The command below will set the environment up and allow for simple testing using the networking recipe container:
 
 ```bash
 ipdk demo
 ```
 
-Note: Run `ipdk demo` command from the host machine.
+Note: Run the `ipdk demo` command from the host machine.
 
-When executed go to the 'Connect to the test VMs serial consoles' paragraph
+When executed, go to the 'Connect to the test VMs serial consoles' paragraph
 below.
 
 ### Step-by-step commands to setup the example scenario
@@ -198,7 +198,7 @@ below.
 If you want to execute each command yourself instead of using the pre-written
 demo script, do the following steps on your host/server:
 
-1. Create 2 vhost ports using GNMI CTL commands through the `ipdk execute` CLI:
+1. Create two vhost ports using GNMI CTL commands through the `ipdk execute` CLI:
 
     ```bash
     ipdk execute --- gnmi-ctl set "device:virtual-device,name:net_vhost0,host-name:host1,device-type:VIRTIO_NET,queues:1,socket-path:/tmp/intf/vhost-user-0,port-type:LINK"
@@ -212,17 +212,17 @@ demo script, do the following steps on your host/server:
     ipdk createvms
     ```
 
-1. Those two created VM images can at any moment be started with:
+1. Those two created VM images can be started at any time with:
 
     ```bash
     ipdk startvms
     ```
 
-    *NOTE*: If VM's are not up even after waiting for 6-9 minutes, check if
+    *NOTE*: If the VMs are not up even after 6-9 minutes, check whether
     hugepages are mounted to `/mnt/huge`.
       Example: Command to mount huge pages is `mount -t hugetlbfs nodev /mnt/huge`
 
-1. Create a forwarding pipeline program by compiling and package the vSwitch consumable
+1. Create a forwarding pipeline program by compiling and packaging the vSwitch consumable
 pipeline binary package by using the pipeline builder:
 
     ```bash
@@ -343,9 +343,9 @@ Use tdi_pipeline_builder utility to generate pipeline binary file.
       --bf_pipeline_config_binary_file=simple_l3.pb.bin
     ```
 
-Note: As of today < program >.conf is not generated by the compiler, in that case you need to manually update this conf file.
+Note: As of today program.conf is not generated by the compiler. In that case, you need to manually update this conf file.
 
-## Using and compiling included P4 Example pipelines
+## Compiling and using P4 example pipelines
 
 Example P4 pipeline implementations included on the IPDK container:
 
