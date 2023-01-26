@@ -4,12 +4,13 @@
 
 ### Storage
 
-The storage recipe enhances and extends the functionality enabled in the 
+The storage recipe enhances and extends the functionality enabled in the
 22.07 release.
 All virtio-blk flows from 22.07 have been enabled for NVMe including fio
 traffic, hot-plug and scale-out scenarios.
 
 Additional major features are enabled including:
+
 * Quality-of-Service (QoS) support
   * Device-level rate and bandwidth limiters for virtio-blk devices
   * Volume-level rate and bandwidth limiters for NVMe devices
@@ -18,6 +19,7 @@ Additional major features are enabled including:
   * AES XTS cipher
 
 Minor enhancements for this release include:
+
 * Introduction of the cmd-sender container to improve use-of-use for the user
 * Refactor of the object model to allow for more flexible design
 * Adding `host-target` customization capability
@@ -30,6 +32,7 @@ Minor enhancements for this release include:
 * Documentation improvements
 
 Storage CI/CD:
+
 * Black (python code format linter)
 * Bandit test (python security linter)
 * Pre-commit Unit and Integration test
@@ -74,10 +77,10 @@ Certificates are expected in default location (/usr/share/stratum/certs)
 connecting
 to the server. Move the certificates out of the default location
 (/usr/share/stratum/certs/ folder) in order to use insecure communication
-between
-gRPC clients and server
+between gRPC clients and server
 
 Networking CI/CD:
+
 * Pre-commit testing (build)
 * Bandit (python security linter)
 * Klocwork on demand/nightly builds (static code analysis)
@@ -101,6 +104,7 @@ Networking CI/CD:
 The following are the main components of K8s Infra Offload software.
 
 K8s Infra Manager
+
 * The Infra Manager is deployed as a core kube-system pod along with other
   kube-system pods.
 * This components acts as a gRPC server for K8s Infra Agent and receives K8s
@@ -110,6 +114,7 @@ K8s Infra Manager
   configurations.
 
 K8s Infra Agent
+
 * The Infra Agent is also deployed as a core kube-system pod along with other
   kube-system pods.
 * It receives all CNI requests from the Calico plug-in, configures pod system
@@ -121,6 +126,7 @@ K8s Infra Agent
   configurations.
 
 K8s P4 Pipeline
+
 * The K8s P4 pipeline is a pre-built component that can be loaded on the P4-DPDK
   dataplane.
 * It comes along with the source P4 code for user to understand the packet
@@ -133,19 +139,21 @@ K8s P4 Pipeline
   end points, etc.
 
 #### K8s CI/CD
+
 * Pre-commit testing (build and test)
 * Building docker images and pushing to GHCR.io on merge
 * Coverity on demand/nightly (static code analysis)
 
 ### IPsec Recipe (Design Preview)
 
-In 23.01 the IPsec Recipe is a design preview and includes a StrongSwan plugin 
-which implements the p4runtime and openconfig clients to configure IPsec SPD 
+In 23.01 the IPsec Recipe is a design preview and includes a StrongSwan plugin
+which implements the p4runtime and openconfig clients to configure IPsec SPD
 and SAD to the target devices.
-- IPsec recipe design preview is validated on Intel IPU target.
-- Refer to https://ipdk.io/documentation/Recipes/InlineIPsec/
-- YANG model for IPsec SAD: https://github.com/ipdk-io/openconfig-public/blob/master/release/models/ipsec/openconfig-ipsec-offload.yang
-- Reference P4 program to enable IPsec on DPDK target: https://github.com/ipdk-io/networking-recipe/tree/main/p4src/Inline_IPsec
+
+* IPsec recipe design preview is validated on Intel IPU target.
+* Refer to https://ipdk.io/documentation/Recipes/InlineIPsec/
+* YANG model for IPsec SAD: https://github.com/ipdk-io/openconfig-public/blob/master/release/models/ipsec/openconfig-ipsec-offload.yang
+* Reference P4 program to enable IPsec on DPDK target: https://github.com/ipdk-io/networking-recipe/tree/main/p4src/Inline_IPsec
 
 ## v22.07
 
