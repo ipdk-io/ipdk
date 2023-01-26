@@ -178,7 +178,6 @@ docker-compose including running exemplary fio traffic and dynamic provisioning.
 * Customization possibility for enablement of virtio-blk HW-acceleration
 through dedicated HW over HW-agnostic interfaces.
 
-
 ### Networking Recipe (P4-OVS)
 
 Feature support:
