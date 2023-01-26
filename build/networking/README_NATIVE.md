@@ -1,94 +1,98 @@
 # Native Install
 
 This method is supported for either installing and using IPDK in a VM or on a
-host natively. Infrap4d will run natively on the host or inside of a VM, which
-is different from the containerized version of IPDK, which runs Infrap4d as a
+host natively. infrap4d will run natively on the host or inside of a VM, which
+is different from the containerized version of IPDK, which runs infrap4d as a
 container.
 
 ## Steps To Install
 
 ### Clone the repository
 
-```
+```bash
 root@linux:~# cd <CLONE-PATH>
 root@linux:~# git clone https://github.com/ipdk-io/ipdk.git
 ```
 
-### Run the install script to install all dependencies and build components.
+### Run the install script to install all dependencies and build components
 
 *NOTE*: This takes a long time, You also need to run these as root.
 
 Without a proxy:
 
-```
+```bash
 root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh
 ```
+
 *Note*: This assumes your default source directory is `/git/` and searches for `ipdk`
 repository under default source directory. Output of this command copies
 necessary files to `/root/` by default.
 
 If using a proxy:
 
-```
+```bash
 root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -p [proxy name]
 ```
+
 *Note*: This assumes your default source directory is `/git/` and searches for `ipdk`
 repository under default source directory. Output of this command copies
 necessary files to `/root/` by default.
 
 If user wants to copy necessary dependent files to a specific location, use `--workdir` option.
 
-```
+```bash
 root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh --workdir=/root/<my_own_dir>
 ```
-*Note*: If user is behind proxy, need to provide `-p` with proxy.
 
+*Note*: If user is behind proxy, need to provide `-p` with proxy.
 
 If your source directory is in a different location, such as `/opt/src/ipdk`:
 
-```
+```bash
 root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -d /opt/src
 ```
+
 *Note*: Output of this command copies necessary files to `/root/` by default.
 If user wants to copy necessary dependent files to a specific location use `--workdir` option.
 To skip installing and building dependencies in the future, add a `-s`
 flag to the host_install.sh script.
 
-
-
-## Run P4 use case, either via VHOST ports or TAP ports.
+## Run P4 use case, either via VHOST ports or TAP ports
 
 ### 1.1 Run the rundemo_TAP_IO.sh script
 
 If `host_install.sh` is excuted with default source directory.
-```
+
+```bash
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo_TAP_IO.sh
 ```
 
 If `host_install.sh` is excuted with `--workdir` option.
-```
+
+```bash
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo_TAP_IO.sh --workdir=/root/<my_own_dir>
 ```
 
 *Note*: rundemo_TAP_IO.sh does start infrap4d, create TAP ports, set the
 pipeline, configure rules and then validates traffic between TAP ports.
 
-
 ### 1.2 Run the rundemo.sh script
 
 If `host_install.sh` is excuted with default source directory.
-```
+
+```bash
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo.sh
 ```
 
 If `host_install.sh` is excuted with `--workdir` option.
-```
+
+```bash
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo.sh --workdir=/root/<my_own_dir>
 ```
 
-Verify Infrap4d is running:
+Verify infrap4d is running:
 
-```
+```bash
 root@linux:~# ps -ef | grep infrap4d
 ```
 
@@ -96,13 +100,13 @@ root@linux:~# ps -ef | grep infrap4d
 
 You will need two login windows, one for each VM:
 
-```
+```bash
 root@linux:~# telnet localhost 6551
 ```
 
 And in another window:
 
-```
+```bash
 root@linux:~# telnet localhost 6552
 ```
 
@@ -111,7 +115,7 @@ root@linux:~# telnet localhost 6552
 It may take 6-9 minutes for both guest VMs to finish booting. You can
 watch each VM boot over the serial console.
 
-```
+```bash
 [  307.519991] cloud-init[1249]: Cloud-init v. 21.4-0ubuntu1~20.04.1 running 'modules:config' at Thu, 06 Jan 2022 15:27:13 +0000. Up 297.85 seconds.
 [  OK  ] Finished Apply the settings specified in cloud-config.
          Starting Execute cloud user/final scripts...
@@ -146,7 +150,7 @@ Once you reach the following, you can login as the user `ubuntu` with the
 defined password `IPDK`. Then you can ping from vm1 to vm2, and P4-OVS will
 be used for networking traffic:
 
-```
+```bash
 root@linux:~# telnet localhost 6551
 ubuntu@vm1:~$ ping -c 5 2.2.2.2
 PING 2.2.2.2 (2.2.2.2) 56(84) bytes of data.
