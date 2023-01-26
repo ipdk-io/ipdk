@@ -47,7 +47,7 @@ APIs by 23.07 release to allow for a full validation cycle.
 ##### Feature support
 
 * Re-architecture of the Networking Recipe. The recipe is now modular and
-launched as the `InfraP4D` process
+launched as the `infrap4d` process
 * Support for underlay traffic hashing with ECMP
 * Support for dynamic underlay traffic via FRR, including routes learned with
 ECMP
@@ -65,7 +65,7 @@ with bridge deletion
 * Flow dump & counters: A table-id/counter-id=0 is not yet supported
 * TLS feature: Custom certificate location is unsupported for P4RT gRPC client.
 Certificates are expected in default location (/usr/share/stratum/certs)
-* TLS feature: If InfraP4D is operating in insecure mode, gRPC clients may fail
+* TLS feature: If infrap4d is operating in insecure mode, gRPC clients may fail
 connecting
 to the server. Move the certificates out of the default location
 (/usr/share/stratum/certs/ folder) in order to use insecure communication
