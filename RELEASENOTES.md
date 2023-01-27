@@ -4,12 +4,12 @@
 
 ### Storage
 
-The recipes enhance and extend the functionality enabled in the previous
-release.
-All virtio-blk flows from 22.07 have been enabled for NVMe incl. fio
+The storage recipe enhances and extends the functionality enabled in the
+22.07 release.
+All virtio-blk flows from 22.07 have been enabled for NVMe including fio
 traffic, hot-plug and scale-out scenarios.
 
-Additional major features were enabled including:
+Additional major features are enabled including:
 
 * Quality-of-Service (QoS) support
   * Device-level rate and bandwidth limiters for virtio-blk devices
@@ -42,9 +42,9 @@ APIs by 23.07 release to allow for a full validation cycle.
 
 ---
 
-#### Networking Recipe
+### Networking Recipe
 
-##### Feature support
+#### Feature support
 
 * Re-architecture of the Networking Recipe. The recipe is now modular and
 launched as the `infrap4d` process
@@ -54,7 +54,7 @@ ECMP
 * Flow dump support (including direct counters)
 * TLS enablement to authenticate gRPC traffic
 
-##### Limitations
+#### Limitations
 
 * Linux Networking limitations are summarized here:
 <https://github.com/ipdk-io/networking-recipe/blob/main/p4src/linux_networking/README_LINUX_NETWORKING.md#limitations>
@@ -72,6 +72,7 @@ to the server. Move the certificates out of the default location
 between gRPC clients and server
 
 ### Kubernetes Networking Infrastructure Offload
+
 * Support for Kubernetes Container Network Interface (CNI) to enable pods to
   send/receive traffic.
 * Intra Node L3 Forwarding to enable pod to pod communication, on the same node,
