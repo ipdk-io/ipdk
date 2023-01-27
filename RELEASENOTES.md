@@ -6,7 +6,7 @@
 
 The storage recipe enhances and extends the functionality enabled in the
 22.07 release.
-All virtio-blk flows from 22.07 have been enabled for NVMe including fio
+All virtio-blk flows from 22.07 release have been enabled for NVMe including fio
 traffic, hot-plug and scale-out scenarios.
 
 Additional major features are enabled including:
