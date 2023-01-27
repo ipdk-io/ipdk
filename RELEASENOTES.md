@@ -31,14 +31,6 @@ Minor enhancements for this release include:
 * Security-related improvements and fixes
 * Documentation improvements
 
-Storage CI/CD:
-
-* Black (python code format linter)
-* Bandit test (python security linter)
-* Pre-commit Unit and Integration test
-* Building docker images and push to GHCR.io on merge
-* Coverity on demand/nightly (static code analaysis)
-
 ---
 
 **NOTE:**\
@@ -78,12 +70,6 @@ connecting
 to the server. Move the certificates out of the default location
 (/usr/share/stratum/certs/ folder) in order to use insecure communication
 between gRPC clients and server
-
-Networking CI/CD:
-
-* Pre-commit testing (build)
-* Bandit (python security linter)
-* Klocwork on demand/nightly builds (static code analysis)
 
 ### Kubernetes Networking Infrastructure Offload
 
@@ -138,12 +124,6 @@ K8s P4 Pipeline
   rules. These rules are for managing pkt forwarding, service groups, service
   end points, etc.
 
-#### K8s CI/CD
-
-* Pre-commit testing (build and test)
-* Building docker images and pushing to GHCR.io on merge
-* Coverity on demand/nightly (static code analysis)
-
 ### IPsec Recipe (Design Preview)
 
 In 23.01 the IPsec Recipe is a design preview and includes a StrongSwan plugin
@@ -154,6 +134,10 @@ and SAD to the target devices.
 * Refer to [https://ipdk.io/documentation/Recipes/InlineIPsec/](https://ipdk.io/documentation/Recipes/InlineIPsec/)
 * YANG model for IPsec SAD: [https://github.com/ipdk-io/openconfig-public/blob/master/release/models/ipsec/openconfig-ipsec-offload.yang](https://github.com/ipdk-io/openconfig-public/blob/master/release/models/ipsec/openconfig-ipsec-offload.yang)
 * Reference P4 program to enable IPsec on DPDK target: [https://github.com/ipdk-io/networking-recipe/tree/main/p4src/Inline_IPsec](https://github.com/ipdk-io/networking-recipe/tree/main/p4src/Inline_IPsec)
+
+### CI/CD
+
+CI has been enabled for the ipdk, ipdk-io.github.io, and recipe repos.
 
 ## v22.07
 
