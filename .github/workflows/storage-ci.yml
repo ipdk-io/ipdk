@@ -5,12 +5,14 @@ on:
   pull_request:
     branches:
       - main
+      - ipdk_v*
     paths:
       - 'build/storage/**'
       - '.github/workflows/storage-ci.yml'
   push:
     branches:
       - main
+      - ipdk_v*
     paths:
       - 'build/storage/**'
       - '.github/workflows/storage-ci.yml'

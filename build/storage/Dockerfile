@@ -232,10 +232,11 @@ COPY tests/it/test-drivers/test-helpers /test-helpers
 COPY scripts/ /scripts
 
 FROM cmd-sender-base AS cmd-sender
-RUN echo "source /scripts/disk_infrastructure.sh" >> ~/.bashrc && \
-    useradd -s /bin/bash ipdk_user
+RUN useradd -s /bin/bash ipdk_user
 USER ipdk_user
 WORKDIR /home/ipdk_user
+RUN echo "source /scripts/disk_infrastructure.sh" >> ~/.bashrc && \
+    echo "export PYTHONPATH=/" >> ~/.bashrc
 ENTRYPOINT ["/bin/bash"]
 
 

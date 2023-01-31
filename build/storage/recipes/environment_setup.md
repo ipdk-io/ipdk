@@ -106,15 +106,11 @@ $ scripts/vm/install_qemu.sh
 
 ## Setting security policies
 Make sure that required security permissions are configured to enable vm network
-connectivity or disable them temporarily.
-On Fedora SELinux can be disabled by means of the following command
-```
-$ sudo setenforce 0
-```
-For Ubuntu AppArmor is often used and can be disabled by issuing
-```
-$ sudo systemctl stop apparmor
-```
+connectivity or any other aspects of the scenario flow.
+For a secure integration and deployment with their target environments, users
+should make sure to apply the highest level of security settings by not
+disabling SELinux or other OS-supported security solutions but configuring them
+accordingly.
 
 # Deploy containers on the machines
 
