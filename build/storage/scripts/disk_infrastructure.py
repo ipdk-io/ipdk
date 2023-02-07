@@ -13,6 +13,7 @@ import sys
 import time
 import uuid
 import json
+import grpc_requests
 
 from scripts import socket_functions
 from enum import Enum
@@ -20,6 +21,13 @@ from enum import Enum
 sys.path.append("/usr/libexec/spdk/scripts")
 sma_client = importlib.import_module("sma-client")
 import rpc
+
+
+class HostTargetServiceMethod(Enum):
+    RunFio = 0
+    PlugDevice = 1
+    UnplugDevice = 2
+
 
 logging.root.setLevel(logging.CRITICAL)
 
@@ -258,13 +266,12 @@ def create_virtio_blk(
     device_handle = response["handle"]
 
     if device_handle:
-        if (
-            os.system(
-                f'env -i no_grpc_proxy="" grpc_cli call \
-            "{host_target_ip}:{host_target_service_port}" \
-            PlugDevice "deviceHandle: \'{device_handle}\'"'
-            )
-            == 0
+        req_args = {"deviceHandle": device_handle}
+        if send_host_target_request(
+            HostTargetServiceMethod.PlugDevice,
+            req_args,
+            host_target_ip,
+            host_target_service_port,
         ):
             return device_handle
         else:
@@ -288,13 +295,12 @@ def delete_sma_device(
     device_handle: str,
 ) -> bool:
     try:
-        if (
-            os.system(
-                f'env -i no_grpc_proxy="" grpc_cli call \
-                "{host_target_ip}:{host_target_service_port}" \
-                UnplugDevice "deviceHandle: \'{device_handle}\'"'
-            )
-            == 0
+        req_args = {"deviceHandle": device_handle}
+        if send_host_target_request(
+            HostTargetServiceMethod.UnplugDevice,
+            req_args,
+            host_target_ip,
+            host_target_service_port,
         ):
             _send_delete_sma_device_request(
                 ipu_storage_container_ip, sma_port, device_handle
@@ -331,13 +337,12 @@ def create_nvme_device(
     )
     device_handle = response["handle"]
     if device_handle:
-        if (
-            os.system(
-                f'env -i no_grpc_proxy="" grpc_cli call \
-            "{host_target_ip}:{host_target_service_port}" \
-            PlugDevice "deviceHandle: \'{device_handle}\'"'
-            )
-            == 0
+        req_args = {"deviceHandle": device_handle}
+        if send_host_target_request(
+            HostTargetServiceMethod.PlugDevice,
+            req_args,
+            host_target_ip,
+            host_target_service_port,
         ):
             return device_handle
         else:
@@ -411,6 +416,19 @@ def is_port_open(ip_addr: str, port: int, timeout: float = 1.0) -> int:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.settimeout(timeout)
         return s.connect_ex((ip_addr, port))
+
+
+def send_host_target_request(
+    method: HostTargetServiceMethod, args: dict, host_target_ip: str, port: int
+) -> bool:
+    try:
+        with SuppressProxyEnvVariables():
+            grpc_requests.Client.get_by_endpoint(f"{host_target_ip}:{port}").request(
+                "host_target.HostTarget", method.name, args
+            )
+        return True
+    except Exception:
+        return False
 
 
 def send_request(client, request):

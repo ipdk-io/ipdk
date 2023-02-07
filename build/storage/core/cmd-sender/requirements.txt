@@ -1,0 +1,5 @@
+# Copyright (C) 2023 Intel Corporation
+# SPDX-License-Identifier: Apache-2.0
+#
+grpc-requests==0.1.7
+urllib3==1.26.5

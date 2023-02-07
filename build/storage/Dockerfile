@@ -223,10 +223,13 @@ ARG HTTP_PROXY
 ARG HTTPS_PROXY
 ARG NO_PROXY
 
+WORKDIR /
 RUN dnf install -y socat-1.7.4.2-2.fc36 \
     grpc-cli-1.41.1-21.fc36 \
     jq-1.6-13.fc36 && \
     dnf clean all
+COPY core/cmd-sender/requirements.txt ./
+RUN python -m pip install --no-cache-dir -r ./requirements.txt
 
 COPY tests/it/test-drivers/test-helpers /test-helpers
 COPY scripts/ /scripts
