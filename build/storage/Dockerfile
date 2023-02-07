@@ -177,7 +177,7 @@ ENV no_proxy=$NO_PROXY
 FROM traffic-generator-env-vars as traffic-generator-base
 
 RUN dnf install -y wget-1.21.3-1.fc36 \
-    guestfs-tools-1.48.2-3.fc36 && \
+    guestfs-tools-1.48.3-1.fc36 && \
     dnf clean all
 
 COPY scripts/vm/configs/* /scripts/vm/configs/
@@ -189,7 +189,7 @@ RUN /scripts/vm/prepare_vm.sh
 
 FROM traffic-generator-env-vars AS traffic-generator
 
-RUN dnf install -y git-2.39.0-1.fc36 \
+RUN dnf install -y git-2.39.1-1.fc36 \
     glib2-devel-2.72.3-1.fc36 \
     libfdt-devel-1.6.1-4.fc36 \
     pixman-devel-0.40.0-5.fc36 \
