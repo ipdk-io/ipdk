@@ -78,9 +78,10 @@ jobs:
           submodules: 'recursive'
 
     - name: 'Run Hadolint'
-      uses: hadolint/hadolint-action@v2.1.0
+      uses: hadolint/hadolint-action@v3.1.0
       with:
         dockerfile: './build/storage/Dockerfile'
+        verbose: true
 
   storage_build_containers:
     needs: [run_storage_ut, py_black_test, py_bandit_test, lint_dockerfiles]
