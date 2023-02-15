@@ -68,8 +68,21 @@ jobs:
           ./build/storage/core/host-target/
         options: "-r"
 
+  lint_dockerfiles:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+    - name: 'Checkout'
+      uses: actions/checkout@v3
+
+    - name: 'Run Hadolint'
+      uses: hadolint/hadolint-action@v3.1.0
+      with:
+        dockerfile: './build/storage/Dockerfile'
+        verbose: true
+
   storage_build_containers:
-    needs: [run_storage_ut, py_black_test, py_bandit_test]
+    needs: [run_storage_ut, py_black_test, py_bandit_test, lint_dockerfiles]
     timeout-minutes: 30
     runs-on: ${{ matrix.runner }}
     strategy:
