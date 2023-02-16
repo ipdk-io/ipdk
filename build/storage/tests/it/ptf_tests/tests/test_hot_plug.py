@@ -4,11 +4,12 @@
 
 from ptf.base_tests import BaseTest
 from system_tools.config import TestConfig
+from system_tools.const import FIO_COMMON, FIO_IO_PATTERNS
 from system_tools.errors import CommandException
 from system_tools.test_platform import PlatformFactory
 
 
-class TestMinHotPlug(BaseTest):
+class TestMinHotPlugAndFio(BaseTest):
     def setUp(self):
         self.tests_config = TestConfig()
         self.platforms_factory = PlatformFactory(self.tests_config.cmd_sender_platform)
@@ -62,6 +63,14 @@ class TestMinHotPlug(BaseTest):
         self.assertEqual(
             self.host_target_platform.get_number_of_virtio_blk_devices(), 0
         )
+
+        for io_pattern in FIO_IO_PATTERNS:
+            fio_args = {
+                **FIO_COMMON,
+                "rw": io_pattern.lower(),
+            }
+            for device in devices_handles:
+                self.assertTrue(device.run_fio(fio_args))
 
         second_delete_responses = self.ipu_storage_platform.delete_virtio_blk_devices(
             devices_handles
