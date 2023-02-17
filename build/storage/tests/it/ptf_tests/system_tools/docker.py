@@ -8,6 +8,7 @@ from tenacity import retry, stop_after_delay
 
 from system_tools.config import (HostTargetConfig, IPUStorageConfig,
                                  StorageTargetConfig, TestConfig)
+from system_tools.const import DEFAULT_HOST_TARGET_SERVICE_PORT_IN_VM
 from system_tools.errors import ContainerNotRunningException
 from system_tools.ssh_terminal import SSHTerminal
 
@@ -101,6 +102,18 @@ class CMDSenderContainer(DockerContainer):
             f"scripts/run_cmd_sender.sh"
         )
         super().__init__(terminal, cmd, "cmd-sender")
+
+    def run_fio(self, host_target_id, virtio_blk, fio_args):
+        cmd = (
+            f"""docker exec {self.id} """
+            f"""python -c "from scripts.disk_infrastructure import *; """
+            f"""import json; """
+            f"""fio={{'diskToExercise': {{'deviceHandle': '{virtio_blk}'}}"""
+            f""",'fioArgs': json.dumps({fio_args})}}; """
+            f"""print(send_host_target_request(HostTargetServiceMethod.RunFio, fio,"""
+            f""" '{host_target_id}', {DEFAULT_HOST_TARGET_SERVICE_PORT_IN_VM}))" """
+        )
+        return self._terminal.execute(cmd) == "True"
 
     def create_subsystem(
         self, ip_addr: str, nqn: str, port_to_expose: int, storage_target_port: int

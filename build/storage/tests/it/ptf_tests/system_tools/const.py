@@ -12,3 +12,18 @@ DEFAULT_QMP_PORT = 5555
 DEFAULT_HOST_TARGET_SERVICE_PORT_IN_VM = 50051
 DEFAULT_MAX_RAMDRIVE = 64
 DEFAULT_MIN_RAMDRIVE = 1
+FIO_COMMON = {
+    "runtime": 1,
+    "numjobs": 1,
+    "time_based": 1,
+    "group_reporting": 1,
+}
+FIO_IO_PATTERNS = [
+    "RANDRW",
+    "RANDREAD",
+    "WRITE",
+    "READWRITE",
+    "RANDWRITE",
+    "READ",
+    "TRIM",
+]
