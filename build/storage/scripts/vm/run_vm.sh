@@ -32,7 +32,7 @@ run_vm="sudo $QEMU_BINARY \
   ${qemu_serial} \
   --enable-kvm \
   -cpu host \
-  -m 1G -object memory-backend-file,id=mem0,size=1G,mem-path=/dev/hugepages,share=on -numa node,memdev=mem0 \
+  -m 2G -object memory-backend-file,id=mem0,size=2G,mem-path=/dev/hugepages,share=on -numa node,memdev=mem0 \
   -smp 2 \
   -drive file=${DRIVE_TO_BOOT},if=none,id=disk \
   -device ide-hd,drive=disk,bootindex=0 \

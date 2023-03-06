@@ -62,7 +62,7 @@ releases/36/Cloud/x86_64/images/Fedora-Cloud-Base-36-1.5.x86_64.qcow2 \
     vm_host_target_service="$vm_host_target_service_dir/host-target.service"
 
     run_customize=(virt-customize -a "${vm_tmp_file}")
-    run_customize+=(--memsize 1260)
+    run_customize+=(--memsize 2048)
     run_customize+=(--root-password password:"$root_password")
     run_customize+=(--run-command 'dnf config-manager --add-repo https://download.docker.com/linux/fedora/docker-ce.repo')
     # TODO: Enable SELinux
