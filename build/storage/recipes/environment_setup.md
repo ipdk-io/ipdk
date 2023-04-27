@@ -50,6 +50,17 @@ or on Ubuntu
 $ sudo apt install wget
 ```
 
+### kernel-headers
+```
+$ sudo dnf install kernel-headers
+$ sudo dnf update
+```
+or on Ubuntu
+```
+$ sudo apt install kernel-headers
+$ sudo apt-get update
+```
+
 ### docker
 Docker 21.10.10 or greater is required.
 
