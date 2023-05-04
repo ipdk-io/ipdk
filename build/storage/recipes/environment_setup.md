@@ -50,6 +50,11 @@ or on Ubuntu
 $ sudo apt install wget
 ```
 
+### kernel-headers on Fedora
+```
+$ sudo dnf install kernel-headers
+```
+
 ### docker
 Docker 21.10.10 or greater is required.
 
