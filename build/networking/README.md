@@ -31,9 +31,10 @@ insecure mode, if you wish. See the
 [security guide](https://github.com/ipdk-io/networking-recipe/blob/main/docs/guides/security-guide.md)
 for more information.
 
-IPDK includes a script (`generate-certs.sh`) to generate certificates and copy
-them to a specific location that will be used by the gRPC Server and Client for
-secure communication.
+IPDK includes a script
+([generate-tls-certs](https://github.com/ipdk-io/ipdk/blob/main/build/networking/scripts/generate_tls_certs.sh))
+to generate certificates and copy them to a specific location that will be used
+by the gRPC Server and Client for secure communication.
 
 ## Helpful references:
 
