@@ -42,4 +42,4 @@ secure communication.
 3. [P4RT-CTL P4runtime Client](https://github.com/ipdk-io/networking-recipe/blob/main/docs/clients/p4rt-ctl.rst)
 4. [GNMI-CTL Port Configuration Client](https://github.com/ipdk-io/networking-recipe/blob/main/docs/clients/gnmi-ctl.rst)
 5. [gRPC TLS Security](https://github.com/ipdk-io/networking-recipe/blob/main/docs/guides/security-guide.md)
-6. [Sample P4 Program](https://github.com/ipdk-io/ipdk/tree/conatiner_scripts/build/networking/examples/simple_l3)
+6. [Sample P4 Program](https://github.com/ipdk-io/ipdk/blob/main/build/networking/examples/simple_l3/simple_l3.p4)
