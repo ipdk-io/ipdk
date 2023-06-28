@@ -1,5 +1,46 @@
 # IPDK Release Notes
 
+## v23.07
+
+### Storage
+
+IPDK Storage was successfully transitioned to OPI. The support of
+[SMA API](https://spdk.io/doc/sma.html) was dropped in favor of supporting
+[OPI Storage API](https://github.com/opiproject/opi-api/tree/main/storage).
+The new location for the storage work are OPI repositories, in particular:
+
+* [opi-spdk-bridge](https://github.com/opiproject/opi-spdk-bridge) for a purely
+  SW-based implementation bridging OPI gRPC to SPDK JSON RPCs
+* [opi-intel-bridge](https://github.com/opiproject/opi-intel-bridge) for OPI
+  gRPC to Intel SDK bridge
+
+The new OPI-aligned solution is Golang-based and provides usage examples as part
+of the documentation of the particular repository.
+
+Following features are supported:
+
+* SPDK-target
+  * Enabling opi-spdk-bridge extensions
+  * Dynamic exposition of virtio-blk or NVMe storage devices to the virtualized
+    host
+  * Volume-level rate and bandwidth limiters support
+  * Enabling crypto for storage data send/retrieved to/from volumes
+* Intel IPU-target
+  * Dynamic exposition of NVMe storage devices to the host
+  * Device-level and volume-level rate and bandwidth limiters for NVMe devices
+  * Enabling HW-accelerated crypto for storage data send/retrieved to/from
+    volumes
+  * Supporting mTLS-secured gRPC communication channel to the IPU
+
+---
+
+**NOTE:**\
+The deprecated SMA-based solution was removed from the main branch of IPDK
+repository but is still accessible under the
+[v23.01 release branch](https://github.com/ipdk-io/ipdk/tree/ipdk_v23.01/).
+
+---
+
 ## v23.01
 
 ### Storage
