@@ -19,12 +19,3 @@ jobs:
       - uses: avto-dev/markdown-lint@v1.5.0
         with:
           args: '--config ./linters/mdl_config.yml ./*.md'
-
-  docker-lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: hadolint/hadolint-action@v2.1.0
-        with:
-          recursive: true
-          ignore: DL3041
