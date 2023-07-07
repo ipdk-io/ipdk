@@ -53,16 +53,17 @@ release.
 * IPv6 support in infrap4d networking stack (Intel IPU E2100 target only)
 * Local mirroring (Intel IPU E2100 target only)
 * Fedora 37 support
-* ACC support for Rocky Linux 9.1 container
-* Cross-compile for ARM64 Rocky Linux 9.1
+* ARM Compute Complex (ACC) support for Rocky Linux 9.1 container
+* Cross-compile support for ARM64 Rocky Linux 9.1
 * Multi-process TDI stack support (ability to run infrap4d as secondary process
 in multiple control planes environment)
-* Support for remote gRPC clients (infrap4d on ACC and gRPC clients on host)
 * Unit test framework
 * Security enhancements
   * Introduction of `sgnmi_cli`, a secure-by-default
-gNMI client
+gNMI client (Intel IPU E2100 target only)
   * Library updates to address CVE security issues
+    * Fixed in `c-ares` v1.19.0: CVE-2022-4904
+    * Fixed in `c-ares` v1.19.1: CVE-2023-32067, CVE-2023-31147, CVE-2023-31130, CVE-2023-31124
 * Build script updates
 * Documentation updates
 * Bug fixes
@@ -85,25 +86,26 @@ first rule
 
   * Only underlay IPv6 and overlay IPv6 use case are supported. IPv4-in-IPv6 and
   IPv6-in-IPv4 support will be added in future release
-  * At any point either v4 or v6 tunnel is supported, due to above limitation.
+  * At any point either IPv4 or IPv6 tunnel is supported, due to above limitation.
   * Configure vsi to vsi_group mapping by FXP SEM register due to missing
-  Control Plane Channel (CPCHNL) support Map the host1_vsi to vsi_group 1 by
+  Control Plane Channel (CPCHNL) support. Map the host1_vsi to vsi_group 1 by
   executing following commands on IMC.
   Note: VSI ID of host1 can be queried using
-  `./cli_client --query --verbose --config`
+  `/usr/bin/cli_client --query --verbose --config`
 
     ```bash
-    //SEM_DIRECT_MAP_PGEN_CTRL : 63-bit is set to 1 to initiate operation
-    by software //(Bit 0 is the vsi id of host1_vsi, in the below
-    example vsi id of host1 is 6)
+    // SEM_DIRECT_MAP_PGEN_CTRL : 63-bit is set to 1 to initiate operation
+    by software
+    // (Bit 0 is the vsi id of host1_vsi, in the below example vsi id
+    of host1 is 6)
     devmem 0x20292002a0 64 0x8000050000000006
 
-    //SEM_DIRECT_MAP_PGEN_DATA_VSI_GROUP : set the vsi_group to 1
+    // SEM_DIRECT_MAP_PGEN_DATA_VSI_GROUP : set the vsi_group to 1
     devmem 0x2029200388 64 0x1
 
-    //SEM_DIRECT_MAP_PGEN_CTRL : bit-63 and bit-61 set to 1 to write the vsig
-    value in vsi_group register //(Bit 0 is the vsi id of host1_vsi, in this
-    example vsi id of host1 is 6)
+    // SEM_DIRECT_MAP_PGEN_CTRL : bit-63 and bit-61 set to 1 to write the vsig value in vsi_group register
+    // (Bit 0 is the vsi id of host1_vsi, in this example vsi id of
+    host1 is 6)
     devmem 0x20292002a0 64 0xA000050000000006
     ```
 
