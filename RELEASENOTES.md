@@ -63,7 +63,8 @@ in multiple control planes environment)
 gNMI client (Intel IPU E2100 target only)
   * Library updates to address CVE security issues
     * Fixed in `c-ares` v1.19.0: CVE-2022-4904
-    * Fixed in `c-ares` v1.19.1: CVE-2023-32067, CVE-2023-31147, CVE-2023-31130, CVE-2023-31124
+    * Fixed in `c-ares` v1.19.1: CVE-2023-32067, CVE-2023-31147, CVE-2023-31130,
+    CVE-2023-31124
 * Build script updates
 * Documentation updates
 * Bug fixes
@@ -103,7 +104,8 @@ first rule
     // SEM_DIRECT_MAP_PGEN_DATA_VSI_GROUP : set the vsi_group to 1
     devmem 0x2029200388 64 0x1
 
-    // SEM_DIRECT_MAP_PGEN_CTRL : bit-63 and bit-61 set to 1 to write the vsig value in vsi_group register
+    // SEM_DIRECT_MAP_PGEN_CTRL : bit-63 and bit-61 set to 1 to write the vsig
+    value in vsi_group register
     // (Bit 0 is the vsi id of host1_vsi, in this example vsi id of
     host1 is 6)
     devmem 0x20292002a0 64 0xA000050000000006
