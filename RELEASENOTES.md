@@ -71,6 +71,10 @@ gNMI client (Intel IPU E2100 target only)
 
 #### Limitations
 
+* Some reference P4 files provided are missing a default-action statement.
+Based on user requirement, a default action needs to be added to either
+drop the packet or send to an exception port, else packet will be processed
+as per the IPU's default behavior.
 * The networking recipe currently uses a fork of `p4runtime` repository in order
 to support mirroring for Intel IPU E2100
 * Local mirroring feature: Modification for mirror packet does not work after
