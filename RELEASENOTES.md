@@ -41,6 +41,86 @@ repository but is still accessible under the
 
 ---
 
+### Networking Recipe
+
+The networking recipe enhances and extends the functionality enabled in 23.01
+release.
+
+#### Features and enhancements
+
+* Intel IPU E2100 target support
+* IPsec offload support (Intel IPU E2100 target only)
+* IPv6 support in infrap4d networking stack (Intel IPU E2100 target only)
+* Local mirroring (Intel IPU E2100 target only)
+* Fedora 37 support
+* ARM Compute Complex (ACC) support for Rocky Linux 9.1 container
+(Intel IPU E2100 target only)
+* Cross-compile support for ARM64 Rocky Linux 9.1
+(Intel IPU E2100 target only)
+* Multi-process TDI stack support (ability to run infrap4d as secondary process
+in multiple control planes environment)
+* Unit test framework
+* Security enhancements
+  * Introduction of `sgnmi_cli`, a secure-by-default
+gNMI client (Intel IPU E2100 target only)
+  * Library updates to address security issues
+    * Fixed in `c-ares` v1.19.0: CVE-2022-4904
+    * Fixed in `c-ares` v1.19.1: CVE-2023-32067, CVE-2023-31147, CVE-2023-31130,
+    CVE-2023-31124
+* Build script updates
+* Documentation updates
+* Bug fixes
+
+#### Limitations
+
+* Some reference P4 files provided are missing a default-action statement.
+Depending on your requirements, you should either
+drop the packet or send it to an exception port; otherwise, the packet
+will be processed as per the IPU's default behavior.
+* The networking recipe currently uses a fork of `p4runtime` repository in order
+to support mirroring for Intel IPU E2100
+* Local mirroring feature: Modification for mirror packet does not work after
+first rule
+* IPv6 feature:
+  * Add a route with remote TEP IPv6 as nexthop
+
+    ```bash
+    ip -6 route change <local TEP network address> via <remote TEP address>
+    dev <idpf interface name corresponding to phy port 0>
+    
+    Example: ip -6 route change 1000:1::/64 via 1000:1::2 dev ens802f0d1
+    ```
+
+  * Only underlay IPv6 and overlay IPv6 use case are supported. IPv4-in-IPv6 and
+  IPv6-in-IPv4 support will be added in future release
+  * Configure vsi to vsi_group mapping by FXP SEM register due to missing
+  Control Plane Channel (CPCHNL) support. Map the host1_vsi to vsi_group 3 by
+  executing the following commands on IMC.
+  Note: VSI ID of host1 can be queried using
+  `/usr/bin/cli_client --query --verbose --config`
+
+    ```bash
+    // SEM_DIRECT_MAP_PGEN_CTRL : 63-bit is set to 1 to initiate operation
+    by software
+    // (Bit 0 is the vsi id of host1_vsi, in the below example vsi id
+    of host1 is 6)
+    devmem 0x20292002a0 64 0x8000050000000006
+
+    // SEM_DIRECT_MAP_PGEN_DATA_VSI_GROUP : set the vsi_group to 1
+    devmem 0x2029200388 64 0x3
+
+    // SEM_DIRECT_MAP_PGEN_CTRL : bit-63 and bit-61 set to 1 to write the vsig
+    value in vsi_group register
+    // (Bit 0 is the vsi id of host1_vsi, in this example vsi id of
+    host1 is 6)
+    devmem 0x20292002a0 64 0xA000050000000006
+    ```
+
+  * VXLAN destination port should always be the standard port (4789) to
+  satisfy parser limitations
+  * ofproto rules that alter FDB learning on OVS are not supported
+  * Tagged packets are not supported
+
 ## v23.01
 
 ### Storage
