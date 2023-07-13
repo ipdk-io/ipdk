@@ -93,7 +93,7 @@ first rule
   IPv6-in-IPv4 support will be added in future release
   * At any point either IPv4 or IPv6 tunnel is supported, due to above limitation.
   * Configure vsi to vsi_group mapping by FXP SEM register due to missing
-  Control Plane Channel (CPCHNL) support. Map the host1_vsi to vsi_group 1 by
+  Control Plane Channel (CPCHNL) support. Map the host1_vsi to vsi_group 3 by
   executing following commands on IMC.
   Note: VSI ID of host1 can be queried using
   `/usr/bin/cli_client --query --verbose --config`
@@ -106,7 +106,7 @@ first rule
     devmem 0x20292002a0 64 0x8000050000000006
 
     // SEM_DIRECT_MAP_PGEN_DATA_VSI_GROUP : set the vsi_group to 1
-    devmem 0x2029200388 64 0x1
+    devmem 0x2029200388 64 0x3
 
     // SEM_DIRECT_MAP_PGEN_CTRL : bit-63 and bit-61 set to 1 to write the vsig
     value in vsi_group register
