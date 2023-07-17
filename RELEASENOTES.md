@@ -64,6 +64,7 @@ in multiple control planes environment)
   * Introduction of `sgnmi_cli`, a secure-by-default
 gNMI client (Intel IPU E2100 target only)
   * Library updates to address security issues
+    * Fixed in `gRPC` v1.54.2: CVE-2023-32731, CVE-2023-32732, CVE-2023-1428
     * Fixed in `c-ares` v1.19.0: CVE-2022-4904
     * Fixed in `c-ares` v1.19.1: CVE-2023-32067, CVE-2023-31147, CVE-2023-31130,
     CVE-2023-31124
