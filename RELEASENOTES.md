@@ -122,6 +122,42 @@ first rule
   * ofproto rules that alter FDB learning on OVS are not supported
   * Tagged packets are not supported
 
+### Kubernetes Infrastructure Offload Recipe
+
+The Kubernetes Infrastructure Offload Recipe enhances and extends the
+functionality enabled in 23.01 release. In this release, it adds support for
+Intel ES2K target in addition to existing P4-DPDK target. This is the first
+release that supports both these targets. Following is the list of features
+added in this release.
+
+#### For ES2K target
+
+- Support for Kubernetes Container Network Interface (CNI) to deploy pods and
+  enable pod-to-pod connectivity on a P4 target using hardware device interfaces.
+- Use of internal gateway with dummy MAC to enable layer-3 connectivity on the same node.
+- Support for dynamic Subfunctions on ES2K.
+  Subfunction is a lightweight function that has a parent PCI function on which it is
+  deployed. It is created and deployed in a unit of 1. Unlike SRIOV VFs, a subfunction
+  doesn't require its own PCI virtual function. A subfunction communicates with the
+  hardware through the parent PCI function.
+- Infra Manager build support on ARM cores.
+
+#### For Both ES2K and DPDK targets
+
+- TLS enablement to authenticate gRPC traffic between Infra Manager and Infra
+  Agent and between Infra Manager and underlying ``infrap4d`` (IPDK Networking
+  Receipe)
+- Makefile target to support tls-secrets and certificate generation
+- Automatated build & integration test on each commit
+- Felix integration and communication with Infrastructure Offload Components.
+- Addition of DB to store state information.
+- Support for Go version 1.20.5
+- Support for logging per feature in components
+- Configurable MTU using config file
+
+For full list of features, limitations and other details, refer to
+https://github.com/ipdk-io/k8s-infra-offload/blob/ipdk_v23.07/docs/ReleaseNotes.md
+
 ## v23.01
 
 ### Storage
