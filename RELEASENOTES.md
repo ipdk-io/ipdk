@@ -133,13 +133,15 @@ added in this release.
 #### For ES2K target
 
 * Support for Kubernetes Container Network Interface (CNI) to deploy pods and
-  enable pod-to-pod connectivity on a P4 target using hardware device interfaces.
-* Use of internal gateway with dummy MAC to enable layer-3 connectivity on the same node.
+  enable pod-to-pod connectivity on a P4 target using hardware device
+  interfaces.
+* Use of internal gateway with dummy MAC to enable layer-3 connectivity on the
+  same node.
 * Support for dynamic Subfunctions on ES2K.
-  Subfunction is a lightweight function that has a parent PCI function on which it is
-  deployed. It is created and deployed in a unit of 1. Unlike SRIOV VFs, a subfunction
-  doesn't require its own PCI virtual function. A subfunction communicates with the
-  hardware through the parent PCI function.
+  Subfunction is a lightweight function that has a parent PCI function on which
+  it is deployed. It is created and deployed in a unit of 1. Unlike SRIOV VFs,
+  a subfunction doesn't require its own PCI virtual function. A subfunction
+  communicates with the hardware through the parent PCI function.
 * Infra Manager build support on ARM cores.
 
 #### For Both ES2K and DPDK targets
