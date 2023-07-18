@@ -126,9 +126,9 @@ first rule
 
 The Kubernetes Infrastructure Offload Recipe enhances and extends the
 functionality enabled in 23.01 release. In this release, it adds support for
-Intel ES2K target in addition to existing P4-DPDK target. This is the first
-release that supports both these targets. Following is the list of features
-added in this release.
+Intel IPU E2100 (ES2K) target in addition to existing P4-DPDK target. This is
+the first release that supports both these targets. Following is the list of
+features added in this release.
 
 #### For ES2K target
 
@@ -148,16 +148,16 @@ added in this release.
 
 * TLS enablement to authenticate gRPC traffic between Infra Manager and Infra
   Agent and between Infra Manager and underlying ``infrap4d`` (IPDK Networking
-  Receipe)
+  Recipe)
 * Makefile target to support tls-secrets and certificate generation
-* Automatated build & integration test on each commit
-* Felix integration and communication with Infrastructure Offload Components.
+* Automated build & integration test on each commit
+* Felix integration and communication with Infrastructure Offload components.
 * Addition of DB to store state information.
 * Support for Go version 1.20.5
 * Support for logging per feature in components
 * Configurable MTU using config file
 
-For full list of features, limitations and other details, refer to [K8s Infra
+For full list of features, limitations, and other details, refer to [K8s Infra
 Offload Recipe Release Notes](https://github.com/ipdk-io/k8s-infra-offload/blob/ipdk_v23.07/docs/ReleaseNotes.md).
 
 ## v23.01
