@@ -117,8 +117,7 @@ first rule
     devmem 0x20292002a0 64 0xA000050000000006
     ```
 
-  * VXLAN destination port should always be the standard port (4789) to
-  satisfy parser limitations
+  * VXLAN destination port is fixed to be the standard port (4789)
   * ofproto rules that alter FDB learning on OVS are not supported
   * Tagged packets are not supported
 
