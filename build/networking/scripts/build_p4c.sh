@@ -27,7 +27,7 @@ eval set -- "${GETOPTS}"
 WORKING_DIR=""
 DEPS_INSTALL_DIR=""
 # Default release SHA
-GIT_SHA="e052f1fbe9cb18c705203637ddb3f36624222a87"
+GIT_SHA="a73a7fc2d6f98c0ae1f1eb7dde51e856d3f2f53e"
 NUM_CORES=4
 
 # Process command-line options.
