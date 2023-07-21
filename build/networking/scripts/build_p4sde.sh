@@ -29,7 +29,7 @@ eval set -- "${GETOPTS}"
 # Set defaults.
 WORKING_DIR=""
 # Default release SHA
-GIT_SHA="199d418f5fcfaca7fb7992d4867e72b39ebe6e31"
+GIT_SHA="05e53e3210ed81359af743b3b6d02fe445ec5bfa"
 NUM_CORES=4
 SDE_DIR_NAME="p4-sde"
 SDE_SRC_DIR_NAME="p4-driver"
