@@ -55,6 +55,7 @@ fedora_install_build_pkgs() {
 
     python -m pip install --upgrade pip
     python -m pip install grpcio
+    python -m pip install netaddr
     python -m pip install ovspy
     python -m pip install protobuf==3.20.3
     python -m pip install p4runtime
@@ -86,6 +87,7 @@ fedora_install_deployment_pkgs() {
 
     python -m pip install --upgrade pip
     python -m pip install grpcio
+    python -m pip install netaddr
     python -m pip install ovspy
     python -m pip install protobuf==3.20.3
     python -m pip install p4runtime
@@ -119,6 +121,7 @@ fedora_install_default_pkgs() {
 
     python -m pip install --upgrade pip
     python -m pip install grpcio
+    python -m pip install netaddr
     python -m pip install ovspy
     python -m pip install protobuf==3.20.3
     python -m pip install p4runtime
@@ -185,6 +188,7 @@ ubuntu_install_build_pkgs() {
 
     python3 -m pip install --no-cache-dir --upgrade pip
     python3 -m pip install --no-cache-dir grpcio
+    python3 -m pip install --no-cache-dir netaddr
     python3 -m pip install --no-cache-dir ovspy \
         protobuf=="${PROTOBUF_VER}" \
         p4runtime \
@@ -221,6 +225,7 @@ ubuntu_install_deployment_pkgs() {
 
     python3 -m pip install --no-cache-dir --upgrade pip
     python3 -m pip install --no-cache-dir grpcio
+    python3 -m pip install --no-cache-dir netaddr
     python3 -m pip install --no-cache-dir ovspy \
         protobuf=="${PROTOBUF_VER}" \
         p4runtime
@@ -258,6 +263,7 @@ ubuntu_install_default_pkgs() {
 
     python3 -m pip install --no-cache-dir --upgrade pip
     python3 -m pip install --no-cache-dir grpcio
+    python3 -m pip install --no-cache-dir netaddr
     python3 -m pip install --no-cache-dir ovspy \
         protobuf=="${PROTOBUF_VER}" \
         p4runtime
