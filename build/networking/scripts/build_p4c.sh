@@ -94,7 +94,6 @@ git submodule update --init --recursive
 mkdir build && mkdir -p "${WORKING_DIR}"/p4c/install && cd build
 
 cmake -DCMAKE_INSTALL_PREFIX="${WORKING_DIR}"/p4c/install \
-  -DENABLE_BMV2=OFF \
   -DENABLE_EBPF=OFF \
   -DENABLE_UBPF=OFF \
   -DENABLE_GTESTS=OFF \
