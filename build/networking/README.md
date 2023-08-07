@@ -28,7 +28,7 @@ and the server (`infrap4d`) for:
 
 By default, this gRPC communication is secure. You have the option to use
 insecure mode, if you wish. See the 
-[security guide](https://github.com/ipdk-io/networking-recipe/blob/main/docs/guides/security/security-guide.md)
+[security guide](https://ipdk.io/p4cp-userguide/guides/security/security-guide.html)
 for more information.
 
 IPDK includes a script
