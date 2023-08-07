@@ -28,7 +28,7 @@ and the server (`infrap4d`) for:
 
 By default, this gRPC communication is secure. You have the option to use
 insecure mode, if you wish. See the 
-[security guide](https://github.com/ipdk-io/networking-recipe/blob/main/docs/guides/security-guide.md)
+[security guide](https://github.com/ipdk-io/networking-recipe/blob/main/docs/guides/security/security-guide.md)
 for more information.
 
 IPDK includes a script
@@ -36,7 +36,7 @@ IPDK includes a script
 to generate certificates and copy them to a specific location that will be used
 by the gRPC Server and Client for secure communication.
 
-## Helpful references:
+## Helpful references
 
 1. [Networking Recipe](https://github.com/ipdk-io/networking-recipe/blob/main/README.md)
 2. [P4 Control Plane User Guide](https://ipdk.io/p4cp-userguide/)
