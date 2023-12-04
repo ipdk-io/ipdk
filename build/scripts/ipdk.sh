@@ -212,7 +212,7 @@ build_image() {
 }
 
 #
-# Start the P4-OVS container with local volume
+# Start the networking-recipe container with local volume
 #
 start_container() {
 	# Check if container is already running
@@ -266,11 +266,14 @@ start_container() {
 	docker "${RUNCMD[@]}" \
 		--name "${CONTAINER_NAME}" \
 		--rm \
-		--cap-add ALL \
 		--privileged \
 		-v "${VOLUME}":/tmp \
 		-p 9339:9339 \
 		-p 9559:9559 \
+		--pids-limit="${PIDS_LIMIT}" \
+		--cpu-shares="${CPU_SHARES}" \
+		--memory="${MEMORY}" \
+		--security-opt="${SECURITY_OPT_NO_NEW_PRIV}" \
 		"${ARGS[@]}" -it "${IMAGE_NAME}":"${TAG}" "${RUN_COMMAND[@]}"
 
 	if [ "$LINK_NAMESPACE" ] ; then
@@ -281,7 +284,7 @@ start_container() {
 }
 
 #
-# Connect to the P4-OVS running container daemon
+# Connect to the networking-recipe running container daemon
 #
 connect() {
 	WORKING_DIR="/root/scripts"
@@ -312,7 +315,7 @@ log_container() {
 }
 
 #
-# Stop the running P4-OVS container
+# Stop the running networking-recipe container
 #
 stop_container() {
 	# Remove the namespace link
@@ -366,10 +369,10 @@ push_image() {
 }
 
 #
-# Run a demo with two VM's connected to a running P4-OVS in host or container
+# Run a demo with two VM's connected to a running networking-recipe in host or container
 #
 run_demo() {
-	# TODO Check if P4-OVS is running locally or in IPDK container and depending
+	# TODO Check if networking-recipe is running locally or in IPDK container and depending
 	# on that start docker demo or host demo
 
 	# Run P4-eBPF demo if using that image
@@ -386,7 +389,7 @@ run_demo() {
 # Stop the demo from running
 #
 stop_demo() {
-	# TODO Stop the P4-OVS demo
+	# TODO Stop the networking-recipe demo
 
 	if [ "${IMAGE_NAME}" == "ghcr.io/ipdk-io/ipdk-ebpf-ubuntu2004-x86_64" ] ; then
 		pushd "${DOCKERBUILDDIR}" || exit
@@ -536,7 +539,7 @@ help() {
 		       --export [filename]
 		         export the build image to a tarred file
 		   start
-		     run P4OVS in a long running IPDK docker container
+		     run networking-recipe processes in a long running IPDK docker container
 		       -d - run as daemon
 		       -v/--volume - run with given volume path connected to /tmp
 		       --name <container_name> 

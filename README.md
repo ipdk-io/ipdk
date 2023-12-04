@@ -16,7 +16,7 @@ infrastructure as an open source community.
 
 ## Building and Using IPDK
 
-Instructions for how to build IPDK are found in two places:
-
-* [Networking Builds](build/networking/README.md)
-* [Storage Builds](build/storage/README.md)
+Instructions for how to build IPDK are found under
+[Networking Builds](build/README.md).
+Storage-related work has been transitioned into OPI project - see
+[RELEASENOTES for v23.07](RELEASENOTES.md).

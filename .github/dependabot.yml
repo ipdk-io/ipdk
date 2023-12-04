@@ -13,27 +13,3 @@ updates:
     directory: "/build/networking"
     schedule:
       interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/build/storage"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/build/storage/tests/it/test-drivers"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/build/storage/tests/it/traffic-generator"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/build/storage/spdk/docker/spdk-app"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/build/storage/spdk/docker/traffic-generator"
-    schedule:
-      interval: "weekly"
-  - package-ecosystem: "docker"
-    directory: "/build/storage/spdk/docker/build_base"
-    schedule:
-      interval: "weekly"

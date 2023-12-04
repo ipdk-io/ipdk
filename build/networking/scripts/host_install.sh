@@ -1,176 +1,94 @@
 #!/bin/bash
-#Copyright (C) 2021 Intel Corporation
+#Copyright (C) 2021-2023 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 #
 # Version 0.1.0
 
-# shellcheck source=networking/scripts/os_ver_details.sh
-source "${SCRIPT_DIR}/os_ver_details.sh"
-get_os_ver_details
-
 usage() {
     echo ""
     echo "Usage:"
-    echo "host_install.sh: -s -p <proxy> -d <base directory of source>"
+    echo "host_install.sh: -d|--ipdk-base-dir -s|--skip-deps-install -p|--proxy -w|--workdir -h|--help"
     echo ""
-    echo "  -d: Base directory of source"
-    echo "  -p: Proxy to use"
-    echo "  -s: Skip installing and building dependencies"
+    echo "  -d|--ipdk-base-dir: Base directory of source"
+    echo "  -h|--help: Displays help"
+    echo "  -p|--proxy: Proxy to use"
+    echo "  -s|--skip-deps-install: Skip installing and building dependencies"
+    echo "  -w|--workdir: Working directory. [Default: /root"
     echo ""
 }
 
-INSTALL_DEPENDENCIES=y
-IPDK_BASE=/git
+# Parse command-line options.
+SHORTOPTS=d:,h,p:,s:w:
+LONGOPTS=ipdk-base-dir:,help,proxy:,skip-deps-install:,workdir:
 
-# Process commandline arguments
-while getopts d:p:s flag
-do
-    case "${flag}" in
-        d)
-            IPDK_BASE="${OPTARG}"
-            ;;
-        p) 
-            http_proxy="${OPTARG}"
-            https_proxy="${OPTARG}"
-            export http_proxy
-            export https_proxy
-            ;;
-        s)
-            INSTALL_DEPENDENCIES=n
-            ;;
-        *)
-            usage
-            exit
-            ;;
+GETOPTS=$(getopt -o ${SHORTOPTS} --long ${LONGOPTS} -- "$@")
+eval set -- "${GETOPTS}"
+
+# Set defaults.
+INSTALL_DEPENDENCIES=y
+IPDK_BASE_DIR=/git
+SCRIPTS_DIR="/root/scripts"
+WORKING_DIR="/root"
+
+# Process command-line options.
+while true ; do
+    case "${1}" in
+    -d|--ipdk-base-dir)
+        IPDK_BASE_DIR="${2}"
+        shift 2 ;;
+    -h|--help)
+      usage
+      exit 1 ;;
+    -p|--prorxy)
+        http_proxy="${2}"
+        https_proxy="${2}"
+        export http_proxy
+        export https_proxy
+        shift 2 ;;
+    -s|--skip-deps-install)
+        INSTALL_DEPENDENCIES=n
+        shift 2 ;;
+    -w|--workdir)
+        WORKING_DIR="${2}"
+        SCRIPTS_DIR="${WORKING_DIR}/scripts"
+        shift 2 ;;
+    --)
+        shift
+        break ;;
+    *)
+        echo "Internal error!"
+        exit 1 ;;
     esac
 done
 
-export INSTALL_DEPENDENCIES
+# Display argument data after parsing commandline arguments
+echo ""
+echo "IPDK_BASE_DIR: ${IPDK_BASE_DIR}"
+echo "INSTALL_DEPENDENCIES: ${INSTALL_DEPENDENCIES}"
+echo "SCRIPTS_DIR: ${SCRIPTS_DIR}"
+echo "WORKING_DIR: ${WORKING_DIR}"
+echo ""
 
-if [ "${OS}" = "Ubuntu" ]
-then
-    echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
-
-    apt-get update
-
-    apt-get install -y apt-utils \
-        git \
-        meson \
-        cmake \
-        libtool \
-        clang \
-        gcc \
-        g++ \
-        autoconf \
-        automake \
-        autoconf-archive \
-        libconfig++-dev \
-        libgc-dev \
-        unifdef \
-        libffi-dev \
-        libboost-iostreams-dev \
-        libboost-graph-dev \
-        llvm \
-        pkg-config \
-        flex libfl-dev \
-        zlib1g-dev \
-        iproute2 \
-        net-tools \
-        iputils-arping \
-        iputils-ping \
-        iputils-tracepath \
-        python \
-        pip \
-        bison \
-        python3-setuptools \
-        python3-pip \
-        python3-wheel \
-        python3-cffi \
-        libedit-dev \
-        libgmp-dev \
-        libexpat1-dev \
-        libboost-dev \
-        google-perftools \
-        curl \
-        connect-proxy \
-        coreutils \
-        sudo \
-        numactl \
-        make
-
-        pip install --upgrade pip && \
-        pip install grpcio \
-            ovspy \
-            protobuf==3.20.1 \
-            p4runtime \
-            pyelftools \
-            scapy \
-            six
-else
-    dnf -y update && \
-    dnf install -y git \
-    meson \
-    cmake \
-    libtool \
-    clang \
-    gcc \
-    g++ \
-    autoconf \
-    automake \
-    autoconf-archive \
-    libconfig \
-    libgc-devel \
-    unifdef \
-    libffi-devel \
-    boost-iostreams \
-    boost-graph \
-    llvm \
-    pkg-config \
-    flex flex-devel \
-    zlib-devel \
-    iproute \
-    net-tools \
-    iputils \
-    python \
-    pip \
-    bison \
-    python3-setuptools \
-    python3-pip \
-    python3-wheel \
-    python3-cffi \
-    libedit-devel \
-    gmp-devel \
-    expat-devel \
-    boost-devel \
-    google-perftools \
-    curl \
-    connect-proxy \
-    coreutils \
-    numactl-devel \
-    which
-
-    # Installing all PYTHON packages
-    python -m pip install --upgrade pip && \
-    python -m pip install grpcio && \
-    python -m pip install ovspy && \
-    python -m pip install protobuf==3.20.1 && \
-    python -m pip install p4runtime && \
-    pip3 install pyelftools && \
-    pip3 install scapy && \
-    pip3 install six
-fi
-
-pushd /root || exit
-cp -r "${IPDK_BASE}"/ipdk/build/networking/scripts .
-cp -r "${IPDK_BASE}"/ipdk/build/networking/examples .
-cp -r "${IPDK_BASE}"/ipdk/build/networking/patches .
-cp "${IPDK_BASE}"/ipdk/build/networking/start_p4ovs.sh start_p4ovs.sh
-cp "${IPDK_BASE}"/ipdk/build/networking/run_ovs_cmds run_ovs_cmds
+pushd "${WORKING_DIR}" || exit
+cp -r "${IPDK_BASE_DIR}"/ipdk/build/networking/scripts .
+cp -r "${IPDK_BASE_DIR}"/ipdk/build/networking/examples .
+cp -r "${IPDK_BASE_DIR}"/ipdk/build/networking/patches .
+cp "${IPDK_BASE_DIR}"/ipdk/build/networking/install_nr_modules.sh install_nr_modules.sh
+cp "${IPDK_BASE_DIR}"/ipdk/build/networking/run_ovs_cmds run_ovs_cmds
 popd
 
+# shellcheck source=networking/scripts/os_ver_details.sh
+source "${SCRIPTS_DIR}"/os_ver_details.sh
+get_os_ver_details
+
+export INSTALL_DEPENDENCIES
+
+# Installing standarnd packages
+"${SCRIPTS_DIR}"/distro_pkg_install.sh --install-dev-pkgs --scripts-dir="${SCRIPTS_DIR}"
+
 export OS_VERSION=20.04
-export IMAGE_NAME=ipdk/p4-ovs-ubuntu20.04
-export REPO="${IPDK_BASE}"/ipdk
+export IMAGE_NAME=ipdk/nr-ubuntu20.04
+export REPO="${IPDK_BASE_DIR}"/ipdk
 TAG="$(cd "${REPO}" && git rev-parse --short HEAD)"
 export TAG
 
@@ -179,6 +97,8 @@ echo "$IMAGE_NAME"
 echo "$REPO"
 echo "$TAG"
 
-/root/start_p4ovs.sh /root && \
-    rm -rf /root/P4OVS_DEPS_SRC_CODE && \
-    cd /root/P4-OVS/ && make clean
+"${WORKING_DIR}"/scripts/install_cmake_3.20.2.sh
+"${WORKING_DIR}"/install_nr_modules.sh --workdir="${WORKING_DIR}"
+
+# Generate and install certificates required for TLS
+COMMON_NAME=localhost "${WORKING_DIR}"/scripts/generate_tls_certs.sh --workdir="${WORKING_DIR}"

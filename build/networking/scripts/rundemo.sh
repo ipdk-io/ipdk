@@ -1,5 +1,5 @@
 #!/bin/bash
-#Copyright (C) 2021-2022 Intel Corporation
+#Copyright (C) 2021-2023 Intel Corporation
 #SPDX-License-Identifier: Apache-2.0
 
 stty -echoctl # hide ctrl-c
@@ -7,42 +7,70 @@ stty -echoctl # hide ctrl-c
 usage() {
     echo ""
     echo "Usage:"
-    echo "rundemo.sh: -d <base directory of source>"
+    echo "rundemo.sh: -w|--workdir -h|--help"
     echo ""
-    echo "  -d: Base directory of source"
+    echo "  -h|--help: Displays help"
+    echo "  -w|--workdir: Working directory"
     echo ""
 }
 
-IPDK_BASE=/git
+# Parse command-line options.
+SHORTOPTS=:h,w:
+LONGOPTS=help,workdir:
 
-# Process commandline arguments
-while getopts d: flag
-do
-    case "${flag}" in
-        d)
-            IPDK_BASE="${OPTARG}"
-            ;;
-        *)
-            usage
-            exit
-            ;;
+GETOPTS=$(getopt -o ${SHORTOPTS} --long ${LONGOPTS} -- "$@")
+eval set -- "${GETOPTS}"
+
+# Set defaults.
+WORKING_DIR=/root
+
+# Process command-line options.
+while true ; do
+    case "${1}" in
+    -h|--help)
+        usage
+        exit 1 ;;
+    -w|--workdir)
+        WORKING_DIR="${2}"
+        shift 2 ;;
+    --)
+        shift
+        break ;;
+    *)
+        echo "Internal error!"
+        exit 1 ;;
     esac
 done
+
+SCRIPTS_DIR="${WORKING_DIR}"/scripts
+DEPS_INSTALL_DIR="${WORKING_DIR}"/networking-recipe/deps_install
+P4C_INSTALL_DIR="${WORKING_DIR}"/p4c/install
+SDE_INSTALL_DIR="${WORKING_DIR}"/p4-sde/install
+NR_INSTALL_DIR="${WORKING_DIR}"/networking-recipe/install
 
 # Exit function
 exit_function()
 {
     echo "Exiting cleanly"
-    pushd /root || exit
+    pushd "${WORKING_DIR}" || exit
     rm -f network-config-v1.yaml meta-data user-data
     pkill qemu
     rm -rf /tmp/vhost-user-*
-    rm -f vm1.qcow2 vm2.qcow2
+    rm -f "${WORKING_DIR}"/vm1.qcow2 "${WORKING_DIR}"/vm2.qcow2
+    rm -rf "${WORKING_DIR}"/seed1.img "${WORKING_DIR}"/seed2.img
     popd || exit
     exit
 }
 
-trap 'exit_function' SIGINT
+# Display argument data after parsing commandline arguments
+echo ""
+echo "WORKING_DIR: ${WORKING_DIR}"
+echo "SCRIPTS_DIR: ${SCRIPTS_DIR}"
+echo "DEPS_INSTALL_DIR: ${DEPS_INSTALL_DIR}"
+echo "P4C_INSTALL_DIR: ${P4C_INSTALL_DIR}"
+echo "SDE_INSTALL_DIR: ${SDE_INSTALL_DIR}"
+echo "NR_INSTALL_DIR: ${NR_INSTALL_DIR}"
+echo ""
 
 echo ""
 echo "Cleaning from previous run"
@@ -50,15 +78,14 @@ echo ""
 
 pkill qemu
 rm -rf /tmp/vhost-user-*
-killall ovsdb-server
-killall ovs-vswitchd
+killall infrap4d
 
 echo ""
 echo "Creating Ubuntu focal image"
 echo ""
 
-pushd /root || exit
-"${IPDK_BASE}"/ipdk/build/networking/scripts/get-image.sh focal
+pushd "${WORKING_DIR}" || exit
+"${SCRIPTS_DIR}"/get-image.sh focal
 rm -f vm1.qcow2 vm2.qcow2
 cp focal-server-cloudimg-amd64.img vm1.qcow2
 cp focal-server-cloudimg-amd64.img vm2.qcow2
@@ -101,7 +128,7 @@ runcmd:
 EOF
 
 cloud-localds -v --network-config=network-config-v1.yaml \
-    seed1.img user-data meta-data
+    "${WORKING_DIR}"/seed1.img user-data meta-data
 
 rm -f network-config-v1.yaml meta-data user-data
 
@@ -137,51 +164,64 @@ runcmd:
 EOF
 
 cloud-localds -v --network-config=network-config-v1.yaml \
-    seed2.img user-data meta-data
+    "${WORKING_DIR}"/seed2.img user-data meta-data
 
 rm -f network-config-v1.yaml meta-data user-data
 
+
 echo ""
-echo "Setting hugepages up and starting P4-OVS"
+echo "Setting hugepages up and starting networking-recipe processes"
 echo ""
 
-pushd /root/P4-OVS || exit
+unset http_proxy
+unset https_proxy
+unset HTTP_PROXY
+unset HTTPS_PROXY
+
+pushd "${WORKING_DIR}" || exit
 # shellcheck source=/dev/null
-. /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install /root/p4ovs/P4OVS_DEPS_INSTALL
-/root/scripts/set_hugepages.sh
-/root/scripts/run_ovs.sh /root/p4ovs/P4OVS_DEPS_INSTALL
+. "${SCRIPTS_DIR}"/initialize_env.sh --sde-install-dir="${SDE_INSTALL_DIR}" \
+      --nr-install-dir="${NR_INSTALL_DIR}" --deps-install-dir="${DEPS_INSTALL_DIR}" \
+      --p4c-install-dir="${P4C_INSTALL_DIR}"
+
+# shellcheck source=/dev/null
+. "${SCRIPTS_DIR}"/set_hugepages.sh
+
+# shellcheck source=/dev/null
+. "${SCRIPTS_DIR}"/setup_nr_cfg_files.sh --nr-install-dir="${NR_INSTALL_DIR}" \
+      --sde-install-dir="${SDE_INSTALL_DIR}"
+
+# shellcheck source=/dev/null
+. "${SCRIPTS_DIR}"/run_infrap4d.sh --nr-install-dir="${NR_INSTALL_DIR}"
 popd || exit
 
 echo ""
-echo "Creating vhost-user ports"
+echo "Creating TAP ports"
 echo ""
 
-pushd /root/P4-OVS || exit
-# shellcheck source=/dev/null
-. /root/P4-OVS/p4ovs_env_setup.sh /root/p4-sde/install /root/p4ovs/P4OVS_DEPS_INSTALL
-
-# Wait for P4-OVS to start gRPC server and open ports for clients to connect.
+pushd "${WORKING_DIR}" || exit
+# Wait for networking-recipe processes to start gRPC server and open ports for clients to connect.
 sleep 1
 
-gnmi-cli set "device:virtual-device,name:net_vhost0,host:host1,\
+gnmi-ctl set "device:virtual-device,name:net_vhost0,host-name:host1,\
     device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-0,\
     port-type:LINK"
-gnmi-cli set "device:virtual-device,name:net_vhost1,host:host2,\
+gnmi-ctl set "device:virtual-device,name:net_vhost1,host-name:host2,\
     device-type:VIRTIO_NET,queues:1,socket-path:/tmp/vhost-user-1,\
     port-type:LINK"
 popd || exit
 
 echo ""
-echo "Generating dependent files from P4C and OVS pipeline builder"
+echo "Generating dependent files from P4C and pipeline builder"
 echo ""
 
-export OUTPUT_DIR=/root/examples/simple_l3/
-export PATH=$PATH:/root/p4c/install/bin
-p4c --arch psa --target dpdk --output $OUTPUT_DIR/pipe --p4runtime-files \
-    $OUTPUT_DIR/p4Info.txt --bf-rt-schema $OUTPUT_DIR/bf-rt.json \
-    --context $OUTPUT_DIR/pipe/context.json $OUTPUT_DIR/simple_l3.p4
-pushd /root/examples/simple_l3/ || exit
-ovs_pipeline_builder --p4c_conf_file=simple_l3.conf \
+export OUTPUT_DIR="${WORKING_DIR}"/examples/simple_l3/
+p4c --arch psa --target dpdk --output "${OUTPUT_DIR}"/pipe --p4runtime-files \
+    "${OUTPUT_DIR}"/p4Info.txt --bf-rt-schema "${OUTPUT_DIR}"/bf-rt.json \
+    --context "${OUTPUT_DIR}"/pipe/context.json "${OUTPUT_DIR}"/simple_l3.p4
+
+pushd "${WORKING_DIR}"/examples/simple_l3 || exit
+tdi_pipeline_builder --p4c_conf_file=simple_l3.conf \
     --bf_pipeline_config_binary_file=simple_l3.pb.bin
 popd || exit
 
@@ -189,13 +229,27 @@ echo ""
 echo "Starting VM1_TAP_DEV"
 echo ""
 
-pushd /root || exit
+KVM_PATH=/usr/bin/kvm
+QEMU_KVM_PATH=/usr/bin/qemu-kvm
+QEMU_BIN_PATH=""
+
+if [ -f "${KVM_PATH}" ]; then
+    QEMU_BIN_PATH="kvm"
+fi
+
+if [ -f "${QEMU_KVM_PATH}" ]; then
+    QEMU_BIN_PATH="qemu-kvm"
+fi
+
+echo "Using QEMU: ${QEMU_BIN_PATH}"
+
+pushd "${SCRIPTS_DIR}" || exit
     #-object memory-backend-file,id=mem,size=1024M,mem-path=/hugetlbfs1,share=on \
-kvm -smp 1 -m 256M \
+"${QEMU_KVM_PATH}" -smp 1 -m 256M \
     -boot c -cpu host --enable-kvm -nographic \
     -name VM1_TAP_DEV \
-    -hda ./vm1.qcow2 \
-    -drive file=seed1.img,id=seed,if=none,format=raw,index=1 \
+    -hda "${WORKING_DIR}"/vm1.qcow2 \
+    -drive file="${WORKING_DIR}"/seed1.img,id=seed,if=none,format=raw,index=1 \
     -device virtio-blk,drive=seed \
     -object memory-backend-file,id=mem,size=256M,mem-path=/mnt/huge,share=on \
     -numa node,memdev=mem \
@@ -222,11 +276,11 @@ echo ""
 echo "Starting VM2_TAP_DEV"
 echo ""
 
-kvm -smp 1 -m 256M \
+"${QEMU_KVM_PATH}" -smp 1 -m 256M \
     -boot c -cpu host --enable-kvm -nographic \
     -name VM2_TAP_DEV \
-    -hda ./vm2.qcow2 \
-    -drive file=seed2.img,id=seed,if=none,format=raw,index=1 \
+    -hda "${WORKING_DIR}"/vm2.qcow2 \
+    -drive file="${WORKING_DIR}"/seed2.img,id=seed,if=none,format=raw,index=1 \
     -device virtio-blk,drive=seed \
     -object memory-backend-file,id=mem,size=256M,mem-path=/mnt/huge,share=on \
     -numa node,memdev=mem \
@@ -238,12 +292,12 @@ kvm -smp 1 -m 256M \
 popd || exit
 
 echo ""
-echo "Programming P4-OVS pipelines"
+echo "Programming target pipelines"
 echo ""
 
-ovs-p4ctl set-pipe br0 /root/examples/simple_l3/simple_l3.pb.bin \
-    /root/examples/simple_l3/p4Info.txt
-ovs-p4ctl add-entry br0 ingress.ipv4_host \
+p4rt-ctl set-pipe br0 "${WORKING_DIR}"/examples/simple_l3/simple_l3.pb.bin \
+    "${WORKING_DIR}"/examples/simple_l3/p4Info.txt
+p4rt-ctl add-entry br0 ingress.ipv4_host \
     "hdr.ipv4.dst_addr=1.1.1.1,action=ingress.send(0)"
-ovs-p4ctl add-entry br0 ingress.ipv4_host \
+p4rt-ctl add-entry br0 ingress.ipv4_host \
     "hdr.ipv4.dst_addr=2.2.2.2,action=ingress.send(1)"

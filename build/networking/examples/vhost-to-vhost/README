@@ -2,7 +2,7 @@
 #SPDX-License-Identifier: Apache-2.0
 
 Prerequisites:
-- P4-OVS container is up and running. 
+- IPDK networking-recipe container is up and running.
 - Two independent VMs are up and running on the host machine/server.
   Its recommeded to look at 'VM Setup' section below.
 
@@ -17,7 +17,7 @@ Pre-requisite: Pre-build VM image.
 Configuration Details:
 a) Add a virtual port vA to say VM A.
 b) Add a virtual port vB to say VM B.
-c) Put vA and vB into a virtual bridge in P4-OVS container using vhost-user interface.
+c) Put vA and vB into a virtual bridge in IPDK networking-recipe container using vhost-user interface.
 d) Ping and/or send traffic sucessfully between VM A & VM B.
 
 P4 Program:
@@ -25,17 +25,17 @@ P4 Program:
 
 
 
-    +-----+          +---------+             +-----+
-    |VM A |<-------->| P4-OVS  |<------------>|VM B |
-    +-----+          |         |	     +-----+
+    +-----+          +---------+              +-----+
+    |VM A |<-------->| IPDK    |<------------>|VM B |
+    +-----+          |         |              +-----+
                      |Container| 
                      +---------+           
 
 
 
 
-How to connect your VM to your P4-OVS container:
-- Recommended way to do this is to create a shared volume between P4-OVS container and your VM. This can be done with 'docker create volume' command. 
+How to connect your VM to your IPDK networking-recipe container:
+- Recommended way to do this is to create a shared volume between IPDK networking-recipe container and your VM. This can be done with 'docker create volume' command.
 
 
 

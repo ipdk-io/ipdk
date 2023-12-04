@@ -2,19 +2,21 @@ name: 'CI'
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - ipdk_v*
     paths:
       - 'build/networking/**'
       - 'build/networking_ebpf/**'
       - 'build/scripts/**'
-      - 'build/storage/**'
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+      - ipdk_v*
     paths:
       - 'build/networking/**'
       - 'build/networking_ebpf/**'
       - 'build/scripts/**'
-      - 'build/storage/**'
 
 concurrency:
   # if workflow for PR or push is already running stop it, and start new one
