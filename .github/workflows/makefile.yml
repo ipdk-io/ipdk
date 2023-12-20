@@ -116,7 +116,7 @@ jobs:
 
     - name: Upload build artifact
       if: github.event_name == 'pull_request'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.os }}-${{ steps.system.outputs.arch }}
         path: /tmp/${{ matrix.os }}-${{ steps.system.outputs.arch }}.tar
