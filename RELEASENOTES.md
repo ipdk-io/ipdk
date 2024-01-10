@@ -10,12 +10,14 @@ release.
 #### Features and enhancements
 
 * Exception packet handling - Enhance Linux Networking with multiple VNI
-support, port to bridge association and VLAN traffic offload
+support, port to bridge association and VLAN traffic offload (Intel IPU E2100
+target only)
 * Packet IO feature support to facilitate the exchange of packets between
-control plane applications and P4 dataplane
+control plane applications and P4 dataplane (Intel IPU E2100 target only)
 * Supports active-backup use case of LAG on IDPF interfaces done via bonding
 driver (Intel IPU E2100 target only)
-* Supports both indexed and direct meters in policer mode
+* Supports both indexed and direct meters in policer mode (Intel IPU E2100
+target only)
 * Security enhancements
   * Upgrade from OpenSSL 1.1.1x to 3.x
   * Library updates to address security issues
