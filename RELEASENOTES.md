@@ -4,13 +4,17 @@
 
 ### Networking Recipe
 
-The networking recipe enhances and extends the functionality enabled in 23.07 release.
+The networking recipe enhances and extends the functionality enabled in 23.07
+release.
 
 #### Features and enhancements
 
-* Exception packet handling - Enhance Linux Networking with multiple VNI support, port to bridge association and VLAN traffic offload
-* Packet IO feature support to facilitate the exchange of packets between control plane applications and P4 dataplane
-* Supports active-backup use case of LAG on IDPF interfaces done via bonding driver (Intel IPU E2100 target only)
+* Exception packet handling - Enhance Linux Networking with multiple VNI
+support, port to bridge association and VLAN traffic offload
+* Packet IO feature support to facilitate the exchange of packets between
+control plane applications and P4 dataplane
+* Supports active-backup use case of LAG on IDPF interfaces done via bonding
+driver (Intel IPU E2100 target only)
 * Supports both indexed and direct meters in policer mode
 * Security enhancements
   * Upgrade from OpenSSL 1.1.1x to 3.x
@@ -29,12 +33,16 @@ The networking recipe enhances and extends the functionality enabled in 23.07 re
   * LAG configuration to be done via bonding driver
   * LAG configuration mode supported from infrap4d is active-backup
   * For active-backup at least 2 links should be part of one lag group
-  * ECMP and LAG functionality are mutually exclusive, they cannot co-exist in the same .p4 profile
-  * Number of nexthop table entries cannot go beyond 8K because now we put nexthop table in WCM table
-  * Tunnel non LAG packets, we need to add manually entries to tx_lag_table with action as bypass
-  * Underlay LAG interface/members should not be associated with any OvS bridge.
+  * ECMP and LAG functionality are mutually exclusive, they cannot co-exist
+  in the same .p4 profile
+  * Number of nexthop table entries cannot go beyond 8K because now we put
+  nexthop table in WCM table
+  * Tunnel non LAG packets, we need to add manually entries to tx_lag_table
+  with action as bypass
+  * Underlay LAG interface/members should not be associated with any OvS bridge
 * Packet IO feature limitations:
-  * Supports maximum of 2 vports and each port supports maximum of 4 rx and tx queues
+  * Supports maximum of 2 vports and each port supports maximum of 4 rx and t
+   queues
 * Policer Meters feature limitations:
   * No command line interface is available for deleting meter configurations
   * Direct meter configuration is not completely displayed in IMC logs
