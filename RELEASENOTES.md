@@ -9,19 +9,21 @@ release.
 
 #### Features and enhancements
 
-* Exception packet handling - Enhance Linux Networking with multiple VNI
+* Exception packet handling - Enhanced Linux Networking with multiple VNI
 support, port to bridge association and VLAN traffic offload (Intel IPU E2100
-target only)
-* Packet IO feature support to facilitate the exchange of packets between
-control plane applications and P4 dataplane (Intel IPU E2100 target only)
-* Supports active-backup use case of LAG on IDPF interfaces done via bonding
-driver (Intel IPU E2100 target only)
-* Supports both indexed and direct meters in policer mode (Intel IPU E2100
-target only)
+target only).
+* Link Aggregation Group (LAG) - Supports active-backup use case of LAG on IDPF
+interfaces done via bonding driver. This LAG interface is used only for underlay
+connectivity in Exception packet handling feature. (Intel IPU E2100 target only).
+* Packet IO - Facilitates the exchange of packets between control plane
+applications and P4 dataplane (Intel IPU E2100 target only).
+* Indexed and direct meters in policer mode - Metering along with policer
+allows the users to determine the amount of data used and then control the
+usage. (Intel IPU E2100 target only).
 * Security enhancements
   * Upgrade from OpenSSL 1.1.1x to 3.x
   * Library updates to address security issues
-    * Fixed in `gRPC` 1.59.2: CVE-2023-33953, CVE-2023-4785
+    * Upgraded gRPC to 1.59.2 to address CVE-2023-33953, CVE-2023-4785
     * Upgraded `protobuf` to version 25.0
     * Upgraded `abseil-cpp` to version 20230802.0
     * Upgraded `zlib` to version 1.3
@@ -31,23 +33,37 @@ target only)
 
 #### Limitations
 
+* Exception packet handling feature limitations:
+  * VLAN configuration on OvS is supported only for NATIVE-TAG and NATIVE-UNTAG
+  modes.
+  * Physical port's port representor should be added as the 1st port in Tunnel
+  TEP bridge.
+  * Only OvS bridges are supported
+  * Configure p4rt-ctl runtime rules before OvS configuration.
+  * Double vlan tag is not supported.
+  * For VxLAN underlay connectivity, IPv6 Link Local as nexthop is not
+  supported.
+  * For non FRR usecase, add a route with remote TEP IPv4/IPv6 as nexthop.
+  * IPv4-in-IPv6 and IPv6-in-IPv4 is not supported.
+  * VXLAN destination port should always be standard port i.e. 4789 to satisfy
+  parser limitation.
+  * Any ofproto rules altering FDB learning on OVS are not supported.
+  * East-west traffic for fast path is not supported.
+  * Local IP for VxLAN configuration need to be provided.
 * Link Aggregation Group(LAG) feature limitations:
   * LAG configuration to be done via bonding driver
   * LAG configuration mode supported from infrap4d is active-backup
   * For active-backup at least 2 links should be part of one lag group
   * ECMP and LAG functionality are mutually exclusive, they cannot co-exist
   in the same .p4 profile
-  * Number of nexthop table entries cannot go beyond 8K because now we put
-  nexthop table in WCM table
-  * Tunnel non LAG packets, we need to add manually entries to tx_lag_table
-  with action as bypass
+  * Number of nexthop table entries cannot go beyond 8K because nexthop table
+  is of type WCM and hardware limits the no. of entries to 8K.
+  * To encap VxLAN outer header for non underlay LAG interfaces, we need to
+  manually add entries in tx_lag_table with action as bypass.
   * Underlay LAG interface/members should not be associated with any OvS bridge
 * Packet IO feature limitations:
-  * Supports maximum of 2 vports and each port supports maximum of 4 rx and t
+  * Supports maximum of 2 vports and each port supports maximum of 4 rx and tx
    queues
-* Policer Meters feature limitations:
-  * No command line interface is available for deleting meter configurations
-  * Direct meter configuration is not completely displayed in IMC logs
 
 ## v23.07
 
