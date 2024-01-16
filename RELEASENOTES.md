@@ -77,6 +77,39 @@ usage. (Intel IPU E2100 target only).
   * Supports maximum of 2 vports and each port supports maximum of 4 rx and tx
    queues
 
+### K8s Recipe
+
+#### Features and enhancements
+
+* Service Load Balancing: Support for K8s Service of type ClusterIP.
+   Kubeproxy implementation is now offloaded to hardware.
+   Services can be created and dynamically distributed to endpoints.
+   For TCP, only the SYN packet goes through the load-balancing logic.
+   Entry is added to hardware CT table for treatment of subsequent packets.
+   Support for dynamic scale-up of endpoints.
+* Support for Go version 1.21.4
+* Support for log level configuration from config files for Infraagent
+* SRIOV support for ES2100
+* Bug fixes
+
+#### Limitations
+
+* The setup_infra.sh automation script, works with the default configuration
+  for certificate paths and artifact paths. Any changes in these paths will
+  render the script unusable.
+  User may need to manually configure and execute instructions mentioned in
+  the script.
+- SRIOV is an experimental feature. The setup_infra_sriov.sh script doesn't
+  support the -r option for remote IP for host IP on ACC. Host mode is
+  supported for this release as an engineering preview.
+- Max supported CDQ interfaces are 254 as max vport for host. The default
+  max vport in the cdq use case cp_init file has been provided as 50 which
+  can be configured.
+- RSS configuration in P4 isn't present and hence SRIOV throughput is seen
+  slightly lower.
+- Service Load Balancing for TCP has few random session resets. Known issue
+  and bugfix to be available in a future minor release.
+
 ## v23.07
 
 ### Storage
