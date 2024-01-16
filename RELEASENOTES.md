@@ -83,10 +83,10 @@ usage. (Intel IPU E2100 target only).
 
 * Service Load Balancing: Support for K8s Service of type ClusterIP.
    Kubeproxy implementation is now offloaded to hardware.
-   Services can be created and dynamically distributed to endpoints.
-   For TCP, only the SYN packet goes through the load-balancing logic.
-   Entry is added to hardware CT table for treatment of subsequent packets.
-   Support for dynamic scale-up of endpoints.
+   TCP and UDP services can be created and are dynamically distributed to
+   endpoints. The first packet of each flow goes through load balancing logic,
+   and the result is cached in hardware auto-add table for treatment of
+   subsequent packets, resulting in increased efficiency.
 * Support for Go version 1.21.4
 * Support for log level configuration from config files for infraagent
 * SRIOV support for Intel IPU E2100
