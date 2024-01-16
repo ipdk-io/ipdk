@@ -99,15 +99,15 @@ usage. (Intel IPU E2100 target only).
   render the script unusable.
   User may need to manually configure and execute instructions mentioned in
   the script.
-- SRIOV is an experimental feature. The setup_infra_sriov.sh script doesn't
+* SRIOV is an experimental feature. The setup_infra_sriov.sh script doesn't
   support the -r option for remote IP for host IP on ACC. Host mode is
   supported for this release as an engineering preview.
-- Max supported CDQ interfaces are 254 as max vport for host. The default
+* Max supported CDQ interfaces are 254 as max vport for host. The default
   max vport in the cdq use case cp_init file has been provided as 50 which
   can be configured.
-- RSS configuration in P4 isn't present and hence SRIOV throughput is seen
+* RSS configuration in P4 isn't present and hence SRIOV throughput is seen
   slightly lower.
-- Service Load Balancing for TCP has few random session resets. Known issue
+* Service Load Balancing for TCP has few random session resets. Known issue
   and bugfix to be available in a future minor release.
 
 ## v23.07
