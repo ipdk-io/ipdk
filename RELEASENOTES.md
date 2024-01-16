@@ -2,6 +2,18 @@
 
 ## v24.01
 
+### Storage Recipe
+
+The locations for the storage work are OPI repositories, in particular:
+
+* [opi-spdk-bridge](https://github.com/opiproject/opi-spdk-bridge) for a purely
+  SW-based implementation bridging OPI gRPC to SPDK JSON RPCs
+* [opi-intel-bridge](https://github.com/opiproject/opi-intel-bridge) for OPI
+  gRPC to Intel SDK bridge
+
+See [v0.2.0](https://github.com/opiproject/opi-intel-bridge/releases/tag/v0.2.0)
+for the corresponding OPI release details.
+
 ### Networking Recipe
 
 The networking recipe enhances and extends the functionality enabled in 23.07
@@ -72,7 +84,7 @@ usage. (Intel IPU E2100 target only).
 IPDK Storage was successfully transitioned to OPI. The support of
 [SMA API](https://spdk.io/doc/sma.html) was dropped in favor of supporting
 [OPI Storage API](https://github.com/opiproject/opi-api/tree/main/storage).
-The new location for the storage work are OPI repositories, in particular:
+The new locations for the storage work are OPI repositories, in particular:
 
 * [opi-spdk-bridge](https://github.com/opiproject/opi-spdk-bridge) for a purely
   SW-based implementation bridging OPI gRPC to SPDK JSON RPCs
