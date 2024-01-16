@@ -77,7 +77,7 @@ usage. (Intel IPU E2100 target only).
   * Supports maximum of 2 vports and each port supports maximum of 4 rx and tx
    queues
 
-### K8s Recipe
+### Kubernetes Infrastructure Offload Recipe
 
 #### Features and enhancements
 
@@ -88,8 +88,8 @@ usage. (Intel IPU E2100 target only).
    Entry is added to hardware CT table for treatment of subsequent packets.
    Support for dynamic scale-up of endpoints.
 * Support for Go version 1.21.4
-* Support for log level configuration from config files for Infraagent
-* SRIOV support for ES2100
+* Support for log level configuration from config files for infraagent
+* SRIOV support for Intel IPU E2100
 * Bug fixes
 
 #### Limitations
