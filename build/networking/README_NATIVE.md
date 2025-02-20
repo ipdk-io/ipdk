@@ -7,6 +7,16 @@ container.
 
 ## Steps To Install
 
+Install a supported OS on a physical machine or VM with:
+
++ x86_64 processor architecture
++ With 4 CPU cores, at least 8 GB of RAM.  Systems with more CPU cores
+  may require more RAM due to more compilation commands being run in
+  parallel.
++ At least 7 GB of free disk space.  The install should finish using
+  only about 5 GB more than before the install begins, but it
+  temporarily uses more disk space during the installation.
+
 ### Clone the repository
 
 ```bash
@@ -21,39 +31,26 @@ root@linux:~# git clone https://github.com/ipdk-io/ipdk.git
 Without a proxy:
 
 ```bash
-root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh
+root@linux:~# <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -d <CLONE-PATH>
 ```
 
-*Note*: This assumes your default source directory is `/git/` and searches for `ipdk`
-repository under default source directory. Output of this command copies
-necessary files to `/root/` by default.
+*Note*: Output of this command copies necessary files to `/root/` by
+default.
 
 If using a proxy:
 
 ```bash
-root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -p [proxy name]
+root@linux:~# <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -d <CLONE-PATH> -p [proxy name]
 ```
 
-*Note*: This assumes your default source directory is `/git/` and searches for `ipdk`
-repository under default source directory. Output of this command copies
-necessary files to `/root/` by default.
+*Note*: Output of this command copies necessary files to `/root/` by
+default.
 
 If user wants to copy necessary dependent files to a specific location, use `--workdir` option.
 
 ```bash
-root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh --workdir=/root/<my_own_dir>
+root@linux:~# <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -d <CLONE-PATH> --workdir=/root/<my_own_dir>
 ```
-
-*Note*: If user is behind proxy, need to provide `-p` with proxy.
-
-If your source directory is in a different location, such as `/opt/src/ipdk`:
-
-```bash
-root@linux:~# SCRIPT_DIR=<CLONE-PATH>/ipdk/build/networking/scripts <CLONE-PATH>/ipdk/build/networking/scripts/host_install.sh -d /opt/src
-```
-
-*Note*: Output of this command copies necessary files to `/root/` by default.
-If user wants to copy necessary dependent files to a specific location use `--workdir` option.
 To skip installing and building dependencies in the future, add a `-s`
 flag to the host_install.sh script.
 
@@ -61,13 +58,13 @@ flag to the host_install.sh script.
 
 ### 1.1 Run the rundemo_TAP_IO.sh script
 
-If `host_install.sh` is excuted with default source directory.
+If `host_install.sh` is executed with default source directory.
 
 ```bash
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo_TAP_IO.sh
 ```
 
-If `host_install.sh` is excuted with `--workdir` option.
+If `host_install.sh` is executed with `--workdir` option.
 
 ```bash
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo_TAP_IO.sh --workdir=/root/<my_own_dir>
@@ -78,13 +75,13 @@ pipeline, configure rules and then validates traffic between TAP ports.
 
 ### 1.2 Run the rundemo.sh script
 
-If `host_install.sh` is excuted with default source directory.
+If `host_install.sh` is executed with default source directory.
 
 ```bash
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo.sh
 ```
 
-If `host_install.sh` is excuted with `--workdir` option.
+If `host_install.sh` is executed with `--workdir` option.
 
 ```bash
 root@linux:~# /<CLONE-PATH>/ipdk/build/networking/scripts/rundemo.sh --workdir=/root/<my_own_dir>
